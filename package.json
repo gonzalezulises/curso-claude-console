@@ -1,0 +1,24 @@
+{
+  "name": "curso-claude-console",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Megacurso: de cero a arquitecto de Claude Code, todo desde Claude Console",
+  "type": "module",
+  "scripts": {
+    "verify": "tsx playground/verify-setup.ts",
+    "hello": "tsx playground/01-hello-claude.ts",
+    "validate-course": "tsx scripts/validate-course.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

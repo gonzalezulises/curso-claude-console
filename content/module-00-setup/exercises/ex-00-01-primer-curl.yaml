@@ -1,0 +1,138 @@
+id: ex-00-01-primer-curl
+type: code-python
+title: "Tu primer request a /v1/messages desde Python"
+lesson_ref: lesson-00-04
+difficulty: beginner
+estimated_time_minutes: 8
+points: 10
+
+description: |
+  En la Lección 04 ejecutaste un curl a /v1/messages. Ahora vas a hacer
+  exactamente lo mismo desde Python usando la librería estándar `urllib`
+  (sin el SDK oficial, para forzarte a entender el protocolo HTTP puro).
+
+  El objetivo es que construyas el request a mano, lo envíes, y extraigas
+  tres campos específicos de la respuesta.
+
+starter_code: |
+  import json
+  import os
+  import urllib.request
+
+  API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+  if not API_KEY:
+      raise SystemExit("Falta ANTHROPIC_API_KEY en el entorno")
+
+  URL = "https://api.anthropic.com/v1/messages"
+
+  # TODO 1: armar el diccionario `body` con los 3 campos obligatorios
+  #         (model, max_tokens, messages). Usa claude-haiku-4-5 y max_tokens=128.
+  #         El único mensaje debe ser del rol "user" pidiendo a Claude
+  #         que responda con la palabra "ok" y nada más.
+  body = {}
+
+  # TODO 2: armar el diccionario `headers` con los 3 headers obligatorios
+  #         (x-api-key, anthropic-version, content-type).
+  headers = {}
+
+  request = urllib.request.Request(
+      URL,
+      data=json.dumps(body).encode("utf-8"),
+      headers=headers,
+      method="POST",
+  )
+
+  with urllib.request.urlopen(request) as response:
+      payload = json.loads(response.read())
+
+  # TODO 3: extraer de `payload` estos tres valores y ponerlos en variables.
+  #         - response_text: el texto del primer bloque de content
+  #         - stop_reason: el motivo de parada
+  #         - total_tokens: suma de input_tokens + output_tokens
+  response_text = ""
+  stop_reason = ""
+  total_tokens = 0
+
+  print(f"text={response_text!r}")
+  print(f"stop_reason={stop_reason}")
+  print(f"total_tokens={total_tokens}")
+
+solution_code: |
+  import json
+  import os
+  import urllib.request
+
+  API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+  if not API_KEY:
+      raise SystemExit("Falta ANTHROPIC_API_KEY en el entorno")
+
+  URL = "https://api.anthropic.com/v1/messages"
+
+  body = {
+      "model": "claude-haiku-4-5",
+      "max_tokens": 128,
+      "messages": [
+          {"role": "user", "content": "Responde con la palabra 'ok' y nada más."}
+      ],
+  }
+
+  headers = {
+      "x-api-key": API_KEY,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+  }
+
+  request = urllib.request.Request(
+      URL,
+      data=json.dumps(body).encode("utf-8"),
+      headers=headers,
+      method="POST",
+  )
+
+  with urllib.request.urlopen(request) as response:
+      payload = json.loads(response.read())
+
+  response_text = payload["content"][0]["text"]
+  stop_reason = payload["stop_reason"]
+  total_tokens = payload["usage"]["input_tokens"] + payload["usage"]["output_tokens"]
+
+  print(f"text={response_text!r}")
+  print(f"stop_reason={stop_reason}")
+  print(f"total_tokens={total_tokens}")
+
+test_cases:
+  - id: test-body-shape
+    description: "El body tiene model, max_tokens y messages bien formados"
+    test_code: |
+      assert body["model"] == "claude-haiku-4-5"
+      assert body["max_tokens"] == 128
+      assert isinstance(body["messages"], list) and len(body["messages"]) == 1
+      assert body["messages"][0]["role"] == "user"
+    points: 3
+
+  - id: test-headers
+    description: "Los 3 headers obligatorios están presentes"
+    test_code: |
+      assert headers.get("x-api-key", "").startswith("sk-ant-api")
+      assert headers.get("anthropic-version") == "2023-06-01"
+      assert headers.get("content-type") == "application/json"
+    points: 3
+
+  - id: test-extraction
+    description: "Los tres valores extraídos tienen la forma esperada"
+    test_code: |
+      assert isinstance(response_text, str) and len(response_text) > 0
+      assert stop_reason in {"end_turn", "max_tokens", "stop_sequence"}
+      assert isinstance(total_tokens, int) and total_tokens > 0
+    points: 4
+
+hints:
+  - "Los 3 headers obligatorios son: x-api-key, anthropic-version (valor 2023-06-01), content-type (valor application/json)."
+  - "`payload['content']` es un array — el primer bloque es `payload['content'][0]` y ese bloque tiene `type='text'` y `text='...'`."
+  - "`usage` está directamente en el payload raíz; tiene `input_tokens` y `output_tokens` como claves separadas."
+
+concepts:
+  - messages-api-basics
+  - http-headers
+  - response-anatomy
+  - usage-tracking

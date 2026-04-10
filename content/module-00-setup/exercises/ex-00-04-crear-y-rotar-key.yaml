@@ -1,0 +1,108 @@
+id: ex-00-04-crear-y-rotar-key
+type: quiz
+title: "Decisiones sobre API keys: workspace vs admin, rotación y seguridad"
+lesson_ref: lesson-00-03
+difficulty: beginner
+estimated_time_minutes: 7
+points: 15
+
+description: |
+  Escenarios prácticos que vas a encontrar como arquitecto de Claude Code:
+  qué tipo de key usar, cómo reaccionar ante una filtración, dónde pueden
+  vivir las credenciales, y cómo rotar sin downtime.
+
+config:
+  passing_score: 80
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: "Tu backend de Node en producción llama a /v1/messages unas 50 veces por minuto. ¿Qué tipo de key debe usar?"
+    options:
+      - id: a
+        text: "Admin API key (sk-ant-admin01-...) con scope a todos los endpoints"
+      - id: b
+        text: "Workspace API key (sk-ant-api03-...) del workspace de producción"
+      - id: c
+        text: "Una admin key 'porque los servidores son más seguros'"
+      - id: d
+        text: "Una key compartida entre workspaces para simplificar"
+    correct: b
+    feedback_correct: "Correcto. Las workspace keys son las correctas para inferencia. Heredan los rate limits del workspace, se ven en Analytics filtrado por workspace, y siguen el principio de menor privilegio (no tienen permisos de gobernanza)."
+    feedback_incorrect: "La respuesta es workspace key. Las admin keys SOLO sirven para /v1/organizations/* (gobernanza), no para /v1/messages. Y aunque 'funcionara', violaría el principio de menor privilegio — si un servidor se compromete, el blast radius debería quedar limitado al workspace, no escalar a control administrativo."
+    points: 3
+
+  - id: q2
+    type: multiple_choice
+    question: "Un script de automatización interna necesita generar mensualmente un reporte de costos por workspace usando /v1/organizations/cost_report. ¿Qué tipo de key debe usar y dónde debe vivir?"
+    options:
+      - id: a
+        text: "Workspace key del workspace de 'Finance', en el código del script"
+      - id: b
+        text: "Admin key, hardcodeada en el script para simplificar el deploy"
+      - id: c
+        text: "Admin key, leída de una variable de entorno en un servidor controlado"
+      - id: d
+        text: "Admin key expuesta al frontend del dashboard interno que consume el reporte"
+    correct: c
+    feedback_correct: "Correcto. Los endpoints de cost_report requieren admin key. Y una admin key SIEMPRE debe leerse de una variable de entorno en un entorno server-side controlado — nunca hardcodeada, nunca en frontend."
+    feedback_incorrect: "Los cost_report endpoints viven bajo /v1/organizations/*, así que requieren admin key (descarta la opción de workspace key). Pero una admin key jamás va hardcodeada en código, y NUNCA expuesta al frontend — su blast radius al comprometerse es control total de la org. Lo correcto: variable de entorno en un servidor controlado."
+    points: 3
+
+  - id: q3
+    type: multiple_select
+    question: "Acabás de darte cuenta que pegaste accidentalmente tu workspace key en un canal público de Slack. ¿Qué deberías hacer? (seleccioná todas las acciones correctas)"
+    options:
+      - id: a
+        text: "Rotar la key inmediatamente (crear una nueva, actualizar secretos, revocar la vieja)"
+      - id: b
+        text: "Borrar el mensaje de Slack y considerarlo resuelto"
+      - id: c
+        text: "Revisar Analytics del workspace buscando uso sospechoso reciente"
+      - id: d
+        text: "Esperar 24 horas para ver si alguien la usa antes de revocarla"
+      - id: e
+        text: "Revocar directamente sin rotar primero (downtime aceptable ante un incidente)"
+    correct: [a, c]
+    feedback_correct: "Correcto. Rotación inmediata es la acción principal. Revisar Analytics es la verificación de daño. Borrar el mensaje NO basta (Slack puede tener caches, bots, integraciones indexadoras). Esperar es malo (regala tiempo al atacante). Revocar sin rotar es subóptimo — el procedimiento correcto es crear nueva, desplegar, después revocar vieja; dura segundos."
+    feedback_incorrect: "Las dos acciones correctas son **rotar inmediatamente** y **revisar Analytics por uso sospechoso**. Borrar el mensaje de Slack no limpia caches/bots/webhooks. Esperar regala tiempo al atacante. Revocar sin rotar primero causa downtime innecesario — el ciclo correcto es crear→desplegar→revocar, y dura segundos."
+    points: 4
+
+  - id: q4
+    type: multiple_choice
+    question: "Para rotar una workspace key en producción SIN causar downtime, ¿cuál es el orden correcto?"
+    options:
+      - id: a
+        text: "Revocar la vieja → crear la nueva → actualizar el secret → redeploy"
+      - id: b
+        text: "Crear la nueva → actualizar el secret → redeploy → revocar la vieja"
+      - id: c
+        text: "Crear la nueva → revocar la vieja → actualizar el secret → redeploy"
+      - id: d
+        text: "Actualizar el secret → crear la nueva → redeploy → revocar la vieja"
+    correct: b
+    feedback_correct: "Correcto. Crear primero (tenés dos keys válidas), actualizar secret y redesplegar (el tráfico empieza a usar la nueva), verificar que todo funciona, y RECIÉN ahí revocar la vieja. Así no hay ni un segundo de downtime."
+    feedback_incorrect: "El orden que evita downtime es: **1) crear la nueva, 2) actualizar el secret, 3) redeploy, 4) revocar la vieja**. Cualquier orden que revoque antes de desplegar causa ventana de downtime. 'Actualizar el secret antes de crear' no tiene sentido porque aún no existe el valor nuevo."
+    points: 3
+
+  - id: q5
+    type: true_false
+    question: "Es aceptable usar la misma API key en desarrollo local, staging y producción si el equipo es pequeño (1-2 personas)."
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: b
+    feedback_correct: "Correcto. Aunque el equipo sea chico, cada entorno debería tener su propia key (ideal: su propio workspace). Razones: cuando revisás Analytics querés distinguir tráfico de prod del de dev, cuando rotás una key no querés afectar los otros entornos, y cuando una key se filtra querés contener el incidente a un solo entorno. El costo de tener varias keys es cero; el beneficio es real."
+    feedback_incorrect: "Falso. Incluso con un equipo de 1 persona, separar keys por entorno es buena higiene: te permite distinguir uso en Analytics, contener incidentes a un entorno cuando una key se filtra, y rotar sin interrumpir otros entornos. Crear una workspace key extra cuesta cero."
+    points: 2
+
+concepts:
+  - key-types
+  - least-privilege
+  - incident-response
+  - zero-downtime-rotation
+  - environment-isolation

@@ -1,0 +1,67 @@
+id: module-00
+slug: module-00-setup
+title: "Setup & Primer Contacto"
+order: 0
+duration_hours: 2
+is_locked: false
+status: completed
+
+description: >
+  Prepara tu cuenta en platform.claude.com, entiende los tipos de API keys y por
+  qué se separan, ejecuta tu primer curl contra /v1/messages, recorre el
+  dashboard para ubicar cada sección y deja tu entorno local (Node + Python)
+  listo para el resto del curso.
+
+learning_outcomes:
+  - "Crear una cuenta en Claude Console y entender organization vs workspace"
+  - "Distinguir entre workspace API keys y admin API keys, y saber cuándo usar cada una"
+  - "Ejecutar tu primer request a /v1/messages con curl"
+  - "Navegar cada sección del dashboard y saber qué se hace en cada una"
+  - "Tener Node.js 20+ y Python 3.11+ configurados para correr cualquier ejercicio del curso"
+
+prerequisites:
+  - "Terminal básico (cd, ls, nano o tu editor preferido)"
+  - "Curiosidad, paciencia para leer"
+
+lessons:
+  - id: lesson-00-01
+    file: lessons/01-bienvenida-al-curso.md
+    title: "Bienvenida al curso"
+    order: 1
+    duration_minutes: 15
+    exercises: [ex-00-03-identificar-secciones]
+
+  - id: lesson-00-02
+    file: lessons/02-crear-cuenta-claude-console.md
+    title: "Crear tu cuenta en Claude Console"
+    order: 2
+    duration_minutes: 15
+    exercises: []
+
+  - id: lesson-00-03
+    file: lessons/03-api-keys-workspace-vs-admin.md
+    title: "API keys: workspace vs admin"
+    order: 3
+    duration_minutes: 25
+    exercises: [ex-00-04-crear-y-rotar-key]
+
+  - id: lesson-00-04
+    file: lessons/04-primer-curl-v1-messages.md
+    title: "Tu primer curl a /v1/messages"
+    order: 4
+    duration_minutes: 20
+    exercises: [ex-00-01-primer-curl]
+
+  - id: lesson-00-05
+    file: lessons/05-tour-del-dashboard.md
+    title: "Tour del dashboard de Claude Console"
+    order: 5
+    duration_minutes: 20
+    exercises: [ex-00-02-verificar-modelos]
+
+  - id: lesson-00-06
+    file: lessons/06-setup-local-node-python.md
+    title: "Setup local: Node + Python + SDK"
+    order: 6
+    duration_minutes: 25
+    exercises: []

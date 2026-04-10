@@ -1,0 +1,114 @@
+# Contrato de continuidad entre sesiones de Claude Code.
+# Este archivo es el primer lugar que Claude debe leer al abrir el repo en una
+# sesión nueva. Indica dónde nos quedamos y qué toca producir a continuación.
+#
+# Actualízalo SIEMPRE al terminar una sesión de producción significativa.
+
+version: 1
+last_updated: "2026-04-10"
+last_session_summary: >
+  Sesión inicial. Se investigó la documentación oficial de Anthropic, se diseñó
+  el currículo completo de 13 módulos, se creó la estructura del repo con
+  convenciones de Academia Rizoma (YAML + markdown puro), se escribió el Módulo
+  0 completo (6 lecciones + 4 ejercicios) y outlines detallados de los módulos
+  1-12. Repo creado como privado en gonzalezulises/curso-claude-console.
+
+current_focus:
+  module: module-00-setup
+  status: completed
+  next_action: "Comenzar producción del Módulo 1 — Messages API: Fundamentos"
+
+modules_state:
+  module-00-setup:
+    status: completed
+    lessons_written: 6
+    lessons_total: 6
+    exercises_written: 4
+    exercises_total: 4
+    last_verified: "2026-04-10"
+
+  module-01-messages-api:
+    status: outline
+    outline_file: content/module-01-messages-api/OUTLINE.md
+    lessons_written: 0
+    lessons_total: 10
+
+  module-02-workbench:
+    status: outline
+    lessons_written: 0
+    lessons_total: 6
+
+  module-03-prompt-engineering:
+    status: outline
+    lessons_written: 0
+    lessons_total: 9
+
+  module-04-multimodal:
+    status: outline
+    lessons_written: 0
+    lessons_total: 7
+
+  module-05-tool-use:
+    status: outline
+    lessons_written: 0
+    lessons_total: 10
+
+  module-06-optimization:
+    status: outline
+    lessons_written: 0
+    lessons_total: 8
+
+  module-07-mcp:
+    status: outline
+    lessons_written: 0
+    lessons_total: 10
+
+  module-08-skills:
+    status: outline
+    lessons_written: 0
+    lessons_total: 6
+
+  module-09-managed-agents:
+    status: outline
+    lessons_written: 0
+    lessons_total: 10
+    notes: >
+      Antes de escribir lecciones de este módulo, ejecutar curls reales contra
+      /v1/agents, /v1/sessions, /v1/environments, /v1/vaults con el beta header
+      managed-agents-2026-04-01 para confirmar el shape exacto de los endpoints.
+      La investigación inicial de este módulo vino de un subagent — menos
+      verificada que los demás.
+
+  module-10-claude-code:
+    status: outline
+    lessons_written: 0
+    lessons_total: 14
+
+  module-11-admin-api:
+    status: outline
+    lessons_written: 0
+    lessons_total: 7
+    notes: >
+      Módulo con manejo sensible de claves. Todos los ejercicios deben usar
+      process.env.ANTHROPIC_ADMIN_API_KEY y enmascarar keys en outputs.
+
+  module-12-capstone:
+    status: outline
+    lessons_written: 0
+    lessons_total: 8
+
+production_protocol:
+  per_session:
+    - "Leer este archivo primero"
+    - "Leer docs/roadmap.md para contexto de decisiones"
+    - "Abrir OUTLINE.md del módulo en curso"
+    - "Producir como máximo 1 módulo completo por sesión"
+    - "Verificar cada snippet de código corriéndolo contra la API real"
+    - "Actualizar este archivo al terminar (modules_state + last_session_summary)"
+    - "Commit atómico con conventional commit message"
+
+  quality_gates:
+    - "Cada lección tiene 5 secciones: Objetivo / Concepto / Ejecución / Anti-patterns / Recap"
+    - "Cada ejercicio es YAML válido parseable con el schema de Rizoma"
+    - "Ningún snippet inventado — todo verificado contra docs o curl real"
+    - "Modelos referenciados son aliases estables (claude-opus-4-6, etc.), no snapshots con fecha"

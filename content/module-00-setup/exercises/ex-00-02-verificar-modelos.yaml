@@ -1,0 +1,136 @@
+id: ex-00-02-verificar-modelos
+type: code-python
+title: "Listar y filtrar los modelos disponibles en tu workspace"
+lesson_ref: lesson-00-05
+difficulty: beginner
+estimated_time_minutes: 6
+points: 10
+
+description: |
+  Llamá al endpoint GET /v1/models de tu workspace, parseá la respuesta,
+  y verificá que los tres modelos base que usa el curso (haiku 4.5, sonnet 4.6,
+  opus 4.6) están disponibles. También tenés que contar cuántos modelos de
+  cada familia hay.
+
+starter_code: |
+  import json
+  import os
+  import urllib.request
+
+  API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+  if not API_KEY:
+      raise SystemExit("Falta ANTHROPIC_API_KEY en el entorno")
+
+  URL = "https://api.anthropic.com/v1/models?limit=50"
+
+  # TODO 1: hacer el GET con los headers correctos (NO hay body porque es GET).
+  request = urllib.request.Request(
+      URL,
+      headers={},  # completar
+      method="GET",
+  )
+
+  with urllib.request.urlopen(request) as response:
+      payload = json.loads(response.read())
+
+  # TODO 2: extraer la lista de modelos y los IDs de cada uno en una lista simple.
+  model_ids = []
+
+  # TODO 3: verificar que los 3 aliases del curso están presentes.
+  required = {"claude-haiku-4-5", "claude-sonnet-4-6", "claude-opus-4-6"}
+  missing = required - set(model_ids)
+
+  # TODO 4: contar cuántos modelos hay en cada familia (haiku, sonnet, opus).
+  #         Pista: un modelo es "haiku" si "haiku" está en su id.
+  counts = {"haiku": 0, "sonnet": 0, "opus": 0}
+
+  print(f"total models: {len(model_ids)}")
+  print(f"counts: {counts}")
+  if missing:
+      print(f"FALTAN: {missing}")
+  else:
+      print("OK: los 3 aliases base del curso están disponibles")
+
+solution_code: |
+  import json
+  import os
+  import urllib.request
+
+  API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+  if not API_KEY:
+      raise SystemExit("Falta ANTHROPIC_API_KEY en el entorno")
+
+  URL = "https://api.anthropic.com/v1/models?limit=50"
+
+  request = urllib.request.Request(
+      URL,
+      headers={
+          "x-api-key": API_KEY,
+          "anthropic-version": "2023-06-01",
+      },
+      method="GET",
+  )
+
+  with urllib.request.urlopen(request) as response:
+      payload = json.loads(response.read())
+
+  model_ids = [m["id"] for m in payload["data"]]
+
+  required = {"claude-haiku-4-5", "claude-sonnet-4-6", "claude-opus-4-6"}
+  missing = required - set(model_ids)
+
+  counts = {
+      "haiku":  sum(1 for mid in model_ids if "haiku"  in mid),
+      "sonnet": sum(1 for mid in model_ids if "sonnet" in mid),
+      "opus":   sum(1 for mid in model_ids if "opus"   in mid),
+  }
+
+  print(f"total models: {len(model_ids)}")
+  print(f"counts: {counts}")
+  if missing:
+      print(f"FALTAN: {missing}")
+  else:
+      print("OK: los 3 aliases base del curso están disponibles")
+
+test_cases:
+  - id: test-headers-present
+    description: "GET usa x-api-key y anthropic-version (NO necesita content-type)"
+    test_code: |
+      assert request.headers.get("X-api-key", "").startswith("sk-ant-api")
+      assert request.headers.get("Anthropic-version") == "2023-06-01"
+    points: 3
+
+  - id: test-model-ids-extracted
+    description: "model_ids contiene strings no vacíos"
+    test_code: |
+      assert isinstance(model_ids, list) and len(model_ids) > 0
+      assert all(isinstance(m, str) and len(m) > 0 for m in model_ids)
+    points: 3
+
+  - id: test-required-present
+    description: "Los 3 aliases base del curso están presentes"
+    test_code: |
+      assert "claude-haiku-4-5"  in model_ids
+      assert "claude-sonnet-4-6" in model_ids
+      assert "claude-opus-4-6"   in model_ids
+      assert missing == set()
+    points: 2
+
+  - id: test-counts-family
+    description: "counts tiene al menos 1 en cada familia"
+    test_code: |
+      assert counts["haiku"]  >= 1
+      assert counts["sonnet"] >= 1
+      assert counts["opus"]   >= 1
+    points: 2
+
+hints:
+  - "Los GET también requieren x-api-key y anthropic-version, pero NO content-type (porque no hay body)."
+  - "payload['data'] es una lista de dicts, cada uno con 'id', 'display_name' y 'type'."
+  - "Para contar por familia, iterá con `for mid in model_ids` y chequeá substring: `'haiku' in mid`."
+
+concepts:
+  - models-endpoint
+  - http-get
+  - aliases-vs-snapshots
+  - workspace-entitlements

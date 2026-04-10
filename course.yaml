@@ -1,0 +1,155 @@
+id: curso-claude-console
+title: "Claude Console: de Cero a Arquitecto de Claude Code"
+slug: curso-claude-console
+version: "0.1.0"
+language: es
+status: in-progress
+
+description: >
+  Megacurso técnico que lleva a un developer que nunca tocó Claude a arquitecturar
+  sistemas de producción sobre el ecosistema Anthropic. Cubre el stack completo de
+  platform.claude.com: Messages API, Workbench, Files, Skills, tool use, MCP,
+  Managed Agents, Sessions, Environments, Credential Vaults, Claude Code CLI
+  (subagents, hooks, skills, permission modes, SDK, CI/CD) y Admin API.
+
+audience:
+  profile: "Developer backend/fullstack con experiencia en APIs HTTP y una de (Node/TypeScript o Python)"
+  prerequisites:
+    - "Node.js 20+ o Python 3.11+ instalado"
+    - "Terminal zsh/bash básico"
+    - "Git básico (clone, commit, branch)"
+    - "JSON, HTTP y variables de entorno sin fricción"
+  outcome: >
+    Al terminar el curso puedes decidir entre Messages API vs Managed Agents vs
+    Claude Code SDK para cualquier caso, construir agentes de producción con tool
+    use + MCP + Skills + Credential Vaults, operar Claude Code como arquitecto
+    (subagents, hooks, permission modes, CI/CD), optimizar costos con prompt
+    caching y batch API, y gobernar una organización vía Admin API.
+
+authors:
+  - name: "Ulises González"
+    role: "Autor y arquitecto del curso"
+
+stack:
+  primary_language: typescript
+  secondary_language: python
+  runtime_node: ">=20.0.0"
+  runtime_python: ">=3.11"
+  sdk_node: "@anthropic-ai/sdk"
+  sdk_python: "anthropic"
+
+reference_models:
+  default: claude-haiku-4-5
+  production: claude-sonnet-4-6
+  deep_reasoning: claude-opus-4-6
+
+api_version: "2023-06-01"
+
+total_hours_estimated: 67
+total_lessons_planned: 110
+total_exercises_planned: 80
+
+modules:
+  - id: module-00
+    slug: module-00-setup
+    title: "Setup & Primer Contacto"
+    order: 0
+    duration_hours: 2
+    status: in-progress
+    focus: "Cuenta, API keys, primer curl, tour del dashboard"
+
+  - id: module-01
+    slug: module-01-messages-api
+    title: "Messages API: Fundamentos"
+    order: 1
+    duration_hours: 5
+    status: outline
+    focus: "Modelos 4.x, request/response, streaming, errores, retry"
+
+  - id: module-02
+    slug: module-02-workbench
+    title: "Workbench: El Laboratorio"
+    order: 2
+    duration_hours: 3
+    status: outline
+    focus: "Prompt iteration, versioning, files, export a código"
+
+  - id: module-03
+    slug: module-03-prompt-engineering
+    title: "Prompt Engineering de Arquitecto"
+    order: 3
+    duration_hours: 5
+    status: outline
+    focus: "Técnicas Claude 4, XML tags, long context, adaptive thinking"
+
+  - id: module-04
+    slug: module-04-multimodal
+    title: "Capacidades Multimodales"
+    order: 4
+    duration_hours: 4
+    status: outline
+    focus: "Vision, PDFs, Files API, citations nativas"
+
+  - id: module-05
+    slug: module-05-tool-use
+    title: "Tool Use: De Chat a Agente"
+    order: 5
+    duration_hours: 6
+    status: outline
+    focus: "JSON Schema, flujo completo, server-side tools"
+
+  - id: module-06
+    slug: module-06-optimization
+    title: "Optimización & Producción"
+    order: 6
+    duration_hours: 5
+    status: outline
+    focus: "Prompt caching, batch, extended cache TTL, context 1M, rate limits"
+
+  - id: module-07
+    slug: module-07-mcp
+    title: "MCP: El Protocolo del Ecosistema"
+    order: 7
+    duration_hours: 6
+    status: outline
+    focus: "Arquitectura, primitivas, MCP Connector, build your own server"
+
+  - id: module-08
+    slug: module-08-skills
+    title: "Skills: Capacidades Reutilizables"
+    order: 8
+    duration_hours: 3
+    status: outline
+    focus: "SKILL.md, upload, Anthropic vs custom"
+
+  - id: module-09
+    slug: module-09-managed-agents
+    title: "Managed Agents: Agentes Hospedados"
+    order: 9
+    duration_hours: 6
+    status: outline
+    focus: "Agents, Sessions, Environments, Vaults, sub-agents, monitoreo"
+
+  - id: module-10
+    slug: module-10-claude-code
+    title: "Claude Code: CLI & SDK"
+    order: 10
+    duration_hours: 8
+    status: outline
+    focus: "CLI, CLAUDE.md, hooks, subagents, skills, MCP, IDE, SDK, GitHub Actions"
+
+  - id: module-11
+    slug: module-11-admin-api
+    title: "Admin API: Gobernanza"
+    order: 11
+    duration_hours: 4
+    status: outline
+    focus: "Admin keys, workspaces, usage/cost reports, IAM, audit"
+
+  - id: module-12
+    slug: module-12-capstone
+    title: "Arquitectura: Proyecto Capstone"
+    order: 12
+    duration_hours: 10
+    status: outline
+    focus: "Diseño multiagente, seguridad, observabilidad, deploy, capstone real"

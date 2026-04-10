@@ -1,0 +1,108 @@
+id: ex-00-03-identificar-secciones
+type: quiz
+title: "Identificá el mapa del ecosistema Claude Console"
+lesson_ref: lesson-00-01
+difficulty: beginner
+estimated_time_minutes: 5
+points: 10
+
+description: |
+  Validación de conceptos introductorios del Módulo 0: estructura del
+  dashboard, diferencia entre claude.ai y platform.claude.com, modelo
+  mental de organization vs workspace, y filosofía del curso.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: "¿Cuál es la URL del dashboard de developer de Anthropic (distinto del chat para consumidores)?"
+    options:
+      - id: a
+        text: "claude.ai"
+      - id: b
+        text: "console.anthropic.com"
+      - id: c
+        text: "platform.claude.com"
+      - id: d
+        text: "api.anthropic.com"
+    correct: c
+    feedback_correct: "Correcto. platform.claude.com es el dashboard developer — distinto de claude.ai (chat para consumidores) y distinto de api.anthropic.com (el host del endpoint HTTP de la Messages API)."
+    feedback_incorrect: "El dashboard developer vive en platform.claude.com. claude.ai es el chat. api.anthropic.com es el host HTTP de los endpoints — no sirve UI. console.anthropic.com es la URL vieja; hoy redirige."
+    points: 2
+
+  - id: q2
+    type: multiple_choice
+    question: "Tu empresa quiere separar el tráfico de producción del de staging en Anthropic. ¿Cuál es el mecanismo correcto?"
+    options:
+      - id: a
+        text: "Crear dos organizations distintas, una para prod y otra para staging"
+      - id: b
+        text: "Crear dos workspaces distintos dentro de la misma organization"
+      - id: c
+        text: "Usar el mismo workspace y distinguir con el nombre de la API key"
+      - id: d
+        text: "Crear dos cuentas separadas con emails distintos"
+    correct: b
+    feedback_correct: "Correcto. Workspaces están diseñados exactamente para esto: separan rate limits, API keys y usage tracking, pero comparten organization (un solo billing, un solo plan, una sola gestión de miembros)."
+    feedback_incorrect: "La separación correcta es por **workspaces** dentro de una misma organization. Dos organizations separadas implican dos billing, dos planes, dos sets de miembros — mucha fricción innecesaria. El nombre de una API key es solo una etiqueta, no aísla rate limits."
+    points: 2
+
+  - id: q3
+    type: multiple_select
+    question: "¿Cuáles de las siguientes secciones existen en el bloque 'Manage' del sidebar del workspace? (seleccioná todas las correctas)"
+    options:
+      - id: a
+        text: "API keys"
+      - id: b
+        text: "Billing"
+      - id: c
+        text: "Limits"
+      - id: d
+        text: "Members"
+      - id: e
+        text: "Workspace settings"
+    correct: [a, c, e]
+    feedback_correct: "Exacto. Manage en el workspace tiene **exactamente 3 opciones**: API keys, Limits y Workspace settings. Billing y Members viven en otras secciones de la cuenta (a nivel organization) o en la Admin API."
+    feedback_incorrect: "Manage dentro del workspace tiene **solo 3 opciones**: API keys, Limits y Workspace settings. Billing y Members NO viven aquí — son decisiones a nivel organization y se gestionan por otras rutas (o vía Admin API para automation)."
+    points: 3
+
+  - id: q4
+    type: multiple_choice
+    question: "El curso enseña primero curl y después el SDK. ¿Cuál es la razón principal?"
+    options:
+      - id: a
+        text: "Porque curl es más rápido que el SDK"
+      - id: b
+        text: "Porque el SDK no soporta todas las features"
+      - id: c
+        text: "Porque el protocolo HTTP es el contrato estable; los SDKs son conveniencias encima"
+      - id: d
+        text: "Porque Anthropic no ofrece un SDK oficial"
+    correct: c
+    feedback_correct: "Correcto. Los SDKs cambian y se re-escriben; el protocolo HTTP (Messages API versión 2023-06-01) es estable. Entender curl te permite debuggear cualquier SDK, escribir clientes custom y razonar sobre networking."
+    feedback_incorrect: "Los SDKs oficiales de Anthropic (TS y Python) sí soportan todas las features, y en general son igual de rápidos que curl. La razón real es pedagógica: el protocolo HTTP es el contrato estable y entenderlo te da poder de debugging y portabilidad a cualquier lenguaje."
+    points: 2
+
+  - id: q5
+    type: true_false
+    question: "Una Admin API key puede usarse para llamar a /v1/messages si está correctamente configurada."
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: b
+    feedback_correct: "Correcto. Las Admin keys (sk-ant-admin01-...) SOLO sirven para los endpoints de gobernanza bajo /v1/organizations/*. Para inferencia necesitás una workspace key (sk-ant-api03-...). La separación es intencional y se valida en la puerta del endpoint."
+    feedback_incorrect: "Falso. Admin keys y workspace keys son tipos de credencial distintos. Una admin key contra /v1/messages responde con error de autenticación. La separación es intencional — principio de menor privilegio."
+    points: 1
+
+concepts:
+  - platform-overview
+  - organization-vs-workspace
+  - dashboard-sidebar
+  - key-types
+  - protocol-first-philosophy
