@@ -75,7 +75,8 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
-    const availableIds = new Set(models.data.map((m) => m.id));
+    const availableIds = models.data.map((m) => m.id);
+    const availableSet = new Set(availableIds);
 
     for (const model of models.data) {
       console.log(`  • ${model.id.padEnd(32)} ${model.display_name ?? ''}`);
@@ -83,10 +84,23 @@ async function main(): Promise<void> {
 
     printHeader('Verificando modelos que usa el curso');
 
+    // El endpoint /v1/models a veces devuelve el alias limpio
+    // (ej: "claude-sonnet-4-6") y a veces solo el snapshot con fecha
+    // (ej: "claude-haiku-4-5-20251001"). Ambos casos son válidos —
+    // el alias resuelve al snapshot automáticamente en inferencia.
+    const resolveAlias = (alias: string): string | null => {
+      if (availableSet.has(alias)) return alias;
+      const snapshot = availableIds.find((id) => id.startsWith(`${alias}-`));
+      return snapshot ?? null;
+    };
+
     let missing = 0;
     for (const required of REQUIRED_MODELS) {
-      if (availableIds.has(required)) {
+      const resolved = resolveAlias(required);
+      if (resolved === required) {
         ok(`${required} disponible`);
+      } else if (resolved !== null) {
+        ok(`${required} disponible (resuelve a ${resolved})`);
       } else {
         fail(`${required} NO está disponible en tu workspace`);
         missing++;
