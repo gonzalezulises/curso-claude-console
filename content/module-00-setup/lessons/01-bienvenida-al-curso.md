@@ -18,7 +18,7 @@ Serás capaz de decidir, con criterio técnico y no intuición, si un problema d
 
 Esto no es hipérbole. Es literalmente el temario.
 
-### Cómo está estructurado el curso
+### ¿Cómo está estructurado el curso?
 
 El curso tiene **13 módulos** (0-12), que puedes agrupar mentalmente en 5 fases:
 

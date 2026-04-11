@@ -6,7 +6,7 @@ Al terminar sabrás qué **errores reintentar** y cuáles son fatales (ya viste 
 
 ## Concepto
 
-### Qué errores reintentar (repaso rápido de Lección 08)
+### ¿Qué errores reintentar? (repaso rápido de Lección 08)
 
 <terminology>
 **Reintentable** (transitorio, el problema no es tu body):
@@ -48,7 +48,7 @@ Con `base = 1000` (1 segundo) y `cap = 30000` (30 segundos), los intentos son:
 | 4 | 16000 |
 | 5 | 30000 (capped) |
 
-### Por qué necesitás jitter
+### ¿Por qué necesitás jitter?
 
 Si 10.000 clientes caen en un 429 al mismo tiempo y todos esperan **exactamente** 1s antes de reintentar, a los 1000ms vas a tener 10.000 requests simultáneos de nuevo. Se llama **thundering herd**: la retry policy perfectamente sincronizada causa un mini-DDoS contra el servidor que acababa de recuperarse.
 
@@ -73,7 +73,7 @@ Ese `7` son **segundos**. El servidor te está diciendo "esperá al menos 7 segu
 
 Regla de oro: **si hay `retry-after`, usalo en vez de tu fórmula calculada**. Si no hay, caés en la fórmula `base * 2^attempt + jitter`.
 
-### Qué hace el SDK oficial por vos
+### ¿Qué hace el SDK oficial por vos?
 
 El SDK de Anthropic (todos los lenguajes: TypeScript, Python, Go, Java, Ruby, C#) trae retries **activados por defecto**:
 
@@ -108,7 +108,7 @@ await client.messages.create(
 
 **Cuándo NO confiar en el SDK**: cuando estás en un cliente custom (un lenguaje sin SDK oficial, un proxy, un edge worker) y tenés que implementarlo vos. Es lo que viene abajo.
 
-### El límite de intentos: por qué siempre ponerlo
+### El límite de intentos: ¿por qué siempre ponerlo?
 
 Sin un `maxRetries`, un loop de retry puede correr **indefinidamente**. Imaginá que el servidor devuelve 429 por 4 horas porque alguien se equivocó con el rate limit del tier: tu request queda colgado esperando por 4 horas. Tu usuario cierra la pestaña. Tu operador se vuelve loco buscando el request fantasma.
 

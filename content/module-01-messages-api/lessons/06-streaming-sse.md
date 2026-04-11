@@ -6,7 +6,7 @@ Al terminar sabrás **habilitar streaming en `/v1/messages`**, identificar los 7
 
 ## Concepto
 
-### Por qué streaming
+### ¿Por qué streaming?
 
 Sin streaming, Claude genera toda la respuesta entera y recién entonces te la manda — tu usuario ve una pantalla en blanco durante 3-20 segundos mientras Opus piensa una respuesta larga. Con streaming, la API te manda **cada fragmento de texto apenas se genera**, así tu UI empieza a mostrar letras en menos de 1 segundo.
 
@@ -18,7 +18,7 @@ Además, streaming es la única forma de:
 - Cortar la generación temprano si el usuario cambia de opinión.
 - Empezar a parsear output estructurado antes de que termine (parsing incremental).
 
-### Cómo activarlo
+### ¿Cómo activarlo?
 
 Agregás **dos cosas** al request:
 

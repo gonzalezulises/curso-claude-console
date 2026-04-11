@@ -6,7 +6,7 @@ Al terminar esta lección tendrás una cuenta activa en `platform.claude.com`, e
 
 ## Concepto
 
-### Dónde vive Claude Console
+### ¿Dónde vive Claude Console?
 
 La plataforma developer de Anthropic vive en **`platform.claude.com`**. Este es el dashboard donde:
 

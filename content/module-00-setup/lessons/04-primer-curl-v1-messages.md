@@ -84,7 +84,7 @@ Campo por campo:
 - **`stop_sequence`** — si `stop_reason = stop_sequence`, aquí aparece cuál fue. Suele ser `null`.
 - **`usage`** — contabilidad de tokens. `input_tokens` es lo que cuenta tu prompt; `output_tokens` lo que generó Claude. Las otras dos entradas son para prompt caching (Módulo 6) — por ahora serán 0.
 
-### Por qué empezamos con curl y no con el SDK
+### ¿Por qué empezamos con curl y no con el SDK?
 
 El protocolo HTTP es el contrato estable. Los SDKs son conveniencias construidas encima. Si aprendes el protocolo primero:
 

@@ -6,7 +6,7 @@ producción sobre el ecosistema completo de **platform.claude.com**.
 
 > Curso en producción · v0.1.0 · Módulo 1 completo.
 
-## Qué vas a aprender
+## ¿Qué vas a aprender?
 
 - Dominar la **Messages API**: request, response, streaming SSE, `count_tokens`,
   errores, retries con exponential backoff.

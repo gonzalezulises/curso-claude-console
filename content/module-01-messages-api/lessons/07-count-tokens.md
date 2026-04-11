@@ -6,7 +6,7 @@ Al terminar sabrás usar el endpoint **`POST /v1/messages/count_tokens`** para m
 
 ## Concepto
 
-### Qué es count_tokens
+### ¿Qué es count_tokens?
 
 Es un endpoint paralelo a `/v1/messages` que **no genera respuesta** — solo cuenta los tokens que consumiría el request equivalente. Misma autenticación, mismos headers, mismo body shape (`model`, `messages`, `system`, `tools`...), pero en vez de devolver una respuesta, te devuelve:
 
@@ -16,7 +16,7 @@ Es un endpoint paralelo a `/v1/messages` que **no genera respuesta** — solo cu
 
 Eso es todo. Un número.
 
-### Por qué es crítico
+### ¿Por qué es crítico?
 
 Tres razones prácticas:
 
@@ -35,7 +35,7 @@ El body es **un subset de los campos de `/v1/messages`**. Soporta:
 
 **No soporta** los campos que no tienen impacto en input tokens: `max_tokens`, `temperature`, `top_p`, `top_k`, `stop_sequences`, `metadata`, `stream`. Si los pasás, son ignorados (o te devuelve 400 en algunos, mejor no pasarlos).
 
-### Qué no es
+### ¿Qué no es?
 
 - **No es un "dry run"**. No emula la respuesta ni estima output tokens. Solo cuenta input. Para estimar output, tenés que asumir un output máximo razonable según tu `max_tokens` y calcular costo con la fórmula habitual.
 - **No respeta prompt caching**. Te devuelve el input_tokens sin asumir que algún prefijo está cacheado. Si vas a usar caching, el número que te da es el escenario "todo uncached" — el peor caso.

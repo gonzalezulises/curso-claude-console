@@ -6,7 +6,7 @@ Al terminar esta lección tendrás **Node.js 20+ y Python 3.11+ instalados**, el
 
 ## Concepto
 
-### Por qué Node Y Python
+### ¿Por qué Node Y Python?
 
 Este curso usa **TypeScript/Node como stack primario** por varias razones:
 
@@ -33,7 +33,7 @@ No necesitás saber Python bien para completar el curso — los scripts en Pytho
 **`uv`** — gestor de venvs y dependencias de Python, 10-100x más rápido que `pip + venv`. Si ya usás `uv`, perfecto; si no, lo instalamos en el Paso 3.
 </terminology>
 
-### Qué vamos a instalar
+### ¿Qué vamos a instalar?
 
 | Componente | Lenguaje | Cómo | Para qué |
 |---|---|---|---|

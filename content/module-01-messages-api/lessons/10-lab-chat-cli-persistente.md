@@ -6,7 +6,7 @@ Al terminar **vas a tener un chat de línea de comandos que funciona**: multi-tu
 
 ## Concepto
 
-### Qué construimos y por qué
+### ¿Qué construimos y por qué?
 
 Un chat CLI persistente es el "hello world extendido" de cualquier integración con una API LLM. Sirve como:
 
@@ -79,7 +79,7 @@ try {
 
 Pequeño detalle, gran diferencia operativa. Sin el rollback, el primer error fatal deja tu sesión inutilizable hasta `/reset`.
 
-### Sliding window y por qué usarla
+### Sliding window: ¿por qué usarla?
 
 Cada request paga tokens por **todo el historial enviado**. Si tu conversación pasa de los 20 turnos, estás pagando 20 veces cada token del turno 1. Sin límite, el costo crece cuadrático (N² tokens en N turnos).
 
@@ -97,7 +97,7 @@ Lo importante: **el disco guarda todo el historial completo**, pero cada llamada
 
 Alternativa más sofisticada: **summarization** (resumir los primeros K turnos en 1 párrafo y reemplazarlos). No la implementamos en este lab — es ejercicio del Módulo 3.
 
-### Por qué el SDK (y no curl manual) para el lab
+### ¿Por qué el SDK (y no curl manual) para el lab?
 
 En las Lecciones 02-09 usamos curl explícitamente para **ver el protocolo**. Para el lab usamos el SDK oficial porque:
 

@@ -16,7 +16,7 @@ Los módulos anteriores te enseñaron a hacer las cosas. Este te enseña a hacer
 
 ## Lecciones
 
-1. **Prompt caching: cómo funciona y cuánto ahorra** — breakpoints con `cache_control: {type: 'ephemeral'}`, TTL 5m default, ~90% descuento en reads, tokens mínimos del cache block.
+1. **Prompt caching: ¿cómo funciona y cuánto ahorra?** — breakpoints con `cache_control: {type: 'ephemeral'}`, TTL 5m default, ~90% descuento en reads, tokens mínimos del cache block.
 2. **Diseñar prompts cacheables** — orden estable/variable, dónde poner cache breakpoints, anti-pattern de meter timestamp al principio.
 3. **Extended cache TTL: 1 hora** — beta `extended-cache-ttl-2025-04-11`, cuándo vale la pena, el costo de write extendido.
 4. **Batch API: mitad de precio, async** — `/v1/messages/batches`, estructura del batch, polling, cómo recuperar resultados, cuándo usarla.

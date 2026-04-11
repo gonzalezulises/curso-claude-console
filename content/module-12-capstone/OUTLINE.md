@@ -16,7 +16,7 @@ Los 11 módulos anteriores te dieron piezas. Este módulo te obliga a **componer
 
 ## Lecciones
 
-1. **Cómo pensar un sistema multi-agente** — decomposición por responsabilidad, límites de contexto, cuándo un sub-agent y cuándo un tool plano.
+1. **¿Cómo pensar un sistema multi-agente?** — decomposición por responsabilidad, límites de contexto, cuándo un sub-agent y cuándo un tool plano.
 2. **Decidir entre Messages API, Managed Agents y Claude Code SDK** — rubric concreto: control vs velocidad, costo, ops, audit, escala, usuarios finales vs operadores.
 3. **Seguridad por diseño** — threat model del sistema (prompt injection, data exfiltration, key leakage, tool abuse), mitigaciones concretas, principio de menor privilegio aplicado a cada agent/tool/vault.
 4. **Observabilidad: logs, traces, costs, eval** — qué logeás de cada llamada, cómo trazás un request cross-agent, cómo integrás Analytics y cost_report con tu propio stack, cómo evaluás calidad con prompts de test.

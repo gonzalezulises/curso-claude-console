@@ -20,7 +20,7 @@ Hasta acá construiste agentes armando tu propio loop (`while stop_reason === 't
 
 ## Lecciones
 
-1. **Managed Agents: qué problema resuelve y cuándo usarlo** — comparación honesta con loop propio y con Claude Code SDK. Para cada uno, un caso donde es la mejor opción.
+1. **Managed Agents: ¿qué problema resuelve y cuándo usarlo?** — comparación honesta con loop propio y con Claude Code SDK. Para cada uno, un caso donde es la mejor opción.
 2. **El modelo de 5 recursos: agents, sessions, environments, vaults, skills** — cómo se relacionan, quién vive dentro de quién, lifecycle de cada uno.
 3. **Crear un agent: POST /v1/agents** — nombre, model, system prompt, tool set inicial, configuración.
 4. **Sessions: instancias en vivo del agent** — POST /v1/sessions, continuar una session, terminarla, persistencia de memoria.

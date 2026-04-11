@@ -85,7 +85,7 @@ const firstText = message.content.find(b => b.type === "text")?.text ?? "";
 
 Escribir `message.content[0].text` funciona por accidente en hello world y **se rompe** en el momento que el primer bloque es `thinking` o `tool_use`.
 
-### `stop_reason` — por qué Claude dejó de generar
+### `stop_reason` — ¿por qué Claude dejó de generar?
 
 Valores que vas a ver, de más común a más raro:
 

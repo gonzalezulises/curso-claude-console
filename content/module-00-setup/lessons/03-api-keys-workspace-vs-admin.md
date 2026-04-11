@@ -31,13 +31,13 @@ Regla mental corta: **workspace key = runtime, admin key = IAM + billing**. Son 
 | ¿Va en tu backend de producción? | Sí | **Nunca** |
 | ¿Va en un script local puntual? | Sí | Solo con cuidado extremo |
 
-### Por qué la separación existe
+### ¿Por qué la separación existe?
 
 La separación es intencional y sigue el **principio de menor privilegio**. Una workspace key comprometida puede hacer que gastes tokens y que se filtren prompts, lo cual es malo pero contenible (rotas la key, el daño se detiene en ese workspace). Una admin key comprometida permite al atacante listar todos tus workspaces, crear workspaces fantasma, crear workspace keys nuevas sin que las veas, leer tus reportes de usage, invitar miembros, y en general tomar control administrativo de la organization. El blast radius es incomparable.
 
 Por eso Anthropic **no te deja usar una admin key contra `/v1/messages`** y **no te deja usar una workspace key contra `/v1/organizations/*`**. No es que "no estén configuradas" — es que son tipos de credencial distintos, validados en la puerta del endpoint.
 
-### Dónde se crean, visualmente
+### ¿Dónde se crean, visualmente?
 
 **Workspace keys.** En `platform.claude.com` entras a **Manage → API keys**. Ahí ves un listado de las keys del workspace actual (arriba a la izquierda del dashboard aparece el nombre del workspace — por default `Default`). El botón dice `Create API key`. Al crearla, Anthropic te muestra la key **una sola vez**; si la pierdes, la revocas y creas otra. No hay forma de recuperar una key ya ocultada.
 

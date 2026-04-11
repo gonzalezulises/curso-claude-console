@@ -16,7 +16,7 @@ MCP es lo que transforma a Claude de "modelo con tools que vos definís" a "mode
 
 ## Lecciones
 
-1. **Qué es MCP y por qué existe** — problema que resuelve, comparación con "tool use artesanal" y con "plugins de ChatGPT".
+1. **¿Qué es MCP y por qué existe?** — problema que resuelve, comparación con "tool use artesanal" y con "plugins de ChatGPT".
 2. **Arquitectura: host, client, server** — roles, quién ejecuta qué, por qué el modelo solo habla con el client.
 3. **Primitivas 1: tools** — idéntico semántico a los tools del Módulo 5 pero descubribles dinámicamente desde un server.
 4. **Primitivas 2: resources** — archivos, URLs, bases de datos que el server expone como "contexto disponible". Diferencia con tools (data vs action).

@@ -16,7 +16,7 @@ Esto tiene implicaciones importantes:
 2. **Cada turno paga los tokens de todo el historial.** Si tu conversación va por el turno 20, el input tokens de esa llamada incluye los 20 turnos previos. Esto es parte de por qué **prompt caching** (Módulo 6) es tan importante en chatbots largos.
 3. **Podés editar el historial.** Nada te prohíbe borrar un turno anterior, reescribirlo, o agregar uno falso antes de enviarlo. Es poder (útil para el prefill que vemos abajo) y es responsabilidad (no mientas al usuario).
 
-### Cómo se ve un turno multi-turno
+### ¿Cómo se ve un turno multi-turno?
 
 El array `messages` alterna roles `"user"` y `"assistant"`. El último elemento debe ser **siempre** `"user"` si querés que Claude responda (si el último es `"assistant"`, Claude va a intentar continuar ese mismo turno — que es exactamente lo que el prefill explota):
 
@@ -58,7 +58,7 @@ Cosas que **son legales**:
 - **Terminar con `"assistant"`** — eso es el prefill, y veremos la mecánica más abajo.
 - **Content como string o como array de bloques.** `"Hola"` es atajo para `[{ "type": "text", "text": "Hola" }]`. Usá el array cuando necesites múltiples bloques (imagen + texto, tool_result, etc.).
 
-### Cuándo resetear la conversación
+### ¿Cuándo resetear la conversación?
 
 Tu historial crece indefinidamente si no hacés nada. Eventualmente vas a querer **cortar** — por costo, por ventana de contexto, o porque la conversación se fue de tema. Tres patrones:
 

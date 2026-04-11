@@ -6,7 +6,7 @@ Al terminar sabrás **cuándo usar `system` vs meter la misma instrucción en el
 
 ## Concepto
 
-### Qué es un system prompt
+### ¿Qué es un system prompt?
 
 El `system` es un **campo top-level** del body de `/v1/messages` que acepta una string o un array de bloques `text`. Funcionalmente es "instrucciones que persisten fuera de los turnos de conversación":
 

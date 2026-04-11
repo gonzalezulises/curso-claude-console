@@ -16,7 +16,7 @@ Tool use es **el pivote** del curso: acá Claude deja de ser un "chatbot que gen
 
 ## Lecciones
 
-1. **Qué es tool use y por qué cambia todo** — el modelo mental: el modelo no ejecuta, propone. Tu código ejecuta y devuelve resultados.
+1. **¿Qué es tool use y por qué cambia todo?** — el modelo mental: el modelo no ejecuta, propone. Tu código ejecuta y devuelve resultados.
 2. **Definir un tool: name, description, input_schema** — JSON Schema drafts, buenas descriptions (son parte del prompt).
 3. **Flujo completo mínimo** — request con `tools[]` → respuesta con `stop_reason: tool_use` → request con `tool_result` → respuesta final.
 4. **Parámetros avanzados: `tool_choice`** — `auto`, `any`, `{type: 'tool', name: '...'}`, forzar un tool específico.

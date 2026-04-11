@@ -17,7 +17,7 @@ Skills es la abstracción **intermedia** entre "prompt en línea" y "server MCP 
 
 ## Lecciones
 
-1. **Qué es una Skill y cuándo usarla** — comparación con: prompt inline, tool use artesanal, MCP server. Cuándo es cada uno.
+1. **¿Qué es una Skill y cuándo usarla?** — comparación con: prompt inline, tool use artesanal, MCP server. Cuándo es cada uno.
 2. **Anatomía de una Skill: `SKILL.md` + scripts + assets** — estructura de directorio, metadata, cómo Claude "descubre" capacidades de la skill.
 3. **Skills de Anthropic: `pdf`, `docx`, `pptx`, `xlsx`** — qué hace cada una, cómo se invocan, activar con header beta.
 4. **Crear tu primera skill custom** — bootstrap del folder, `SKILL.md` con descripción + pre/post-conditions + ejemplos, upload a Anthropic.
