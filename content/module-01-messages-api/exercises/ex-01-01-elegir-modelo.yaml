@@ -1,0 +1,88 @@
+id: ex-01-01-elegir-modelo
+type: quiz
+title: "Elegí el modelo correcto para cada escenario"
+lesson_ref: lesson-01-01
+difficulty: beginner
+estimated_time_minutes: 6
+points: 10
+
+description: |
+  Validación de criterios de elección entre Haiku 4.5, Sonnet 4.6 y Opus 4.6.
+  No hay una respuesta "universalmente correcta" — se trata de aplicar el
+  triángulo costo/latencia/capacidad al contexto de cada escenario.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: "Estás construyendo un bot de soporte que clasifica tickets entrantes en 5 categorías (bug, feature, billing, otros, spam). Volumen: ~50k tickets/día. ¿Qué modelo eligís por default?"
+    options:
+      - id: a
+        text: "claude-haiku-4-5 (rápido y barato)"
+      - id: b
+        text: "claude-sonnet-4-6 (buen balance)"
+      - id: c
+        text: "claude-opus-4-6 (máxima calidad)"
+      - id: d
+        text: "Un snapshot dated de Sonnet para estabilidad"
+    correct: a
+    feedback_correct: "Correcto. Clasificación de 5 clases en tickets de soporte es una tarea donde Haiku 4.5 rinde sobradamente. Con 50k tickets/día, la diferencia de costo entre Haiku ($1/$5 per MTok) y Sonnet ($3/$15) es significativa. Empezás con Haiku, y si las métricas de clasificación no llegan al umbral, escalás."
+    feedback_incorrect: "La tarea es clasificación simple sobre alto volumen. Opus y Sonnet son overkill y multiplican el costo por 3-5x sin mejora proporcional en esta clase de tareas. Haiku 4.5 es el default sensato; solo escalás si las métricas reales justifican el gasto extra."
+    points: 2
+
+  - id: q2
+    type: multiple_choice
+    question: "Un bufete de abogados te pide una herramienta interna que **analiza contratos de 40 páginas** y produce un reporte identificando cláusulas de riesgo, referencias a legislación específica y contradicciones internas. Baja latencia NO es requisito; calidad SÍ. ¿Qué modelo?"
+    options:
+      - id: a
+        text: "claude-haiku-4-5"
+      - id: b
+        text: "claude-sonnet-4-6"
+      - id: c
+        text: "claude-opus-4-6"
+      - id: d
+        text: "Haiku primero, siempre; escalar solo si falla"
+    correct: c
+    feedback_correct: "Correcto. Razonamiento legal sobre documentos largos con detección de contradicciones es el tipo de tarea donde Opus 4.6 justifica su precio. El dominio (legal) penaliza errores caros y la latencia no es crítica. Este es el caso claro de Opus."
+    feedback_incorrect: "Para razonamiento profundo en dominios de alto riesgo (legal, médico), donde un error puede costar mucho más que la diferencia de precio del modelo, Opus 4.6 es la elección correcta. El contexto explícitamente dice que baja latencia NO es requisito y calidad SÍ — eliminando la tentación de ir a Haiku por default."
+    points: 3
+
+  - id: q3
+    type: multiple_select
+    question: "¿Cuáles son razones LEGÍTIMAS para usar un alias estable (ej. 'claude-sonnet-4-6') en lugar de un snapshot dated (ej. 'claude-sonnet-4-6-20250101')? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "Querés recibir mejoras automáticas cuando Anthropic libera un nuevo snapshot"
+      - id: b
+        text: "Estás en desarrollo/exploración y valorás tener siempre el modelo más nuevo disponible"
+      - id: c
+        text: "Necesitás reproducibilidad absoluta en evaluaciones para un paper académico"
+      - id: d
+        text: "Es el default que usan los ejemplos del curso y querés consistencia con ellos"
+    correct: [a, b, d]
+    feedback_correct: "Correcto. Alias estables son para desarrollo, ejemplos y cuando querés seguir las mejoras. Dated snapshots son para casos donde la reproducibilidad bit a bit es innegociable (reviews, papers, contratos con cláusula de consistencia). La opción C es exactamente el caso donde sí querés un dated snapshot."
+    feedback_incorrect: "Reproducibilidad absoluta (opción C) es la razón canónica para usar un dated snapshot, NO un alias. Los aliases se actualizan cuando Anthropic libera nuevas versiones — genial para mejoras automáticas pero mata la reproducibilidad."
+    points: 3
+
+  - id: q4
+    type: true_false
+    question: "Si tu aplicación tiene 3 casos de uso (clasificación rápida, resumen de docs medianos, y análisis profundo de casos raros), lo razonable es hardcodear Opus para todos los casos 'por consistencia'."
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: b
+    feedback_correct: "Correcto. La respuesta correcta es usar 3 modelos diferentes según la tarea (Haiku/Sonnet/Opus), no uno solo. Inflar el costo 5x para 'consistencia' no tiene justificación técnica. La arquitectura sensata asigna el modelo correcto a cada ruta de decisión."
+    feedback_incorrect: "Falso. Hardcodear Opus para todo multiplica el costo innecesariamente — es un anti-pattern clásico. Lo correcto es routing por tipo de tarea: tareas simples → Haiku, balance → Sonnet, razonamiento profundo → Opus."
+    points: 2
+
+concepts:
+  - model-family-selection
+  - cost-latency-capability-tradeoff
+  - alias-vs-snapshot
+  - model-routing

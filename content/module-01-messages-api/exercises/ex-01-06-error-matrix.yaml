@@ -1,0 +1,92 @@
+id: ex-01-06-error-matrix
+type: quiz
+title: "Matriz de errores: fatal vs reintentable"
+lesson_ref: lesson-01-08
+difficulty: intermediate
+estimated_time_minutes: 7
+points: 12
+
+description: |
+  Validación conceptual del mapa de errores de /v1/messages: qué códigos son
+  fatales, cuáles reintentables, cómo tratar refusals, y por qué el
+  request_id es oro para debugging en producción.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_select
+    question: "¿Cuáles de los siguientes errores son REINTENTABLES con exponential backoff? (seleccioná todos los que apliquen)"
+    options:
+      - id: a
+        text: "400 invalid_request_error"
+      - id: b
+        text: "401 authentication_error"
+      - id: c
+        text: "429 rate_limit_error"
+      - id: d
+        text: "500 api_error"
+      - id: e
+        text: "529 overloaded_error"
+      - id: f
+        text: "404 not_found_error (modelo inexistente)"
+    correct: [c, d, e]
+    feedback_correct: "Correcto. 429/500/529 son transitorios (el problema está del lado del servidor o es saturación temporal) — reintentar con backoff tiene sentido. 400/401/404 son fatales: reintentar no cambia nada, el problema está en tu request."
+    feedback_incorrect: "429/500/529 son los 3 reintentables. 400 (body mal formado), 401 (key inválida), 404 (modelo inexistente) son fatales — reintentarlos es perder tiempo y mandarle DoS a tu propia app."
+    points: 4
+
+  - id: q2
+    type: multiple_choice
+    question: "Tu código recibe una respuesta 200 OK con `stop_reason: 'refusal'`. ¿Cómo debés manejarlo?"
+    options:
+      - id: a
+        text: "Es un error HTTP 403 disfrazado — manejalo en el catch"
+      - id: b
+        text: "Es una respuesta exitosa con una condición especial — manejalo en el path de éxito, como una rama separada"
+      - id: c
+        text: "Reintentar con la misma request hasta que deje de refusear"
+      - id: d
+        text: "Loggearlo como error crítico y alertar inmediatamente"
+    correct: b
+    feedback_correct: "Correcto. Un refusal es un 200 OK: la llamada tuvo éxito, pero el modelo decidió no completar. Tu catch de errores HTTP no lo va a ver. Manéjalo como una rama del path de éxito — típicamente mostrando al usuario un mensaje explicativo."
+    feedback_incorrect: "Un refusal NO es un error HTTP. La API devuelve 200 OK con `stop_reason: 'refusal'` y el campo content puede tener una explicación. Hay que manejarlo en el path del éxito, como cualquier otro stop_reason (junto a end_turn, max_tokens, tool_use)."
+    points: 3
+
+  - id: q3
+    type: multiple_choice
+    question: "En producción tu app recibe un 401 authentication_error en caliente. ¿Cuál es la acción correcta?"
+    options:
+      - id: a
+        text: "Reintentar inmediatamente con backoff"
+      - id: b
+        text: "Loggear el request_id, alertar al equipo (posible rotación de key no propagada), y devolver error al usuario"
+      - id: c
+        text: "Crear una key nueva automáticamente vía Admin API y reintentar"
+      - id: d
+        text: "Continuar con la llamada ignorando el error"
+    correct: b
+    feedback_correct: "Correcto. 401 es fatal y casi siempre indica que la key fue rotada en el vault pero tu app aún tiene la vieja cacheada. La acción operativa es alertar para que alguien propague la nueva key — y mientras tanto, degradar gracefully al usuario con un mensaje explícito."
+    feedback_incorrect: "Reintentar un 401 no va a funcionar nunca — la key sigue siendo la misma. La respuesta correcta combina 3 cosas: loggear el request_id (para soporte/auditoría), alertar al equipo (es un incidente operacional), y devolver error al usuario (no dejarlo colgado)."
+    points: 3
+
+  - id: q4
+    type: true_false
+    question: "Todos los errores de la API comparten el mismo shape top-level: `{ type: 'error', error: { type, message }, request_id }`."
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: a
+    feedback_correct: "Correcto. El shape único es uno de los mejores aspectos del diseño de la API: matchear sobre error.type y tener request_id siempre presente te deja centralizar toda la lógica de error en un solo lugar, sin switches por HTTP status."
+    feedback_incorrect: "Verdadero. Todos los errores siguen el mismo shape, independiente del código HTTP (400, 401, 429, 500, 529). Esa uniformidad es intencional y facilita tener un error handler único."
+    points: 2
+
+concepts:
+  - error-codes
+  - retry-policy
+  - refusal-handling
+  - request-id-logging

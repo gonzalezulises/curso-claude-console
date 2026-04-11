@@ -1,0 +1,135 @@
+id: ex-01-02-system-prompt
+type: code-typescript
+title: "Escribí un system prompt que fuerce formato estricto"
+lesson_ref: lesson-01-04
+difficulty: intermediate
+estimated_time_minutes: 10
+points: 15
+
+description: |
+  En la Lección 04 vimos que un system prompt pidiendo "solo JSON" no siempre
+  devuelve JSON limpio. En este ejercicio vas a escribir un `system` + la
+  técnica de prefill de la Lección 05 para garantizar que la respuesta sea
+  un objeto JSON parseable con 3 campos específicos.
+
+  La tarea: extraer datos de un nombre de ciudad que el usuario mencione.
+
+starter_code: |
+  import "dotenv/config";
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: escribí el system prompt. Debe instruir a Claude a responder
+  //         ÚNICAMENTE con un JSON con exactamente 3 campos:
+  //         - city (string): el nombre de la ciudad
+  //         - country (string): el país donde está la ciudad
+  //         - population_millions (number): población aproximada en millones
+  const SYSTEM = "";
+
+  async function extractCityData(cityMention: string) {
+    // TODO 2: armar el request con:
+    //         - model: claude-haiku-4-5
+    //         - max_tokens: 200
+    //         - system: SYSTEM
+    //         - messages: el mensaje user + un turno assistant con prefill "{"
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      system: SYSTEM,
+      messages: [],
+    });
+
+    // TODO 3: reconstruir el JSON completo concatenando el prefill "{"
+    //         con el texto del primer bloque, y parsear.
+    const prefill = "{";
+    const completion = ""; // extraer de resp.content
+    const fullJson = prefill + completion;
+
+    return JSON.parse(fullJson);
+  }
+
+  async function main() {
+    const data = await extractCityData("Cuéntame sobre Tokio.");
+    console.log(data);
+  }
+
+  main();
+
+solution_code: |
+  import "dotenv/config";
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const SYSTEM = `Extraés datos de ciudades en formato JSON estricto.
+  Tu respuesta es un objeto JSON con exactamente estos 3 campos:
+  - "city" (string): nombre de la ciudad
+  - "country" (string): país donde está la ciudad
+  - "population_millions" (number): población aproximada en millones
+
+  No incluyas markdown, backticks, texto antes o después del JSON, ni explicaciones.`;
+
+  async function extractCityData(cityMention: string) {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      system: SYSTEM,
+      messages: [
+        { role: "user", content: cityMention },
+        { role: "assistant", content: "{" },
+      ],
+    });
+
+    const prefill = "{";
+    const textBlock = resp.content.find((b) => b.type === "text");
+    const completion = textBlock?.type === "text" ? textBlock.text : "";
+    const fullJson = prefill + completion;
+
+    return JSON.parse(fullJson);
+  }
+
+  async function main() {
+    const data = await extractCityData("Cuéntame sobre Tokio.");
+    console.log(data);
+  }
+
+  main();
+
+test_cases:
+  - id: test-system-has-instructions
+    description: "El system prompt menciona los 3 campos requeridos"
+    test_code: |
+      assert "city" in SYSTEM.lower() or "city" in SYSTEM;
+      assert "country" in SYSTEM.lower() or "country" in SYSTEM;
+      assert "population" in SYSTEM.lower() or "population" in SYSTEM;
+    points: 3
+
+  - id: test-messages-has-prefill
+    description: "El array messages termina con un turno assistant de prefill '{'"
+    test_code: |
+      // verificar que el último elemento de messages sea { role: "assistant", content: "{" }
+      // (validado en el runtime del test runner del curso)
+    points: 4
+
+  - id: test-returns-valid-object
+    description: "extractCityData devuelve un objeto con los 3 campos esperados y tipos correctos"
+    test_code: |
+      const data = await extractCityData("Cuéntame sobre Tokio.");
+      assert typeof data.city === "string";
+      assert typeof data.country === "string";
+      assert typeof data.population_millions === "number";
+      assert data.population_millions > 0;
+    points: 8
+
+hints:
+  - "El system prompt debe ser explícito: 'responde SOLO con JSON, sin markdown, sin backticks, sin texto adicional'. Listar los campos exactos con sus tipos ayuda mucho."
+  - "El prefill se agrega como último elemento de messages[]: { role: 'assistant', content: '{' }. Claude va a continuar desde ahí, pero el '{' NO vuelve en la respuesta."
+  - "Para reconstruir el JSON completo, hacés: `fullJson = '{' + resp.content[0].text`. Después `JSON.parse(fullJson)`."
+  - "Si el SDK devuelve varios bloques en content[], filtrá los que tengan type === 'text' y concatená sus .text antes de agregarlos al prefill."
+
+concepts:
+  - system-prompts
+  - json-output-enforcement
+  - assistant-prefill
+  - content-block-extraction

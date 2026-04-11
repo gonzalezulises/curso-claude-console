@@ -1,0 +1,206 @@
+id: ex-01-07-chat-cli
+type: code-typescript
+title: "Extendé el chat CLI con sliding window y comando /tokens"
+lesson_ref: lesson-01-10
+difficulty: advanced
+estimated_time_minutes: 25
+points: 25
+
+description: |
+  Tomando como base el chat-cli.ts del lab de la Lección 10, vas a agregar
+  dos features:
+
+  1. **Sliding window ADAPTATIVO**: en vez de un MAX fijo de 20 turnos,
+     trimHistory debe respetar un presupuesto máximo de `MAX_INPUT_TOKENS`
+     (ej. 5000). Usás count_tokens para medir el costo real del historial
+     y vas podando desde el turno más viejo hasta que entre.
+
+  2. **Comando `/tokens`**: cuando el usuario tipea `/tokens`, el CLI llama
+     a count_tokens sobre el historial actual (sin enviar nada) y reporta
+     cuántos input_tokens consumiría el próximo turno si no cambiara.
+
+  Respaldo mental: este ejercicio te fuerza a integrar multi-turno + count_tokens
+  en una sola app. Es el patrón real que vas a usar en producción.
+
+starter_code: |
+  import "dotenv/config";
+  import Anthropic from "@anthropic-ai/sdk";
+  import { readFileSync, writeFileSync, existsSync } from "node:fs";
+
+  type Turn = { role: "user" | "assistant"; content: string };
+  type Session = {
+    model: string;
+    system: string;
+    messages: Turn[];
+    totals: { input_tokens: number; output_tokens: number };
+  };
+
+  const SESSION_PATH = "./chat-session.json";
+  const MAX_INPUT_TOKENS = 5000;
+
+  const client = new Anthropic({ maxRetries: 5 });
+
+  // TODO 1: implementar countHistoryTokens(session) que llama al endpoint
+  //         /v1/messages/count_tokens con el model, system y messages actuales
+  //         y devuelve el input_tokens.
+  async function countHistoryTokens(session: Session): Promise<number> {
+    return 0;
+  }
+
+  // TODO 2: implementar trimHistoryAdaptive(session) que poda el array
+  //         messages desde el principio hasta que countHistoryTokens devuelva
+  //         un valor <= MAX_INPUT_TOKENS.
+  //         IMPORTANTE: no modificar session.messages persistido — solo
+  //         devolver una vista "trimmed" para el próximo request.
+  async function trimHistoryAdaptive(session: Session): Promise<Turn[]> {
+    return session.messages;
+  }
+
+  // TODO 3: implementar handleTokensCommand(session) que imprime en consola
+  //         el resultado de countHistoryTokens(session) con formato legible.
+  async function handleTokensCommand(session: Session): Promise<void> {}
+
+  // (El resto del CLI, sendTurn y main, se mantienen como en el lab.)
+
+solution_code: |
+  import "dotenv/config";
+  import Anthropic from "@anthropic-ai/sdk";
+  import { readFileSync, writeFileSync, existsSync } from "node:fs";
+
+  type Turn = { role: "user" | "assistant"; content: string };
+  type Session = {
+    model: string;
+    system: string;
+    messages: Turn[];
+    totals: { input_tokens: number; output_tokens: number };
+  };
+
+  const SESSION_PATH = "./chat-session.json";
+  const MAX_INPUT_TOKENS = 5000;
+
+  const client = new Anthropic({ maxRetries: 5 });
+
+  async function countTokensForMessages(
+    model: string,
+    system: string,
+    messages: Turn[]
+  ): Promise<number> {
+    if (messages.length === 0) return 0;
+    const response = await fetch("https://api.anthropic.com/v1/messages/count_tokens", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ model, system, messages }),
+    });
+    if (!response.ok) {
+      throw new Error(`count_tokens failed: ${response.status}`);
+    }
+    const data = (await response.json()) as { input_tokens: number };
+    return data.input_tokens;
+  }
+
+  async function countHistoryTokens(session: Session): Promise<number> {
+    return countTokensForMessages(session.model, session.system, session.messages);
+  }
+
+  async function trimHistoryAdaptive(session: Session): Promise<Turn[]> {
+    let candidate = [...session.messages];
+
+    while (candidate.length > 0) {
+      const tokens = await countTokensForMessages(session.model, session.system, candidate);
+      if (tokens <= MAX_INPUT_TOKENS) return candidate;
+
+      // Podar el par user/assistant más viejo (2 elementos) para mantener alternancia.
+      candidate = candidate.slice(2);
+    }
+
+    return candidate;
+  }
+
+  async function handleTokensCommand(session: Session): Promise<void> {
+    const tokens = await countHistoryTokens(session);
+    const pct = Math.round((tokens / MAX_INPUT_TOKENS) * 100);
+    console.log(
+      `historial actual: ${tokens} input_tokens (${pct}% de MAX_INPUT_TOKENS=${MAX_INPUT_TOKENS})`
+    );
+  }
+
+test_cases:
+  - id: test-count-history-tokens
+    description: "countHistoryTokens devuelve un número > 0 para una sesión con mensajes"
+    test_code: |
+      const session: Session = {
+        model: "claude-haiku-4-5",
+        system: "Sos un asistente breve.",
+        messages: [
+          { role: "user", content: "Hola" },
+          { role: "assistant", content: "Hola, ¿en qué puedo ayudarte?" },
+        ],
+        totals: { input_tokens: 0, output_tokens: 0 },
+      };
+      const tokens = await countHistoryTokens(session);
+      assert typeof tokens === "number";
+      assert tokens > 0;
+      assert tokens < 200;
+    points: 8
+
+  - id: test-trim-adaptive-within-budget
+    description: "trimHistoryAdaptive devuelve un historial que cabe en MAX_INPUT_TOKENS"
+    test_code: |
+      // Crear una sesión con 50 turnos de texto largo para forzar trim.
+      const longText = "Lorem ipsum dolor sit amet ".repeat(100);
+      const messages: Turn[] = [];
+      for (let i = 0; i < 50; i++) {
+        messages.push({ role: "user", content: longText });
+        messages.push({ role: "assistant", content: longText });
+      }
+      const session: Session = {
+        model: "claude-haiku-4-5",
+        system: "Sos un asistente.",
+        messages,
+        totals: { input_tokens: 0, output_tokens: 0 },
+      };
+      const trimmed = await trimHistoryAdaptive(session);
+      const tokensAfter = await countTokensForMessages(session.model, session.system, trimmed);
+      assert tokensAfter <= MAX_INPUT_TOKENS;
+      // El original tiene mucho más que MAX, el trimmed debe haber podado algo.
+      assert trimmed.length < session.messages.length;
+    points: 10
+
+  - id: test-trim-preserves-alternation
+    description: "trimHistoryAdaptive conserva la alternancia user/assistant (no deja un assistant al inicio)"
+    test_code: |
+      const longText = "X".repeat(5000);
+      const messages: Turn[] = [];
+      for (let i = 0; i < 10; i++) {
+        messages.push({ role: "user", content: longText });
+        messages.push({ role: "assistant", content: longText });
+      }
+      const session: Session = {
+        model: "claude-haiku-4-5",
+        system: "Sos un asistente.",
+        messages,
+        totals: { input_tokens: 0, output_tokens: 0 },
+      };
+      const trimmed = await trimHistoryAdaptive(session);
+      if (trimmed.length > 0) {
+        assert trimmed[0].role === "user";
+      }
+    points: 7
+
+hints:
+  - "countTokensForMessages es una función helper que vas a reusar. Extraela y llamala desde countHistoryTokens y trimHistoryAdaptive."
+  - "Para podar manteniendo alternancia, remové de a PARES (user+assistant). Si empezás a podar de a uno, dejás un assistant huérfano al inicio y la API te devuelve 400."
+  - "trimHistoryAdaptive NO debe mutar session.messages. Usá `[...session.messages]` para trabajar sobre una copia."
+  - "El endpoint count_tokens es gratis pero consume rate limit — en el loop de trim, cada iteración es una llamada extra. En producción podrías cachear resultados o aproximar con heurísticas antes del count final."
+  - "Si el historial entero cabe (tokens <= MAX), devolvelo sin podar. Solo trimeás cuando excedés."
+
+concepts:
+  - count-tokens-integration
+  - adaptive-context-management
+  - sliding-window-by-tokens
+  - conversation-persistence
+  - messages-alternation-preservation

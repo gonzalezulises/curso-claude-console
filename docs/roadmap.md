@@ -26,12 +26,14 @@ Tracker vivo del progreso. Actualiza esto al terminar cada módulo.
 - ✅ 12 OUTLINE.md (módulos 1-12)
 - ✅ Repo privado en GitHub
 
-### Sesión 2 — Módulo 1: Messages API
-- [ ] Verificar context7 para features actuales de /v1/messages
-- [ ] Escribir 10 lecciones
-- [ ] Escribir ~7 ejercicios (code-ts primario)
-- [ ] Lab del módulo: construir un chat CLI en TS
-- [ ] Actualizar `COURSE_STATE.yaml`
+### Sesión 2 — Módulo 1: Messages API ✅
+- [x] Verificar context7 para features actuales de /v1/messages
+- [x] Escribir 10 lecciones (familia modelos, request, response, system,
+      multi-turno + prefill, streaming SSE, count_tokens, errores, retries, lab)
+- [x] Escribir 7 ejercicios (2 quizzes + 5 code-ts/py)
+- [x] Lab del módulo: `playground/chat-cli.ts` con historial persistido,
+      streaming SDK, retries, comandos /stats /reset /exit, rollback de turno
+- [x] Actualizar `COURSE_STATE.yaml`
 - [ ] Commit `feat(module-01): complete messages api fundamentals`
 
 ### Sesión 3 — Módulo 2: Workbench

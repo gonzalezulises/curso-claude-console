@@ -1,0 +1,26 @@
+{
+  "model": "claude-haiku-4-5",
+  "system": "Eres un asistente breve y técnico. Respondes en español, en 3 frases máximo. Sin preámbulos.",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hola, soy Ulises y mi perro se llama Toto."
+    },
+    {
+      "role": "assistant",
+      "content": "Hola Ulises, mucho gusto. ¿Hay algo específico en lo que pueda ayudarte con Toto o alguna otra consulta técnica?"
+    },
+    {
+      "role": "user",
+      "content": "¿Cómo se llama mi perro?"
+    },
+    {
+      "role": "assistant",
+      "content": "Tu perro se llama Toto."
+    }
+  ],
+  "totals": {
+    "input_tokens": 183,
+    "output_tokens": 57
+  }
+}

@@ -1,0 +1,100 @@
+id: module-01
+slug: module-01-messages-api
+title: "Messages API: Fundamentos"
+order: 1
+duration_hours: 5
+is_locked: false
+status: in_progress
+
+description: >
+  Dominio completo del único endpoint sobre el que se construye todo lo demás
+  del curso: /v1/messages. Parámetros del request, anatomía de la respuesta,
+  system prompts, conversaciones multi-turno, streaming SSE, count_tokens,
+  errores y retries. Cierra con un lab de chat CLI persistente en TypeScript.
+
+learning_outcomes:
+  - "Elegir entre Haiku 4.5, Sonnet 4.6 y Opus 4.6 basado en costo, latencia y capacidad"
+  - "Distinguir aliases estables de snapshots con fecha y saber cuándo usar cada uno"
+  - "Controlar cada parámetro del request (temperature, top_p, stop_sequences, metadata)"
+  - "Leer cualquier respuesta de la API, incluyendo content como array de bloques y usage completo"
+  - "Escribir system prompts efectivos y mantener conversaciones multi-turno"
+  - "Consumir streaming SSE tanto a mano con curl como con el SDK"
+  - "Presupuestar prompts con /v1/messages/count_tokens antes de enviarlos"
+  - "Reconocer cada código de error de la API y aplicar la política correcta (retry/fatal/degradar)"
+  - "Implementar retries con exponential backoff correctamente"
+  - "Construir un chat CLI persistente con historial, streaming y reporte de costo"
+
+prerequisites:
+  - "Módulo 0 completo (cuenta, key, primer curl, setup local)"
+  - "Entender HTTP request/response y JSON"
+
+lessons:
+  - id: lesson-01-01
+    file: lessons/01-familia-de-modelos.md
+    title: "Familia de modelos 4.x y cómo elegir"
+    order: 1
+    duration_minutes: 20
+    exercises: [ex-01-01-elegir-modelo]
+
+  - id: lesson-01-02
+    file: lessons/02-anatomia-del-request.md
+    title: "Anatomía completa del request"
+    order: 2
+    duration_minutes: 35
+    exercises: []
+
+  - id: lesson-01-03
+    file: lessons/03-anatomia-de-la-respuesta.md
+    title: "Anatomía completa de la respuesta"
+    order: 3
+    duration_minutes: 30
+    exercises: [ex-01-03-parsear-content]
+
+  - id: lesson-01-04
+    file: lessons/04-system-prompts.md
+    title: "System prompts"
+    order: 4
+    duration_minutes: 25
+    exercises: [ex-01-02-system-prompt]
+
+  - id: lesson-01-05
+    file: lessons/05-conversaciones-multi-turno.md
+    title: "Conversaciones multi-turno y prefill"
+    order: 5
+    duration_minutes: 25
+    exercises: []
+
+  - id: lesson-01-06
+    file: lessons/06-streaming-sse.md
+    title: "Streaming con Server-Sent Events"
+    order: 6
+    duration_minutes: 35
+    exercises: [ex-01-04-streaming-manual]
+
+  - id: lesson-01-07
+    file: lessons/07-count-tokens.md
+    title: "count_tokens antes de llamar"
+    order: 7
+    duration_minutes: 20
+    exercises: [ex-01-05-count-tokens]
+
+  - id: lesson-01-08
+    file: lessons/08-errores-de-la-api.md
+    title: "Errores de la API: 400, 401, 403, 404, 429, 500, 529"
+    order: 8
+    duration_minutes: 25
+    exercises: [ex-01-06-error-matrix]
+
+  - id: lesson-01-09
+    file: lessons/09-retries-exponential-backoff.md
+    title: "Retries con exponential backoff"
+    order: 9
+    duration_minutes: 25
+    exercises: []
+
+  - id: lesson-01-10
+    file: lessons/10-lab-chat-cli-persistente.md
+    title: "Lab: Chat CLI persistente"
+    order: 10
+    duration_minutes: 60
+    exercises: [ex-01-07-chat-cli]

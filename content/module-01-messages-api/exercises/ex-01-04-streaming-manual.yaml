@@ -1,0 +1,182 @@
+id: ex-01-04-streaming-manual
+type: code-typescript
+title: "Parseá un stream SSE a mano (sin SDK)"
+lesson_ref: lesson-01-06
+difficulty: advanced
+estimated_time_minutes: 15
+points: 20
+
+description: |
+  Implementá desde cero el parser de Server-Sent Events (sin @anthropic-ai/sdk)
+  y llamá a /v1/messages con `stream: true`. Al terminar, tu función debe
+  devolver el texto completo reconstruido Y el output_tokens real leído del
+  evento message_delta (NO del message_start).
+
+  El objetivo es que entiendas el protocolo bajo el SDK — en cualquier lenguaje
+  futuro donde no tengas SDK, sabés reconstruir esto en 30 líneas.
+
+starter_code: |
+  import "dotenv/config";
+
+  type StreamResult = {
+    text: string;
+    outputTokens: number;
+  };
+
+  async function streamMessage(userPrompt: string): Promise<StreamResult> {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        accept: "text/event-stream",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 100,
+        stream: true,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+
+    // TODO 1: leer el body como stream con response.body.getReader()
+    //         y decodificar con TextDecoder.
+
+    // TODO 2: separar eventos por '\n\n' (dos saltos de línea).
+    //         Cada evento tiene líneas 'event: <nombre>' y 'data: <json>'.
+
+    // TODO 3: concatenar los text_delta de los content_block_delta (filtrar
+    //         por delta.type === 'text_delta').
+
+    // TODO 4: leer el output_tokens del evento message_delta (NO del
+    //         message_start — ese siempre trae 1).
+
+    // TODO 5: retornar { text, outputTokens }.
+    return { text: "", outputTokens: 0 };
+  }
+
+  async function main() {
+    const result = await streamMessage("Di 'hola mundo' y nada más.");
+    console.log("texto:", result.text);
+    console.log("output_tokens reales:", result.outputTokens);
+  }
+
+  main();
+
+solution_code: |
+  import "dotenv/config";
+
+  type StreamResult = {
+    text: string;
+    outputTokens: number;
+  };
+
+  type SSEEvent = { event: string; data: string };
+
+  async function* parseSSE(response: Response): AsyncGenerator<SSEEvent> {
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      const events = buffer.split("\n\n");
+      buffer = events.pop() ?? "";
+
+      for (const rawEvent of events) {
+        let event = "";
+        let data = "";
+        for (const line of rawEvent.split("\n")) {
+          if (line.startsWith("event: ")) event = line.slice(7).trim();
+          else if (line.startsWith("data: ")) data += line.slice(6);
+        }
+        if (event) yield { event, data };
+      }
+    }
+  }
+
+  async function streamMessage(userPrompt: string): Promise<StreamResult> {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        accept: "text/event-stream",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 100,
+        stream: true,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+
+    let text = "";
+    let outputTokens = 0;
+
+    for await (const sse of parseSSE(response)) {
+      if (!sse.data) continue;
+      const payload = JSON.parse(sse.data);
+
+      if (sse.event === "content_block_delta" && payload.delta?.type === "text_delta") {
+        text += payload.delta.text;
+      } else if (sse.event === "message_delta") {
+        outputTokens = payload.usage?.output_tokens ?? outputTokens;
+      }
+    }
+
+    return { text, outputTokens };
+  }
+
+  async function main() {
+    const result = await streamMessage("Di 'hola mundo' y nada más.");
+    console.log("texto:", result.text);
+    console.log("output_tokens reales:", result.outputTokens);
+  }
+
+  main();
+
+test_cases:
+  - id: test-text-reconstructed
+    description: "El texto reconstruido no está vacío y contiene la respuesta"
+    test_code: |
+      const result = await streamMessage("Di exactamente la palabra 'ok' y nada más.");
+      assert typeof result.text === "string";
+      assert result.text.length > 0;
+      assert result.text.toLowerCase().includes("ok");
+    points: 8
+
+  - id: test-output-tokens-from-message-delta
+    description: "outputTokens es > 1 (debe venir de message_delta, no del 1 de message_start)"
+    test_code: |
+      const result = await streamMessage("Contá de 1 a 10 separado por comas.");
+      assert result.outputTokens > 5;
+    points: 6
+
+  - id: test-ignores-ping-events
+    description: "El parser no rompe cuando llegan eventos ping intercalados"
+    test_code: |
+      // Eventos ping vienen del servidor de vez en cuando.
+      // Tu parser debe tolerarlos (hacer nada) sin lanzar excepciones.
+      const result = await streamMessage("Hola");
+      assert result.text.length > 0;
+    points: 6
+
+hints:
+  - "El body de fetch() en Node devuelve un ReadableStream. Usá `response.body.getReader()` y `new TextDecoder()` para procesar chunks."
+  - "Los eventos SSE están separados por DOS saltos de línea consecutivos ('\\n\\n'). El último split puede estar incompleto — guardalo en el buffer hasta el próximo chunk."
+  - "Dentro de un evento, las líneas 'event:' y 'data:' empiezan con exactamente esos prefijos. Usá .startsWith('event: ') y .slice(7) para obtener el nombre."
+  - "Los tipos de evento que te interesan son: content_block_delta (filtrar delta.type === 'text_delta' para concatenar texto) y message_delta (leer usage.output_tokens). Ignorá ping, message_start, message_stop."
+  - "Crítico: el output_tokens del message_start es SIEMPRE 1 (protocolo). Nunca lo uses para contar — leé el del message_delta."
+
+concepts:
+  - sse-protocol
+  - streaming-parsing
+  - event-types
+  - usage-from-message-delta
