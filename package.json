@@ -7,7 +7,10 @@
   "scripts": {
     "verify": "tsx playground/verify-setup.ts",
     "hello": "tsx playground/01-hello-claude.ts",
-    "validate-course": "tsx scripts/validate-course.ts"
+    "validate-course": "tsx scripts/validate-course.ts",
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
@@ -16,7 +19,9 @@
   "devDependencies": {
     "@types/node": "^22.9.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitepress": "^1.5.0",
+    "yaml": "^2.6.1"
   },
   "engines": {
     "node": ">=20.0.0"

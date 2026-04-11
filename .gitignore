@@ -40,3 +40,7 @@ venv/
 
 # Course internals
 .course-scratch/
+
+# VitePress site build artifacts
+.vitepress/cache/
+.vitepress/dist/

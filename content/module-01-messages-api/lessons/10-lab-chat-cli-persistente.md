@@ -64,7 +64,7 @@ Cuando el usuario escribe un mensaje, el flow natural es:
 3. `messages.push({ role: "assistant", content: respuesta })`
 4. guardar el JSON
 
-Pero **qué pasa si la API falla en el paso 2** con un error fatal (un 400 porque el historial quedó corrupto, por ejemplo)? Si dejaste el `messages.push(user)` del paso 1, tu historial ahora tiene un turno `user` huérfano sin respuesta. El próximo turno va a tener `[user, user]` en el array y la API te va a devolver 400 por violar la alternancia.
+Pero **¿qué pasa si la API falla en el paso 2** con un error fatal (un 400 porque el historial quedó corrupto, por ejemplo)? Si dejaste el `messages.push(user)` del paso 1, tu historial ahora tiene un turno `user` huérfano sin respuesta. El próximo turno va a tener `[user, user]` en el array y la API te va a devolver 400 por violar la alternancia.
 
 **Solución**: si la API falla, hacés **rollback** del `messages.push(user)`:
 
