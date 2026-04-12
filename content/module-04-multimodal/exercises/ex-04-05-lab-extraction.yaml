@@ -1,0 +1,238 @@
+id: ex-04-05-lab-extraction
+type: code-typescript
+title: "Lab: pipeline de extracción con 3 documentos y citas cruzadas"
+lesson_ref: lesson-04-07
+difficulty: advanced
+estimated_time_minutes: 30
+points: 25
+
+starter_code: |
+  // ex-04-05: Lab final del módulo
+  // Construís un pipeline que sube 3 documentos a Files API, hace una
+  // pregunta que cruza información entre ellos, y genera markdown con
+  // citas por documento.
+
+  import Anthropic from "@anthropic-ai/sdk";
+  import { writeFileSync, readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  // Documentos de prueba (3 papers resumidos)
+  const docs = [
+    {
+      path: "/tmp/paper1.txt",
+      title: "Attention Is All You Need (Vaswani 2017)",
+      content: `The Transformer architecture relies entirely on attention mechanisms,
+  dispensing with recurrence and convolutions. Base configuration uses 8 attention heads.
+  The encoder has 6 identical layers. Training on 8 P100 GPUs for 12 hours.
+  Results: 28.4 BLEU on WMT 2014 English-to-German.`,
+    },
+    {
+      path: "/tmp/paper2.txt",
+      title: "Scaling Laws (Kaplan 2020)",
+      content: `Performance scales as a power law with model size, dataset size, and compute.
+  For fixed compute, optimal model size grows as C^0.73 while training tokens grow as C^0.27.
+  Studied decoder-only transformers from 768 to 1.5B parameters.`,
+    },
+    {
+      path: "/tmp/paper3.txt",
+      title: "InstructGPT (Ouyang 2022)",
+      content: `InstructGPT uses RLHF with three phases: supervised fine-tuning, reward model
+  training, and PPO optimization. Human evaluators preferred InstructGPT over GPT-3
+  baseline 85% of the time, despite being 100x smaller (1.3B vs 175B parameters).`,
+    },
+  ];
+
+  // TODO 1: Escribir los 3 docs a disco, subirlos con Files API.
+  //   Guardar los file objects retornados.
+
+  // TODO 2: Armar el content array con:
+  //   - 3 document blocks (source: {type:'file', file_id}, title, citations: {enabled:true})
+  //   - 1 text block con pregunta cross-documento:
+  //     "Basado en los 3 papers: ¿qué arquitectura introdujo el primero, cómo escala
+  //      óptimamente el modelo según el segundo, y qué resultado mostró InstructGPT
+  //      sobre GPT-3? Citar cada afirmación."
+
+  // TODO 3: Llamar a messages.create con betas: ['files-api-2025-04-14'].
+  //   model: claude-sonnet-4-6, max_tokens: 1500.
+
+  // TODO 4: Renderizar la respuesta como markdown con citas agrupadas por documento.
+  //   Formato sugerido:
+  //     <texto del response con [^N] markers>
+  //     ---
+  //     ## Paper A
+  //     [^1]: chars X-Y: "..."
+  //     ## Paper B
+  //     [^2]: chars X-Y: "..."
+
+  // TODO 5: Cleanup — borrar los 3 file_ids.
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+  import { writeFileSync, readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  const docs = [
+    {
+      path: "/tmp/paper1.txt",
+      title: "Attention Is All You Need (Vaswani 2017)",
+      content: `The Transformer architecture relies entirely on attention mechanisms,
+  dispensing with recurrence and convolutions. Base configuration uses 8 attention heads.
+  The encoder has 6 identical layers. Training on 8 P100 GPUs for 12 hours.
+  Results: 28.4 BLEU on WMT 2014 English-to-German.`,
+    },
+    {
+      path: "/tmp/paper2.txt",
+      title: "Scaling Laws (Kaplan 2020)",
+      content: `Performance scales as a power law with model size, dataset size, and compute.
+  For fixed compute, optimal model size grows as C^0.73 while training tokens grow as C^0.27.
+  Studied decoder-only transformers from 768 to 1.5B parameters.`,
+    },
+    {
+      path: "/tmp/paper3.txt",
+      title: "InstructGPT (Ouyang 2022)",
+      content: `InstructGPT uses RLHF with three phases: supervised fine-tuning, reward model
+  training, and PPO optimization. Human evaluators preferred InstructGPT over GPT-3
+  baseline 85% of the time, despite being 100x smaller (1.3B vs 175B parameters).`,
+    },
+  ];
+
+  // 1. Upload
+  const uploaded = [];
+  for (const doc of docs) {
+    writeFileSync(doc.path, doc.content);
+    const f = await client.beta.files.upload({
+      file: new File(
+        [readFileSync(doc.path)],
+        doc.path.split("/").pop()!,
+        { type: "text/plain" },
+      ),
+      purpose: "vision",
+    });
+    uploaded.push({ ...doc, fileId: f.id });
+    console.log(`Uploaded ${f.id}: ${doc.title}`);
+  }
+
+  // 2-3. Llamada multimodal con citations
+  const resp = await client.beta.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1500,
+    betas: ["files-api-2025-04-14"],
+    messages: [{
+      role: "user",
+      content: [
+        ...uploaded.map((d) => ({
+          type: "document" as const,
+          source: { type: "file" as const, file_id: d.fileId },
+          title: d.title,
+          citations: { enabled: true },
+        })),
+        {
+          type: "text",
+          text: `Basado SOLO en los 3 papers, responde citando fuentes:
+
+  1. ¿Qué arquitectura introdujo el primer paper y cuántas capas tiene su encoder?
+  2. Según el segundo paper, ¿cómo escala el tamaño óptimo del modelo con el compute?
+  3. ¿Qué resultado concreto mostró InstructGPT sobre GPT-3 según el tercer paper?`,
+        },
+      ],
+    }],
+  });
+
+  // 4. Render con citas agrupadas por documento
+  let body = "";
+  const citationsByDoc: Record<string, { idx: number; snippet: string; range: string }[]> = {};
+  let idx = 1;
+
+  for (const block of resp.content) {
+    if (block.type !== "text") continue;
+    body += block.text;
+
+    const cites = (block as any).citations as any[] | undefined;
+    if (cites && cites.length > 0) {
+      for (const cite of cites) {
+        body += `[^${idx}]`;
+        const title = cite.document_title || `doc-${cite.document_index}`;
+        if (!citationsByDoc[title]) citationsByDoc[title] = [];
+
+        let range = "";
+        if (cite.type === "char_location") {
+          range = `chars ${cite.start_char_index}-${cite.end_char_index}`;
+        } else if (cite.type === "page_location") {
+          range = `p. ${cite.start_page_number}`;
+        }
+
+        citationsByDoc[title].push({
+          idx,
+          snippet: cite.cited_text.trim().slice(0, 120),
+          range,
+        });
+        idx++;
+      }
+    }
+  }
+
+  console.log("\n=== RESPUESTA ===\n");
+  console.log(body);
+  console.log("\n---\n");
+
+  for (const [docTitle, cites] of Object.entries(citationsByDoc)) {
+    console.log(`## ${docTitle}`);
+    for (const c of cites) {
+      console.log(`[^${c.idx}] (${c.range}): "${c.snippet}..."`);
+    }
+    console.log("");
+  }
+
+  console.log(`[tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_tokens}]`);
+
+  // 5. Cleanup
+  for (const d of uploaded) {
+    await client.beta.files.delete(d.fileId);
+  }
+  console.log(`\nCleaned up ${uploaded.length} files.`);
+
+test_cases:
+  - id: test-three-uploads
+    description: "Se suben 3 archivos a Files API"
+    test_code: |
+      assert uploaded.length === 3, "Deben subirse 3 archivos";
+      uploaded.forEach(d => assert d.fileId.startsWith("file-"));
+    points: 5
+  - id: test-all-citations-enabled
+    description: "Los 3 documentos tienen citations.enabled: true"
+    test_code: |
+      assert true, "Verificar manualmente que los 3 document blocks tienen citations.enabled: true";
+    points: 5
+  - id: test-citations-from-multiple-docs
+    description: "La respuesta incluye citas de al menos 2 documentos distintos"
+    test_code: |
+      const distinctDocs = new Set(Object.keys(citationsByDoc));
+      assert distinctDocs.size >= 2, "Las citas deben venir de al menos 2 documentos distintos";
+    points: 5
+  - id: test-cleanup-all
+    description: "Se borran los 3 archivos al final"
+    test_code: |
+      assert true, "Verificar manualmente que se llama delete para los 3 file_ids";
+    points: 5
+  - id: test-markdown-output
+    description: "El output incluye markdown con footnotes agrupados"
+    test_code: |
+      assert body.includes("[^"), "El body debe tener markers [^N]";
+      assert Object.keys(citationsByDoc).length >= 2, "Las citas deben estar agrupadas por doc";
+    points: 5
+
+hints:
+  - "Spread operator para agregar los document blocks: [...uploaded.map(...), { type: 'text', ... }]"
+  - "En TypeScript estricto, castea type: 'document' as const para preservar el literal"
+  - "Agrupá las citas con un Record<string, ...> usando document_title como key"
+  - "Cleanup en loop: for (const d of uploaded) await client.beta.files.delete(d.fileId)"
+  - "Si el modelo no genera citas de los 3 docs, reforzá el prompt con 'citar cada afirmación'"
+
+concepts:
+  - multi-document-pipeline
+  - files-api
+  - citations-grouped
+  - markdown-rendering
+  - cleanup-pattern

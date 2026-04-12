@@ -1,0 +1,147 @@
+id: ex-04-03-files-upload
+type: code-typescript
+title: "Subir un archivo y reutilizarlo en 3 mensajes"
+lesson_ref: lesson-04-03
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 15
+
+starter_code: |
+  // ex-04-03: Files API — upload + referenciar 3 veces + cleanup
+  // Subís un archivo de texto con datos, le hacés 3 preguntas distintas
+  // reutilizando el file_id, y borrás el archivo al terminar.
+  //
+  // NOTA: Files API es beta. Requiere betas: ['files-api-2025-04-14']
+  // en cada llamada que usa file_id.
+
+  import Anthropic from "@anthropic-ai/sdk";
+  import { writeFileSync, readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  // Contenido del archivo (un reporte ficticio)
+  const reportContent = `
+  ACME Corp Annual Report 2025
+
+  Revenue: USD 12.5M (up 28% YoY from USD 9.8M in 2024).
+  Employees: 87 (growth from 62 in 2024).
+  Locations: San Francisco (HQ), Buenos Aires, Barcelona, Tokyo.
+
+  Product launches: 4 major releases in 2025 including the AI-powered
+  analytics platform and the enterprise SSO integration.
+
+  Customer metrics: NPS improved from 38 to 54. Churn down from 6% to 2.8%.
+  Enterprise clients: 156 total, 43 new in 2025.
+  `.trim();
+
+  writeFileSync("/tmp/acme-report.txt", reportContent);
+
+  // TODO 1: Subir /tmp/acme-report.txt con client.beta.files.upload
+  //   - purpose: "vision"
+  //   - Imprimir el file.id
+
+  // TODO 2: Definir 3 preguntas distintas:
+  //   - "¿Cuánto creció el revenue?"
+  //   - "¿Cuántos empleados tiene la empresa?"
+  //   - "¿En cuántas ciudades opera?"
+
+  // TODO 3: Para cada pregunta, llamar a client.beta.messages.create con:
+  //   - betas: ["files-api-2025-04-14"]
+  //   - Un content con document (source: {type: "file", file_id}) + text
+
+  // TODO 4: Imprimir las 3 respuestas
+
+  // TODO 5: Borrar el archivo con client.beta.files.delete
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+  import { writeFileSync, readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  const reportContent = `ACME Corp Annual Report 2025
+
+  Revenue: USD 12.5M (up 28% YoY from USD 9.8M in 2024).
+  Employees: 87 (growth from 62 in 2024).
+  Locations: San Francisco (HQ), Buenos Aires, Barcelona, Tokyo.
+
+  Product launches: 4 major releases in 2025 including the AI-powered
+  analytics platform and the enterprise SSO integration.
+
+  Customer metrics: NPS improved from 38 to 54. Churn down from 6% to 2.8%.
+  Enterprise clients: 156 total, 43 new in 2025.`;
+
+  writeFileSync("/tmp/acme-report.txt", reportContent);
+
+  // 1. Upload
+  const file = await client.beta.files.upload({
+    file: new File(
+      [readFileSync("/tmp/acme-report.txt")],
+      "acme-report.txt",
+      { type: "text/plain" },
+    ),
+    purpose: "vision",
+  });
+  console.log(`Uploaded: ${file.id}\n`);
+
+  // 2. 3 preguntas
+  const questions = [
+    "¿Cuánto creció el revenue en 2025?",
+    "¿Cuántos empleados tiene la empresa?",
+    "¿En cuántas ciudades opera?",
+  ];
+
+  // 3. Referenciar el file_id 3 veces
+  for (const q of questions) {
+    const resp = await client.beta.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 150,
+      betas: ["files-api-2025-04-14"],
+      messages: [{
+        role: "user",
+        content: [
+          { type: "document", source: { type: "file", file_id: file.id } },
+          { type: "text", text: q },
+        ],
+      }],
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    console.log(`Q: ${q}`);
+    console.log(`A: ${text}`);
+    console.log(`   [tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_tokens}]\n`);
+  }
+
+  // 4. Cleanup
+  await client.beta.files.delete(file.id);
+  console.log(`Deleted: ${file.id}`);
+
+test_cases:
+  - id: test-upload
+    description: "El archivo se sube y se obtiene un file_id que empieza con 'file-'"
+    test_code: |
+      assert file.id.startsWith("file-"), "El file_id debe empezar con 'file-'";
+    points: 5
+  - id: test-reuse
+    description: "El mismo file_id se usa en las 3 llamadas"
+    test_code: |
+      assert true, "Verificar manualmente: el file_id de upload se usa en las 3 llamadas";
+    points: 5
+  - id: test-cleanup
+    description: "El archivo se borra al final"
+    test_code: |
+      assert true, "Verificar manualmente que se llama a client.beta.files.delete";
+    points: 5
+
+hints:
+  - "El parámetro file de upload espera un objeto File (Web API). Usá `new File([buffer], name, {type})`"
+  - "betas: ['files-api-2025-04-14'] es OBLIGATORIO en upload, messages con file_id, y delete"
+  - "El bloque document con file_id NO necesita media_type ni title (el archivo ya tiene metadata)"
+  - "No olvides await en files.delete — sino el script termina antes de borrar"
+
+concepts:
+  - files-api
+  - file-id
+  - reuse-pattern
+  - beta-header
+  - cleanup

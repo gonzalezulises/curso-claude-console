@@ -1,0 +1,147 @@
+id: ex-04-04-citations
+type: code-typescript
+title: "Extraer citas nativas y renderizarlas como footnotes"
+lesson_ref: lesson-04-05
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 15
+
+starter_code: |
+  // ex-04-04: Citations nativas
+  // Enviás un documento de texto, activás citations, y renderizás la
+  // respuesta como markdown con footnotes verificables.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const document = `Meeting Notes - Product Strategy 2025
+
+  The team agreed that pricing tier restructure will happen in Q2. The new
+  tiers will be Starter (USD 29/mo), Pro (USD 79/mo), and Enterprise
+  (custom pricing starting at USD 500/mo).
+
+  Eng allocation: 3 engineers will work on the new auth system, while the
+  remaining 5 focus on the core platform performance improvements.
+
+  Marketing budget for 2025 is USD 450K, a 30% increase from 2024. The bulk
+  will go to content marketing and the new developer relations program.
+
+  Timeline: MVP of the new dashboard by March 15. Beta program launch by
+  April 30. Public launch by Q3.`.trim();
+
+  // TODO 1: Llamar a messages.create con:
+  //   - Un documento type: "document", source type: "text", media_type: "text/plain"
+  //   - title: "Product Strategy Meeting Notes 2025"
+  //   - citations: { enabled: true }
+  //   - Una pregunta que requiera cruzar datos: "¿Cuándo lanza el MVP y cuál es el precio del tier Pro?"
+
+  // TODO 2: Parsear resp.content: para cada text block, si tiene citations[],
+  //   agregar footnote referenciando chars del documento.
+
+  // TODO 3: Imprimir el markdown resultante (body + footnotes).
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const document = `Meeting Notes - Product Strategy 2025
+
+  The team agreed that pricing tier restructure will happen in Q2. The new
+  tiers will be Starter (USD 29/mo), Pro (USD 79/mo), and Enterprise
+  (custom pricing starting at USD 500/mo).
+
+  Eng allocation: 3 engineers will work on the new auth system, while the
+  remaining 5 focus on the core platform performance improvements.
+
+  Marketing budget for 2025 is USD 450K, a 30% increase from 2024. The bulk
+  will go to content marketing and the new developer relations program.
+
+  Timeline: MVP of the new dashboard by March 15. Beta program launch by
+  April 30. Public launch by Q3.`.trim();
+
+  const resp = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 500,
+    messages: [{
+      role: "user",
+      content: [
+        {
+          type: "document",
+          source: {
+            type: "text",
+            media_type: "text/plain",
+            data: document,
+          },
+          title: "Product Strategy Meeting Notes 2025",
+          citations: { enabled: true },
+        },
+        {
+          type: "text",
+          text: "¿Cuándo lanza el MVP y cuál es el precio del tier Pro? Cita las fuentes.",
+        },
+      ],
+    }],
+  });
+
+  // Renderizar como markdown con footnotes
+  let body = "";
+  const footnotes: string[] = [];
+  let idx = 1;
+
+  for (const block of resp.content) {
+    if (block.type !== "text") continue;
+    body += block.text;
+
+    const citations = (block as any).citations as any[] | undefined;
+    if (citations && citations.length > 0) {
+      for (const cite of citations) {
+        body += `[^${idx}]`;
+        if (cite.type === "char_location") {
+          const snippet = cite.cited_text.trim().slice(0, 100);
+          footnotes.push(
+            `[^${idx}]: **${cite.document_title}** (chars ${cite.start_char_index}-${cite.end_char_index}): "${snippet}..."`,
+          );
+        }
+        idx++;
+      }
+    }
+  }
+
+  console.log("=== RESPUESTA ===\n");
+  console.log(body);
+  console.log("\n---\n");
+  console.log(footnotes.join("\n"));
+  console.log(`\n[tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_tokens}]`);
+
+test_cases:
+  - id: test-citations-enabled
+    description: "El bloque document tiene citations.enabled: true"
+    test_code: |
+      assert true, "Verificar manualmente que el bloque document tiene citations: {enabled: true}";
+    points: 5
+  - id: test-citations-parsed
+    description: "Se extraen citations del response"
+    test_code: |
+      const hasCitation = resp.content.some((b: any) => b.type === "text" && b.citations && b.citations.length > 0);
+      assert hasCitation, "Al menos un text block debe tener citations";
+    points: 5
+  - id: test-markdown-rendered
+    description: "Se imprime markdown con footnotes"
+    test_code: |
+      assert footnotes.length > 0, "Debe haber al menos una footnote";
+      assert body.includes("[^"), "El body debe tener marcadores de footnote";
+    points: 5
+
+hints:
+  - "El campo 'citations' está dentro de cada text block del content array de la respuesta"
+  - "En TypeScript, podés necesitar castear a any: (block as any).citations"
+  - "Los char_location tienen start_char_index y end_char_index — úsalos en la footnote"
+  - "title en el document block aparece como document_title en la citation"
+
+concepts:
+  - citations-enabled
+  - char-location
+  - footnote-rendering
+  - verifiable-output

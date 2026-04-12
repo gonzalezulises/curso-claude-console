@@ -1,0 +1,124 @@
+id: ex-04-02-imagen-url
+type: code-typescript
+title: "Comparar vision por URL y base64"
+lesson_ref: lesson-04-02
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-04-02: URL vs base64
+  // Hacés la misma consulta dos veces: una con source.type: "url" y otra
+  // con source.type: "base64". Comparás tokens de entrada y latencia.
+  //
+  // La imagen es de Wikimedia Commons (dominio público, estable).
+
+  import Anthropic from "@anthropic-ai/sdk";
+  import { readFileSync } from "node:fs";
+  import { execSync } from "node:child_process";
+
+  const client = new Anthropic();
+
+  const IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png";
+  const IMAGE_PATH = "/tmp/dice.png";
+  const QUESTION = "Describe this image in one sentence.";
+
+  // TODO 1: Llamada con URL
+  //   - Medir duración (Date.now() antes y después)
+  //   - Imprimir tokens y duración
+
+  // TODO 2: Descargar la imagen al disco
+  //   execSync(`curl -sL -o ${IMAGE_PATH} '${IMAGE_URL}'`);
+
+  // TODO 3: Llamada con base64 (la misma imagen descargada)
+  //   - Medir duración
+  //   - Imprimir tokens y duración
+
+  // TODO 4: Comparar:
+  //   - ¿Los input_tokens son iguales? (deberían serlo — misma imagen)
+  //   - ¿Cuál fue más rápida?
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+  import { readFileSync } from "node:fs";
+  import { execSync } from "node:child_process";
+
+  const client = new Anthropic();
+
+  const IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png";
+  const IMAGE_PATH = "/tmp/dice.png";
+  const QUESTION = "Describe this image in one sentence.";
+
+  // --- Con URL ---
+  const t1 = Date.now();
+  const respUrl = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 150,
+    messages: [{
+      role: "user",
+      content: [
+        { type: "image", source: { type: "url", url: IMAGE_URL } },
+        { type: "text", text: QUESTION },
+      ],
+    }],
+  });
+  const durUrl = Date.now() - t1;
+
+  const textUrl = respUrl.content[0].type === "text" ? respUrl.content[0].text : "";
+  console.log(`URL:    ${textUrl}`);
+  console.log(`        tokens in=${respUrl.usage.input_tokens} out=${respUrl.usage.output_tokens} · ${durUrl}ms`);
+
+  // --- Con base64 ---
+  execSync(`curl -sL -o ${IMAGE_PATH} '${IMAGE_URL}'`);
+  const imageB64 = readFileSync(IMAGE_PATH).toString("base64");
+
+  const t2 = Date.now();
+  const respB64 = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 150,
+    messages: [{
+      role: "user",
+      content: [
+        { type: "image", source: { type: "base64", media_type: "image/png", data: imageB64 } },
+        { type: "text", text: QUESTION },
+      ],
+    }],
+  });
+  const durB64 = Date.now() - t2;
+
+  const textB64 = respB64.content[0].type === "text" ? respB64.content[0].text : "";
+  console.log(`\nBase64: ${textB64}`);
+  console.log(`        tokens in=${respB64.usage.input_tokens} out=${respB64.usage.output_tokens} · ${durB64}ms`);
+
+  // --- Comparación ---
+  console.log(`\nDiferencia de tokens in: ${Math.abs(respUrl.usage.input_tokens - respB64.usage.input_tokens)}`);
+  console.log(`Diferencia de latencia: ${Math.abs(durUrl - durB64)}ms`);
+
+test_cases:
+  - id: test-both-calls
+    description: "Se hacen dos llamadas, una con URL y otra con base64"
+    test_code: |
+      assert respUrl !== undefined && respB64 !== undefined, "Deben existir las dos respuestas";
+    points: 5
+  - id: test-same-tokens
+    description: "Los input_tokens son iguales o muy similares entre URL y base64"
+    test_code: |
+      const diff = Math.abs(respUrl.usage.input_tokens - respB64.usage.input_tokens);
+      assert diff <= 5, "Los tokens deberían ser iguales o casi iguales (misma imagen)";
+    points: 5
+  - id: test-timing-logged
+    description: "Se loggea la duración de cada llamada"
+    test_code: |
+      assert durUrl > 0 && durB64 > 0, "Debe medirse la duración";
+    points: 5
+
+hints:
+  - "Con URL no pasás media_type ni data — solo type: 'url' y url"
+  - "execSync está en 'node:child_process'"
+  - "La diferencia de input_tokens debería ser 0 o muy baja — es la misma imagen"
+
+concepts:
+  - url-source
+  - base64-source
+  - comparacion-metodos
+  - latency-vs-bandwidth

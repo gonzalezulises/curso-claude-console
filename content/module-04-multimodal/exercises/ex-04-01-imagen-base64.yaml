@@ -1,0 +1,97 @@
+id: ex-04-01-imagen-base64
+type: code-typescript
+title: "Describir una imagen local en base64"
+lesson_ref: lesson-04-01
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-04-01: Vision con base64
+  // Leés una imagen local, la codificás en base64, y le pedís a Claude
+  // una descripción específica.
+  //
+  // Para generar una imagen de prueba, corré primero:
+  //   npx tsx shared/scripts/create-test-image.ts
+  // (O usá cualquier PNG/JPG que tengas a mano)
+
+  import Anthropic from "@anthropic-ai/sdk";
+  import { readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  // TODO 1: Leer la imagen desde /tmp/test-image.png (o tu path)
+  // y convertirla a base64 usando readFileSync(...).toString("base64")
+
+  // TODO 2: Llamar a messages.create con:
+  // - model: claude-haiku-4-5
+  // - max_tokens: 200
+  // - Un content array con:
+  //   a) Bloque type: "image" con source.type: "base64", media_type, data
+  //   b) Bloque type: "text" con una pregunta específica sobre la imagen
+
+  // TODO 3: Imprimir el texto de la respuesta y los input_tokens
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+  import { readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  const imagePath = "/tmp/test-image.png";
+  const imageBase64 = readFileSync(imagePath).toString("base64");
+
+  const resp = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 200,
+    messages: [{
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/png",
+            data: imageBase64,
+          },
+        },
+        {
+          type: "text",
+          text: "Describí esta imagen en 1-2 oraciones. Sé específico sobre colores, formas y elementos visibles.",
+        },
+      ],
+    }],
+  });
+
+  const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+  console.log("Descripción:", text);
+  console.log(`Tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_tokens}`);
+
+test_cases:
+  - id: test-image-block
+    description: "El request incluye un bloque type: 'image' con source.type: 'base64'"
+    test_code: |
+      assert true, "Verificar manualmente que el content array tiene image + text en ese orden";
+    points: 5
+  - id: test-response-has-text
+    description: "La respuesta tiene al menos un bloque de texto no vacío"
+    test_code: |
+      assert resp.content[0].type === "text", "Respuesta debe tener text block";
+      assert resp.content[0].text.length > 20, "La descripción debe tener contenido";
+    points: 5
+  - id: test-tokens-logged
+    description: "Se loggean los input_tokens"
+    test_code: |
+      assert resp.usage.input_tokens > 0, "Debe haber input_tokens";
+    points: 5
+
+hints:
+  - "readFileSync(path) devuelve un Buffer. Usá .toString('base64') para codificar."
+  - "El campo 'data' del source lleva solo la cadena base64, sin prefijo 'data:image/png;base64,'"
+  - "Orden importante: imagen primero, pregunta de texto después"
+
+concepts:
+  - image-block
+  - base64
+  - media-type
+  - content-array
