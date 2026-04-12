@@ -1,0 +1,135 @@
+id: ex-05-02-schema-strict
+type: code-typescript
+title: "Schema rico con enum, format y descriptions por campo"
+lesson_ref: lesson-05-09
+difficulty: intermediate
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-05-02: Tool con schema rico
+  //
+  // Definís una tool create_ticket con un schema que tenga:
+  // - Campos requeridos y opcionales
+  // - Un enum con descriptions
+  // - Un format "email"
+  // - Descriptions por campo claras
+  //
+  // Validás el schema localmente con Ajv antes de mandarlo a la API.
+
+  import Anthropic from "@anthropic-ai/sdk";
+  import Ajv from "ajv";
+
+  const client = new Anthropic();
+
+  // TODO 1: Definir la tool create_ticket con:
+  //   - name: "create_ticket"
+  //   - description: clara, explicando cuándo usarla (no cuándo evitarla)
+  //   - input_schema con:
+  //     * title: string (required) — con description "Short summary..."
+  //     * priority: string enum ["low", "medium", "high", "urgent"] (required)
+  //       con description explicando cada nivel
+  //     * category: string enum ["billing", "technical", "account"] (required)
+  //     * description: string (required)
+  //     * contact_email: string format: "email" (optional)
+
+  // TODO 2: Validar el input_schema con Ajv.validateSchema()
+  //   Si es inválido, lanzar error con ajv.errors.
+
+  // TODO 3: Llamar a messages.create con un mensaje del usuario realista
+  //   (ej: "No puedo acceder a mi cuenta desde ayer, ayuda urgente — mi mail es ana@example.com")
+  //   y tool_choice: { type: "tool", name: "create_ticket" }
+
+  // TODO 4: Imprimir el input del tool_use (debe ser un ticket bien formado)
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+  import Ajv from "ajv";
+
+  const client = new Anthropic();
+
+  const tool = {
+    name: "create_ticket",
+    description: "Create a support ticket when the user reports a problem that requires tracking. Do not use for general questions.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        title: {
+          type: "string",
+          description: "Short summary of the issue (under 80 chars).",
+        },
+        priority: {
+          type: "string",
+          enum: ["low", "medium", "high", "urgent"],
+          description: "low=cosmetic, medium=normal bug, high=blocker, urgent=production down or account lockout",
+        },
+        category: {
+          type: "string",
+          enum: ["billing", "technical", "account"],
+        },
+        description: {
+          type: "string",
+          description: "Full description of the problem, including any error messages.",
+        },
+        contact_email: {
+          type: "string",
+          format: "email",
+        },
+      },
+      required: ["title", "priority", "category", "description"],
+    },
+  };
+
+  const ajv = new Ajv({ strict: false });
+  const valid = ajv.validateSchema(tool.input_schema);
+  if (!valid) {
+    console.error("Schema inválido:", ajv.errors);
+    throw new Error("Fix schema");
+  }
+
+  const resp = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 500,
+    tools: [tool],
+    tool_choice: { type: "tool", name: "create_ticket" },
+    messages: [{
+      role: "user",
+      content: "No puedo acceder a mi cuenta desde ayer, ayuda urgente — mi mail es ana@example.com",
+    }],
+  });
+
+  const toolUse = resp.content.find((b: any) => b.type === "tool_use") as any;
+  console.log("Ticket creado:", JSON.stringify(toolUse.input, null, 2));
+
+test_cases:
+  - id: test-schema-valid
+    description: "El input_schema pasa la validación de Ajv"
+    test_code: |
+      assert valid === true, "Schema debe ser JSON Schema válido";
+    points: 5
+  - id: test-enum-used
+    description: "El priority del ticket es uno de los valores del enum"
+    test_code: |
+      assert ["low", "medium", "high", "urgent"].includes(toolUse.input.priority);
+    points: 5
+  - id: test-required-fields-present
+    description: "El tool_use tiene todos los required fields del schema"
+    test_code: |
+      assert toolUse.input.title;
+      assert toolUse.input.priority;
+      assert toolUse.input.category;
+      assert toolUse.input.description;
+    points: 5
+
+hints:
+  - "Dale descriptions por-enum-value usando description del campo (ej: 'low=cosmetic, medium=bug...')"
+  - "Con tool_choice:{type:'tool', name:'X'} el modelo SIEMPRE usará esa tool — ideal para extracción"
+  - "Ajv con strict:false evita warnings de format no reconocido"
+  - "El format:'email' es un hint al modelo, no una validación estricta del input"
+
+concepts:
+  - json-schema-validation
+  - enum-with-descriptions
+  - format-email
+  - structured-extraction
+  - tool-choice-specific

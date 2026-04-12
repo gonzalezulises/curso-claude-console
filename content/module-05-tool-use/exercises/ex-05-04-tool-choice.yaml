@@ -1,0 +1,116 @@
+id: ex-05-04-tool-choice
+type: code-typescript
+title: "tool_choice forzado: extracción estructurada de contacto"
+lesson_ref: lesson-05-04
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-05-04: Extracción estructurada con tool_choice: {type: "tool"}
+  //
+  // Construí una función extractContact(text) que le fuerce a Claude
+  // usar una tool extract_contact y te devuelva { name, email, phone? }
+  // tipado como JSON — sin parsear texto libre.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  interface Contact {
+    name: string;
+    email: string;
+    phone?: string;
+  }
+
+  // TODO 1: Definir la tool extract_contact con:
+  //   - input_schema: { name: string (required), email: string (required, format: "email"), phone: string (optional) }
+  //   - description: Explicá que siempre debe llamarse para extraer contactos
+
+  // TODO 2: Implementar extractContact(text): Promise<Contact>
+  //   - messages.create con tool_choice: { type: "tool", name: "extract_contact" }
+  //   - Encontrar el tool_use block en resp.content
+  //   - Retornar block.input como Contact
+
+  // TODO 3: Correr con al menos 2 inputs distintos:
+  //   a) "Mariana Lopez, mariana@example.com, +5491122334455"
+  //   b) "Contactalo a pepe@test.com (no tengo su teléfono)"
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  interface Contact {
+    name: string;
+    email: string;
+    phone?: string;
+  }
+
+  const tool = {
+    name: "extract_contact",
+    description: "Extract contact info from text. Always call this tool when asked to extract contact data.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        name: { type: "string", description: "Full name (or 'Unknown' if absent)" },
+        email: { type: "string", format: "email" },
+        phone: { type: "string", description: "E.164 preferred; omit if not in the text" },
+      },
+      required: ["name", "email"],
+    },
+  };
+
+  async function extractContact(text: string): Promise<Contact> {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 500,
+      tools: [tool],
+      tool_choice: { type: "tool", name: "extract_contact" },
+      messages: [{ role: "user", content: text }],
+    });
+
+    const toolUse = resp.content.find((b: any) => b.type === "tool_use") as any;
+    if (!toolUse) throw new Error("Expected tool_use block");
+    return toolUse.input as Contact;
+  }
+
+  const c1 = await extractContact(
+    "Contactate con Mariana Lopez al mariana@example.com o al +5491122334455"
+  );
+  console.log("Contact 1:", c1);
+
+  const c2 = await extractContact(
+    "Contactalo a pepe@test.com (no tengo su teléfono)"
+  );
+  console.log("Contact 2:", c2);
+
+test_cases:
+  - id: test-tool-choice-forced
+    description: "El request usa tool_choice: { type: 'tool', name: 'extract_contact' }"
+    test_code: |
+      assert true, "Verificar manualmente que tool_choice está forzado";
+    points: 5
+  - id: test-contact-has-required
+    description: "Los contactos extraídos tienen name y email"
+    test_code: |
+      assert c1.name && c1.email;
+      assert c2.name && c2.email;
+    points: 5
+  - id: test-phone-optional
+    description: "phone aparece cuando está en el texto y se omite cuando no"
+    test_code: |
+      assert c1.phone;
+      assert !c2.phone || c2.phone === undefined;
+    points: 5
+
+hints:
+  - "Forzar tool_choice: { type: 'tool', name: 'X' } garantiza que el primer content block es el tool_use"
+  - "Aún forzado, validá en tu código: el modelo puede poner valores sintácticamente correctos pero lógicamente raros"
+  - "Este patrón reemplaza 'respondé en JSON' — el schema define el shape, no el prompt"
+
+concepts:
+  - tool-choice-specific
+  - structured-extraction
+  - forced-tool
+  - json-schema-output

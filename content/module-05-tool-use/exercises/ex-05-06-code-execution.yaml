@@ -1,0 +1,113 @@
+id: ex-05-06-code-execution
+type: code-typescript
+title: "code_execution: estadísticas determinísticas con Python"
+lesson_ref: lesson-05-08
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 20
+
+starter_code: |
+  // ex-05-06: code_execution server-side
+  //
+  // Habilitás la tool code_execution (Python sandbox) y le pedís a Claude
+  // calcular estadísticas sobre una lista numérica. El modelo genera código
+  // Python, Anthropic lo ejecuta, y tu código extrae tanto el código generado
+  // como el output del sandbox para loggearlos.
+  //
+  // Requiere beta header: code-execution-2025-05-22
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic({
+    defaultHeaders: { "anthropic-beta": "code-execution-2025-05-22" },
+  });
+
+  const data = [12, 15, 14, 10, 18, 19, 22, 17, 16, 14, 28, 31, 9, 13, 20];
+
+  // TODO 1: Llamar a messages.create con:
+  //   - model: claude-sonnet-4-6
+  //   - tools: [{ type: "code_execution_20250522", name: "code_execution" }]
+  //   - Un mensaje pidiendo media, mediana, desvío estándar y outliers (IQR) de `data`
+
+  // TODO 2: Recorrer resp.content y loggear:
+  //   - Cada block type: "server_tool_use" → imprimir el código Python generado
+  //   - Cada block type: "code_execution_tool_result" → imprimir stdout
+  //   - Cada block type: "text" (final) → imprimir la respuesta
+
+  // TODO 3: Loggear usage.server_tool_use.code_execution_seconds
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic({
+    defaultHeaders: { "anthropic-beta": "code-execution-2025-05-22" },
+  });
+
+  const data = [12, 15, 14, 10, 18, 19, 22, 17, 16, 14, 28, 31, 9, 13, 20];
+
+  const resp = await client.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1024,
+    tools: [{
+      type: "code_execution_20250522",
+      name: "code_execution",
+    } as any],
+    messages: [{
+      role: "user",
+      content: `Calculá media, mediana, desvío estándar y outliers (método IQR) de esta lista: ${JSON.stringify(data)}. Usá Python.`,
+    }],
+  });
+
+  for (const block of resp.content) {
+    if (block.type === "server_tool_use") {
+      console.log("\n[CODE]");
+      console.log((block as any).input.code);
+    } else if (block.type === "code_execution_tool_result") {
+      const output = (block as any).content?.[0];
+      console.log("\n[STDOUT]");
+      console.log(output?.stdout ?? "");
+      if (output?.stderr) console.log("[STDERR]", output.stderr);
+    } else if (block.type === "text") {
+      console.log("\n[TEXT]");
+      console.log((block as any).text);
+    }
+  }
+
+  const secs = (resp.usage as any).server_tool_use?.code_execution_seconds;
+  if (secs !== undefined) {
+    console.log(`\n[usage] code_execution_seconds: ${secs}`);
+  }
+
+test_cases:
+  - id: test-server-tool-use
+    description: "El response tiene un block server_tool_use con código Python"
+    test_code: |
+      const block = resp.content.find((b) => b.type === "server_tool_use");
+      assert block;
+      assert block.input.code.length > 0;
+    points: 5
+  - id: test-code-output
+    description: "El response tiene un block code_execution_tool_result con stdout"
+    test_code: |
+      const block = resp.content.find((b) => b.type === "code_execution_tool_result");
+      assert block;
+    points: 5
+  - id: test-final-answer
+    description: "La respuesta final menciona media/mediana o valores numéricos"
+    test_code: |
+      const texts = resp.content.filter((b) => b.type === "text");
+      const joined = texts.map((t) => t.text).join(" ");
+      assert joined.length > 20;
+    points: 10
+
+hints:
+  - "El beta header va en defaultHeaders del cliente, o como 'anthropic-beta' en curl"
+  - "El sandbox tiene numpy, pandas, statistics stdlib — el modelo elige qué usar"
+  - "stop_reason es 'end_turn' (server-side), no 'tool_use' — un solo response devuelve todo"
+  - "Siempre leé el código del server_tool_use en tareas críticas — el sandbox ejecuta lo que el modelo escribe"
+
+concepts:
+  - code-execution
+  - python-sandbox
+  - server-tool-use
+  - beta-header

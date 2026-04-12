@@ -1,0 +1,105 @@
+id: ex-05-05-web-search
+type: code-typescript
+title: "web_search server-side con extracción de citations"
+lesson_ref: lesson-05-06
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 20
+
+starter_code: |
+  // ex-05-05: Pregunta con respaldo web
+  //
+  // Hacé una pregunta que requiera información reciente (post entrenamiento
+  // del modelo), habilitá web_search server-side, y extraé:
+  //   - La query que el modelo buscó
+  //   - La respuesta final en texto
+  //   - La lista de citations (url + cited_text)
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Llamar a messages.create con:
+  //   - model: claude-haiku-4-5
+  //   - tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 2 }]
+  //   - Un mensaje que requiera info reciente (ej: "última versión estable de Python 3")
+
+  // TODO 2: Recorrer resp.content y:
+  //   - Imprimir la query del block type: "server_tool_use"
+  //   - Imprimir el texto del último block type: "text"
+  //   - Imprimir cada citation (type: "web_search_result_location") con url + cited_text
+
+  // TODO 3: Loggear usage.server_tool_use.web_search_requests (cuántas búsquedas se hicieron)
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const resp = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 512,
+    tools: [{
+      type: "web_search_20250305",
+      name: "web_search",
+      max_uses: 2,
+    } as any],
+    messages: [{
+      role: "user",
+      content: "¿Cuál es la última versión estable de Python 3? Respondé con la versión y fecha de release.",
+    }],
+  });
+
+  for (const block of resp.content) {
+    if (block.type === "server_tool_use") {
+      console.log(`[search query] ${(block as any).input.query}`);
+    } else if (block.type === "text") {
+      const text = (block as any).text;
+      const cits = (block as any).citations;
+      console.log(`[text] ${text}`);
+      if (cits) {
+        for (const c of cits) {
+          if (c.type === "web_search_result_location") {
+            console.log(`  → ${c.title}`);
+            console.log(`    ${c.url}`);
+            console.log(`    "${c.cited_text}"`);
+          }
+        }
+      }
+    }
+  }
+
+  const searches = (resp.usage as any).server_tool_use?.web_search_requests ?? 0;
+  console.log(`\n[usage] web_search_requests: ${searches}`);
+  console.log(`[usage] input_tokens: ${resp.usage.input_tokens}`);
+
+test_cases:
+  - id: test-server-tool-use-block
+    description: "El response contiene al menos un block type: 'server_tool_use'"
+    test_code: |
+      assert resp.content.some((b) => b.type === "server_tool_use");
+    points: 5
+  - id: test-web-search-result-block
+    description: "El response contiene un block type: 'web_search_tool_result'"
+    test_code: |
+      assert resp.content.some((b) => b.type === "web_search_tool_result");
+    points: 5
+  - id: test-citations-present
+    description: "El texto final tiene al menos una citation web_search_result_location"
+    test_code: |
+      const texts = resp.content.filter((b) => b.type === "text");
+      const hasCits = texts.some((t) => (t.citations ?? []).some((c) => c.type === "web_search_result_location"));
+      assert hasCits;
+    points: 10
+
+hints:
+  - "web_search es server-side: stop_reason vuelve 'end_turn', no 'tool_use' — no hay loop cliente"
+  - "max_uses: 2 limita búsquedas; sin esto, preguntas complejas pueden gatillar 5-10 searches"
+  - "Las citations vienen en el campo .citations del block text final, no como block separado"
+  - "usage.server_tool_use.web_search_requests te dice cuántas búsquedas cobrás"
+
+concepts:
+  - server-tool-use
+  - web-search-tool
+  - web-search-citations
+  - max-uses

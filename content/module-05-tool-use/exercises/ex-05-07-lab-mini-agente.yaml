@@ -1,0 +1,238 @@
+id: ex-05-07-lab-mini-agente
+type: code-typescript
+title: "Lab: mini-agente de soporte con 3 tools encadenadas"
+lesson_ref: lesson-05-10
+difficulty: advanced
+estimated_time_minutes: 45
+points: 30
+
+starter_code: |
+  // ex-05-07 (LAB): Mini-agente de soporte
+  //
+  // Construís un agente que responde a:
+  //   "Mandale un resumen de sus últimos pedidos a mariana@example.com"
+  //
+  // Debe encadenar 3 tools SECUENCIALMENTE (cada una depende de la anterior):
+  //   1. search_user(email) → { user_id, name, email }
+  //   2. get_orders(user_id) → [{ order_id, date, total, status }, ...]
+  //   3. send_email(to, subject, body) → { sent: true, message_id }
+  //
+  // Requisitos:
+  //   - Runtime loop con tope máximo de 10 iteraciones (anti loop infinito)
+  //   - Loggear cada tool_use antes de ejecutar (auditoría)
+  //   - Manejar errores con tool_result is_error: true (no lanzar excepción al modelo)
+  //   - Modelo: claude-sonnet-4-6 (mejor reasoning para orquestar)
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Definir las 3 tools con schemas ricos (descriptions, enum si aplica, required fields)
+
+  // TODO 2: Implementar mocks:
+  //   - searchUser(email): devuelve null o { user_id, name, email }
+  //   - getOrders(user_id): devuelve [] o array de 3 orders
+  //   - sendEmail(to, subject, body): logea "[EMAIL to ...]" y retorna { sent: true, message_id }
+
+  // TODO 3: Dispatcher executeTool(name, input) que rutea al mock correcto
+
+  // TODO 4: runAgent(userPrompt) con:
+  //   - while (iteration < 10)
+  //   - filtro tool_use blocks, Promise.all para ejecutarlos
+  //   - try/catch en cada ejecución → tool_result con is_error: true si falla
+  //   - logging [tool_use] name(input) antes de ejecutar
+  //   - return texto final cuando stop_reason === "end_turn"
+
+  // TODO 5: Probar con "Mandale un resumen de sus últimos pedidos a mariana@example.com"
+  //   y con "Mandale un resumen a notexist@example.com" (para ver manejo de error)
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const tools = [
+    {
+      name: "search_user",
+      description: "Find a user by email address. Returns {user_id, name, email} or null if not found.",
+      input_schema: {
+        type: "object" as const,
+        properties: {
+          email: { type: "string", format: "email", description: "User's email address" },
+        },
+        required: ["email"],
+      },
+    },
+    {
+      name: "get_orders",
+      description: "Get the N most recent orders for a user. Returns an array of {order_id, date, total, status}.",
+      input_schema: {
+        type: "object" as const,
+        properties: {
+          user_id: { type: "string", description: "User ID obtained from search_user" },
+          limit: { type: "integer", default: 5 },
+        },
+        required: ["user_id"],
+      },
+    },
+    {
+      name: "send_email",
+      description: "Send an email to an address with subject and body. Returns {sent, message_id}.",
+      input_schema: {
+        type: "object" as const,
+        properties: {
+          to: { type: "string", format: "email" },
+          subject: { type: "string" },
+          body: { type: "string" },
+        },
+        required: ["to", "subject", "body"],
+      },
+    },
+  ];
+
+  async function searchUser(email: string) {
+    const db: Record<string, any> = {
+      "mariana@example.com": { user_id: "u_123", name: "Mariana Lopez", email: "mariana@example.com" },
+    };
+    return db[email] ?? null;
+  }
+
+  async function getOrders(user_id: string, limit = 5) {
+    if (user_id !== "u_123") return [];
+    return [
+      { order_id: "o_1001", date: "2026-04-09", total: 45.90, status: "shipped" },
+      { order_id: "o_1002", date: "2026-04-07", total: 12.00, status: "delivered" },
+      { order_id: "o_1003", date: "2026-04-01", total: 88.50, status: "delivered" },
+    ].slice(0, limit);
+  }
+
+  async function sendEmail(to: string, subject: string, body: string) {
+    console.log(`\n[EMAIL to ${to}] ${subject}`);
+    console.log(body);
+    return { sent: true, message_id: `msg_${Date.now()}` };
+  }
+
+  async function executeTool(name: string, input: any) {
+    switch (name) {
+      case "search_user": return await searchUser(input.email);
+      case "get_orders":  return await getOrders(input.user_id, input.limit);
+      case "send_email":  return await sendEmail(input.to, input.subject, input.body);
+      default: throw new Error(`Unknown tool: ${name}`);
+    }
+  }
+
+  async function runAgent(userPrompt: string) {
+    const messages: any[] = [{ role: "user", content: userPrompt }];
+    let iteration = 0;
+
+    while (iteration++ < 10) {
+      const resp = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 2048,
+        tools,
+        messages,
+      });
+
+      messages.push({ role: "assistant", content: resp.content });
+
+      if (resp.stop_reason === "end_turn") {
+        const t = resp.content.find((b: any) => b.type === "text") as any;
+        return t?.text ?? "";
+      }
+
+      if (resp.stop_reason === "tool_use") {
+        const toolUses = resp.content.filter((b: any) => b.type === "tool_use") as any[];
+
+        const results = await Promise.all(
+          toolUses.map(async (block) => {
+            console.log(`[tool_use] ${block.name}(${JSON.stringify(block.input)})`);
+            try {
+              const out = await executeTool(block.name, block.input);
+              return {
+                type: "tool_result" as const,
+                tool_use_id: block.id,
+                content: JSON.stringify(out),
+              };
+            } catch (err: any) {
+              return {
+                type: "tool_result" as const,
+                tool_use_id: block.id,
+                content: `Error: ${err.message}`,
+                is_error: true,
+              };
+            }
+          })
+        );
+
+        messages.push({ role: "user", content: results });
+        continue;
+      }
+
+      throw new Error(`Unexpected stop_reason: ${resp.stop_reason}`);
+    }
+
+    throw new Error("Max iterations exceeded");
+  }
+
+  console.log("\n=== CASO 1: usuario existente ===");
+  const answer1 = await runAgent(
+    "Mandale un resumen de sus últimos pedidos a mariana@example.com"
+  );
+  console.log("\nFINAL:", answer1);
+
+  console.log("\n=== CASO 2: usuario inexistente ===");
+  const answer2 = await runAgent(
+    "Mandale un resumen a notexist@example.com"
+  );
+  console.log("\nFINAL:", answer2);
+
+test_cases:
+  - id: test-three-tools-defined
+    description: "Las 3 tools están definidas (search_user, get_orders, send_email)"
+    test_code: |
+      assert tools.length === 3;
+      const names = tools.map((t) => t.name);
+      assert names.includes("search_user");
+      assert names.includes("get_orders");
+      assert names.includes("send_email");
+    points: 5
+  - id: test-max-iterations-guard
+    description: "El loop tiene tope de iteraciones"
+    test_code: |
+      assert true, "Verificar manualmente que hay while(iteration < N) o similar";
+    points: 5
+  - id: test-audit-logging
+    description: "Cada tool_use se loggea antes de ejecutar"
+    test_code: |
+      assert true, "Verificar en el stdout que aparece [tool_use] name(input) antes de cada ejecución";
+    points: 5
+  - id: test-error-handling
+    description: "Los errores de ejecución se devuelven como tool_result con is_error: true (no como excepción)"
+    test_code: |
+      assert true, "Verificar manualmente el try/catch que envuelve executeTool";
+    points: 5
+  - id: test-chained-tools
+    description: "El agente encadena las 3 tools secuencialmente para el caso exitoso"
+    test_code: |
+      assert answer1.length > 20, "Debe haber respuesta final";
+    points: 5
+  - id: test-graceful-not-found
+    description: "Para el caso 2 (usuario inexistente), el agente informa amablemente en vez de crashear"
+    test_code: |
+      assert answer2.length > 10, "Debe haber respuesta aunque falló la búsqueda";
+    points: 5
+
+hints:
+  - "Usá sonnet-4-6 para este lab — haiku puede no encadenar 3 tools con razonamiento complejo"
+  - "El tope de iteraciones es crítico: sin él, un modelo confundido puede bucle infinitamente"
+  - "is_error: true permite al modelo reintentar o explicar — mejor que lanzar excepción"
+  - "Loggeá tool_use ANTES de ejecutar, no después — es tu auditoría de qué PROPUSO el modelo"
+  - "Promise.all funciona incluso con 1 sola tool_use — no necesitás if/else por cantidad"
+
+concepts:
+  - runtime-loop
+  - tool-dispatch
+  - chained-tools
+  - error-handling
+  - audit-logging
+  - agent-pattern

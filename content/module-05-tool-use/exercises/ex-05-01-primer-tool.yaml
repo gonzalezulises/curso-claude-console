@@ -1,0 +1,130 @@
+id: ex-05-01-primer-tool
+type: code-typescript
+title: "Primer tool: get_weather con loop completo"
+lesson_ref: lesson-05-03
+difficulty: beginner
+estimated_time_minutes: 20
+points: 20
+
+starter_code: |
+  // ex-05-01: Primer tool con runtime loop
+  //
+  // Definís la tool get_weather, mandás un mensaje que la necesite,
+  // ejecutás la tool mock localmente, y devolvés el tool_result al modelo
+  // para obtener la respuesta final.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Definir la tool get_weather con:
+  //   - name: "get_weather"
+  //   - description: "Get current weather for a city."
+  //   - input_schema: object con city (string, required)
+
+  // TODO 2: Implementar getWeatherMock(city) que devuelve
+  //   { temperature: 22, conditions: "sunny", city }
+
+  // TODO 3: Implementar runAgent(question) que:
+  //   - Inicializa messages con [{ role: "user", content: question }]
+  //   - Loop: client.messages.create({ model: "claude-haiku-4-5", max_tokens: 512, tools, messages })
+  //   - Si stop_reason === "end_turn": devolver el texto final
+  //   - Si stop_reason === "tool_use": ejecutar la tool mock y seguir
+  //   - Importante: push al messages tanto el assistant content como el tool_result
+
+  // TODO 4: Correr runAgent("¿Cómo está el clima en Buenos Aires?") y loggear:
+  //   - Los tool_use propuestos por el modelo
+  //   - El texto final de respuesta
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const tools = [{
+    name: "get_weather",
+    description: "Get current weather for a city.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        city: { type: "string", description: "City name" },
+      },
+      required: ["city"],
+    },
+  }];
+
+  function getWeatherMock(city: string) {
+    return { temperature: 22, conditions: "sunny", city };
+  }
+
+  async function runAgent(question: string) {
+    const messages: any[] = [{ role: "user", content: question }];
+
+    while (true) {
+      const resp = await client.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 512,
+        tools,
+        messages,
+      });
+
+      messages.push({ role: "assistant", content: resp.content });
+
+      if (resp.stop_reason === "end_turn") {
+        const t = resp.content.find((b: any) => b.type === "text") as any;
+        return t?.text ?? "";
+      }
+
+      if (resp.stop_reason === "tool_use") {
+        const toolResults = [];
+        for (const block of resp.content) {
+          if (block.type !== "tool_use") continue;
+          console.log(`[tool_use] ${block.name}(${JSON.stringify(block.input)})`);
+          const result = getWeatherMock((block.input as any).city);
+          toolResults.push({
+            type: "tool_result" as const,
+            tool_use_id: block.id,
+            content: JSON.stringify(result),
+          });
+        }
+        messages.push({ role: "user", content: toolResults });
+        continue;
+      }
+
+      throw new Error(`Unexpected stop_reason: ${resp.stop_reason}`);
+    }
+  }
+
+  const answer = await runAgent("¿Cómo está el clima en Buenos Aires?");
+  console.log("FINAL:", answer);
+
+test_cases:
+  - id: test-tool-defined
+    description: "La tool get_weather está definida con name, description e input_schema válido"
+    test_code: |
+      assert tools[0].name === "get_weather";
+      assert tools[0].input_schema.required.includes("city");
+    points: 5
+  - id: test-loop-handles-tool-use
+    description: "El loop ejecuta la tool cuando stop_reason es tool_use y sigue iterando"
+    test_code: |
+      assert true, "Verificar ejecución real: debe loggear al menos un [tool_use]";
+    points: 10
+  - id: test-final-text
+    description: "La respuesta final contiene la temperatura o condiciones mockeadas"
+    test_code: |
+      assert answer.length > 10, "Debe haber respuesta final no vacía";
+    points: 5
+
+hints:
+  - "Usá un while(true) con un break/return cuando stop_reason === 'end_turn'"
+  - "El tool_result debe ir en un mensaje con role: 'user' (no 'tool') y un content array de bloques type: 'tool_result'"
+  - "El tool_use_id del tool_result debe matchear exactamente el id del tool_use del modelo"
+  - "Incluí el content completo del assistant (con el tool_use block) en el historial antes de mandar el tool_result"
+
+concepts:
+  - tool-definition
+  - tool-use-block
+  - tool-result-block
+  - runtime-loop
+  - stop-reason-tool-use

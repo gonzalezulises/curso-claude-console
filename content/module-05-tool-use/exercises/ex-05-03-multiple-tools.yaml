@@ -1,0 +1,149 @@
+id: ex-05-03-multiple-tools
+type: code-typescript
+title: "Múltiples tools en paralelo: clima + hora"
+lesson_ref: lesson-05-05
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 20
+
+starter_code: |
+  // ex-05-03: Dos tools independientes en paralelo
+  //
+  // Definís get_weather y get_time. Mandás una pregunta que requiera las dos
+  // para la misma ciudad. El modelo debe emitirlas en paralelo (2 tool_use
+  // en un mismo turno), y tu código debe ejecutarlas con Promise.all y
+  // responder con UN solo mensaje user que contenga los 2 tool_result.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Definir tools get_weather y get_time (ambas con input {city})
+
+  // TODO 2: Implementar executeTool(name, input) async que dispatch a mocks:
+  //   - get_weather → { temp: 18, conditions: "clear" }
+  //   - get_time → { time: "23:45", timezone: "JST" }
+
+  // TODO 3: Runtime loop que:
+  //   - Filtra todos los block.type === "tool_use" del content del assistant
+  //   - Ejecuta TODOS en paralelo con Promise.all
+  //   - Empuja UN solo mensaje user con el array completo de tool_results
+  //   - Continúa hasta stop_reason === "end_turn"
+
+  // TODO 4: Correr con "¿Qué clima y hora hay en Tokio?" y verificar:
+  //   - Que el primer assistant content tiene 2 tool_use blocks
+  //   - Que tu código los ejecuta en paralelo
+  //   - Que la respuesta final menciona ambos datos
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const tools = [
+    {
+      name: "get_weather",
+      description: "Get current weather for a city.",
+      input_schema: {
+        type: "object" as const,
+        properties: { city: { type: "string" } },
+        required: ["city"],
+      },
+    },
+    {
+      name: "get_time",
+      description: "Get current local time for a city.",
+      input_schema: {
+        type: "object" as const,
+        properties: { city: { type: "string" } },
+        required: ["city"],
+      },
+    },
+  ];
+
+  async function executeTool(name: string, input: any) {
+    // Simulamos latencia distinta para ver el paralelismo
+    if (name === "get_weather") {
+      await new Promise((r) => setTimeout(r, 200));
+      return { temp: 18, conditions: "clear", city: input.city };
+    }
+    if (name === "get_time") {
+      await new Promise((r) => setTimeout(r, 150));
+      return { time: "23:45", timezone: "JST", city: input.city };
+    }
+    throw new Error(`Unknown tool: ${name}`);
+  }
+
+  async function runAgent(question: string) {
+    const messages: any[] = [{ role: "user", content: question }];
+
+    while (true) {
+      const resp = await client.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 1024,
+        tools,
+        messages,
+      });
+
+      messages.push({ role: "assistant", content: resp.content });
+
+      if (resp.stop_reason === "end_turn") {
+        const t = resp.content.find((b: any) => b.type === "text") as any;
+        return t?.text ?? "";
+      }
+
+      if (resp.stop_reason === "tool_use") {
+        const toolUses = resp.content.filter((b: any) => b.type === "tool_use") as any[];
+        console.log(`[parallel] ${toolUses.length} tool_use blocks`);
+
+        const t0 = Date.now();
+        const results = await Promise.all(
+          toolUses.map(async (block) => ({
+            type: "tool_result" as const,
+            tool_use_id: block.id,
+            content: JSON.stringify(await executeTool(block.name, block.input)),
+          }))
+        );
+        console.log(`[parallel] completed in ${Date.now() - t0}ms`);
+
+        messages.push({ role: "user", content: results });
+        continue;
+      }
+
+      throw new Error(`Unexpected stop_reason: ${resp.stop_reason}`);
+    }
+  }
+
+  const answer = await runAgent("¿Qué clima y hora hay en Tokio?");
+  console.log("FINAL:", answer);
+
+test_cases:
+  - id: test-two-tools-defined
+    description: "Ambas tools get_weather y get_time están definidas"
+    test_code: |
+      assert tools.length === 2;
+      assert tools.some((t) => t.name === "get_weather");
+      assert tools.some((t) => t.name === "get_time");
+    points: 5
+  - id: test-parallel-execution
+    description: "Las dos tools se ejecutan en paralelo (tiempo total ~= max, no suma)"
+    test_code: |
+      assert true, "Verificar en el log que el tiempo paralelo es ~200ms, no 350ms";
+    points: 10
+  - id: test-final-mentions-both
+    description: "La respuesta final menciona clima y hora"
+    test_code: |
+      assert answer.length > 20;
+    points: 5
+
+hints:
+  - "Usá resp.content.filter((b) => b.type === 'tool_use') para obtener todos los tool_use blocks"
+  - "Promise.all(toolUses.map(async ...)) ejecuta en paralelo"
+  - "Los tool_result van TODOS en UN solo mensaje user, en el campo content como array"
+  - "Si el modelo emite solo 1 tool_use, tu código debe funcionar igual (no asumir siempre N>1)"
+
+concepts:
+  - parallel-tool-use
+  - multiple-tool-use-blocks
+  - promise-all
+  - single-user-message-multiple-results
