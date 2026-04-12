@@ -5,23 +5,20 @@
 # Actualízalo SIEMPRE al terminar una sesión de producción significativa.
 
 version: 1
-last_updated: "2026-04-12"
+last_updated: "2026-04-11"
 last_session_summary: >
-  Módulo 3 — Prompt Engineering de Arquitecto completo. Se escribieron las 9
-  lecciones (ser directo, few-shot, chain of thought, extended thinking con
-  budget_tokens y adaptive, XML tags, system prompts efectivos con fórmula de
-  5 piezas, prefill del assistant, long context hasta 1M, y lab de refactor)
-  y los 6 ejercicios (code-typescript). Todos los snippets de curl fueron
-  ejecutados contra la API real — outputs pegados son reales. Se verificaron
-  parámetros de extended thinking (type, budget_tokens, display, signature) y
-  beta header context-1m-2025-08-07 contra context7/docs oficiales.
-  VitePress configurado en sesión anterior. Módulo 2 sigue bloqueado por
-  screenshots del Workbench.
+  Módulo 2 — Workbench completo. Se escribieron las 6 lecciones (tour del
+  workbench, iterar un prompt, parámetros en vivo, Files API, tools en
+  workbench, exportar con Get Code) y los 4 ejercicios (2 quiz + 2 code-
+  typescript). Todo el contenido basado en 10 screenshots reales del Claude
+  Console proporcionados por el usuario. Se corrigió la lección de parámetros
+  para reflejar que el Workbench solo expone Temperature, Max tokens y Thinking
+  (no top_p/top_k/stop_sequences). Módulo 3 ya completado en sesión anterior.
 
 current_focus:
   module: module-04-multimodal
   status: outline
-  next_action: "Producir Módulo 4 — Multimodal (vision + PDF), o Módulo 2 si se desbloquea con screenshots"
+  next_action: "Producir Módulo 4 — Multimodal (vision + PDF)"
 
 modules_state:
   module-00-setup:
@@ -42,9 +39,12 @@ modules_state:
     last_verified: "2026-04-11"
 
   module-02-workbench:
-    status: outline
-    lessons_written: 0
+    status: completed
+    lessons_written: 6
     lessons_total: 6
+    exercises_written: 4
+    exercises_total: 4
+    last_verified: "2026-04-11"
 
   module-03-prompt-engineering:
     status: completed
