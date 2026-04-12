@@ -7,19 +7,22 @@
 version: 1
 last_updated: "2026-04-12"
 last_session_summary: >
-  Módulo 4 — Capacidades Multimodales completo. Se escribieron las 7 lecciones
-  (vision base64, vision URL vs base64, Files API, PDFs con document block,
-  citations nativas, multimodal compuesto, lab de extracción con citas) y los
-  5 ejercicios code-typescript. Todos los curls ejecutados contra la API real
-  con outputs reales: vision base64 (32 input tokens), vision URL (99 tokens),
-  citations plain text con char_location, citations PDF con page_location
-  (2232 tokens). Docs verificadas via context7 (`/websites/platform_claude_en_api`)
-  para los 4 tipos de citation location y el shape exacto de image/document blocks.
+  Módulo 5 — Tool Use completo. Se escribieron las 10 lecciones (qué es tool use,
+  definir un tool con JSON Schema, flujo completo tool_use→tool_result, tool_choice
+  auto/any/forzado, múltiples tools en paralelo, web_search server-side,
+  bash/text_editor server-side, code_execution Python sandbox, optimizaciones
+  strict/defer_loading/cache_control, lab mini-agente con 3 tools encadenadas) y
+  los 7 ejercicios code-typescript. Curls reales ejecutados contra la API: primer
+  tool get_weather (621/55 tokens), extract_contact forzado (704/80 tokens con
+  extracción perfecta), paralelo weather+time (629/90 tokens, 2 tool_use blocks),
+  web_search Python 3 (16249/157 tokens con citation web_search_result_location).
+  Docs verificadas via context7 (`/websites/platform_claude_en_api`) para
+  server-side tools y beta optimizations.
 
 current_focus:
-  module: module-05-tool-use
+  module: module-06-optimization
   status: outline
-  next_action: "Producir Módulo 5 — Tool Use (function calling)"
+  next_action: "Producir Módulo 6 — Optimization (caching, batch, streaming)"
 
 modules_state:
   module-00-setup:
@@ -64,9 +67,12 @@ modules_state:
     last_verified: "2026-04-12"
 
   module-05-tool-use:
-    status: outline
-    lessons_written: 0
+    status: completed
+    lessons_written: 10
     lessons_total: 10
+    exercises_written: 7
+    exercises_total: 7
+    last_verified: "2026-04-12"
 
   module-06-optimization:
     status: outline
