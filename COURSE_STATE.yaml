@@ -5,21 +5,23 @@
 # Actualízalo SIEMPRE al terminar una sesión de producción significativa.
 
 version: 1
-last_updated: "2026-04-11"
+last_updated: "2026-04-12"
 last_session_summary: >
-  Módulo 1 — Messages API: Fundamentos completo. Se escribieron las 10 lecciones
-  (familia de modelos, anatomía de request/response, system prompts, multi-turno
-  con prefill, streaming SSE manual + SDK, count_tokens, errores de API, retries
-  con exponential backoff, y lab chat CLI persistente) y los 7 ejercicios (2
-  quizzes + 5 code-ts/py). Todos los snippets fueron verificados contra la API
-  real — outputs pegados son reales, no inventados. Playground scripts:
-  playground/chat-cli.ts y playground/retry-wrapper-test.ts. Se configuró
-  ~/.claude/settings.json con permisos durables para avanzar sin prompts.
+  Módulo 3 — Prompt Engineering de Arquitecto completo. Se escribieron las 9
+  lecciones (ser directo, few-shot, chain of thought, extended thinking con
+  budget_tokens y adaptive, XML tags, system prompts efectivos con fórmula de
+  5 piezas, prefill del assistant, long context hasta 1M, y lab de refactor)
+  y los 6 ejercicios (code-typescript). Todos los snippets de curl fueron
+  ejecutados contra la API real — outputs pegados son reales. Se verificaron
+  parámetros de extended thinking (type, budget_tokens, display, signature) y
+  beta header context-1m-2025-08-07 contra context7/docs oficiales.
+  VitePress configurado en sesión anterior. Módulo 2 sigue bloqueado por
+  screenshots del Workbench.
 
 current_focus:
-  module: module-02-workbench
+  module: module-04-multimodal
   status: outline
-  next_action: "Comenzar producción del Módulo 2 — Workbench y prompt iteration"
+  next_action: "Producir Módulo 4 — Multimodal (vision + PDF), o Módulo 2 si se desbloquea con screenshots"
 
 modules_state:
   module-00-setup:
@@ -45,9 +47,12 @@ modules_state:
     lessons_total: 6
 
   module-03-prompt-engineering:
-    status: outline
-    lessons_written: 0
+    status: completed
+    lessons_written: 9
     lessons_total: 9
+    exercises_written: 6
+    exercises_total: 6
+    last_verified: "2026-04-12"
 
   module-04-multimodal:
     status: outline
