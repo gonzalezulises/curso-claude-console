@@ -1,0 +1,93 @@
+id: module-03
+slug: module-03-prompt-engineering
+title: "Prompt Engineering de Arquitecto"
+order: 3
+duration_hours: 5
+is_locked: false
+status: in_progress
+
+description: >
+  Técnicas de prompt engineering específicamente documentadas por Anthropic
+  para Claude 4.x: ser directo, few-shot, chain of thought, extended thinking
+  con budget tokens, XML tags, system prompts efectivos, prefill del assistant
+  y estrategias de long context hasta 1M tokens. Cierra con un lab que
+  refactoriza un prompt real midiendo impacto.
+
+learning_outcomes:
+  - "Reescribir prompts vagos a directos con verbos imperativos y outcomes explícitos"
+  - "Decidir cuántos ejemplos few-shot usar y cómo cubrir edge cases sin sesgar"
+  - "Elegir entre chain of thought clásico y extended thinking según el problema"
+  - "Configurar thinking.type y budget_tokens correctamente para Claude 4.x"
+  - "Estructurar prompts densos con XML tags que Claude interpreta de forma consistente"
+  - "Escribir system prompts con rol, audiencia, formato y restricciones efectivas"
+  - "Forzar formatos estrictos con prefill del turno assistant"
+  - "Diseñar prompts long-context para que el modelo use el material de forma confiable"
+  - "Refactorizar un prompt caótico aplicando las 8 técnicas y medir el impacto"
+
+prerequisites:
+  - "Módulo 1 completo (Messages API)"
+  - "Familiaridad con iteración de prompts (Módulo 2 recomendado, no obligatorio)"
+
+lessons:
+  - id: lesson-03-01
+    file: lessons/01-ser-claro-y-directo.md
+    title: "Ser claro y directo"
+    order: 1
+    duration_minutes: 25
+    exercises: [ex-03-01-directo-vs-vago]
+
+  - id: lesson-03-02
+    file: lessons/02-few-shot-examples.md
+    title: "Ejemplos (few-shot) que realmente enseñan"
+    order: 2
+    duration_minutes: 30
+    exercises: []
+
+  - id: lesson-03-03
+    file: lessons/03-chain-of-thought.md
+    title: "Dejá que Claude piense (chain of thought clásico)"
+    order: 3
+    duration_minutes: 25
+    exercises: []
+
+  - id: lesson-03-04
+    file: lessons/04-extended-thinking.md
+    title: "Extended thinking y adaptive thinking"
+    order: 4
+    duration_minutes: 40
+    exercises: [ex-03-03-thinking-budget]
+
+  - id: lesson-03-05
+    file: lessons/05-xml-tags.md
+    title: "XML tags para estructurar inputs complejos"
+    order: 5
+    duration_minutes: 30
+    exercises: [ex-03-02-xml-structure]
+
+  - id: lesson-03-06
+    file: lessons/06-system-prompts-efectivos.md
+    title: "System prompts efectivos: roles, restricciones, tono"
+    order: 6
+    duration_minutes: 25
+    exercises: []
+
+  - id: lesson-03-07
+    file: lessons/07-prefill-assistant.md
+    title: "Prefill del assistant"
+    order: 7
+    duration_minutes: 25
+    exercises: [ex-03-04-prefill-json]
+
+  - id: lesson-03-08
+    file: lessons/08-long-context.md
+    title: "Long context (hasta 1M con beta)"
+    order: 8
+    duration_minutes: 30
+    exercises: [ex-03-05-long-context]
+
+  - id: lesson-03-09
+    file: lessons/09-lab-refactor-prompt.md
+    title: "Lab: refactor de un prompt malo"
+    order: 9
+    duration_minutes: 60
+    exercises: [ex-03-06-lab-refactor]
