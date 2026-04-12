@@ -1,0 +1,104 @@
+id: ex-06-03-batch-submit
+type: code-typescript
+title: "Batch API: submit, poll, matchear por custom_id"
+lesson_ref: lesson-06-04
+difficulty: intermediate
+estimated_time_minutes: 25
+points: 25
+
+starter_code: |
+  // ex-06-03: Batch API end-to-end
+  //
+  // Submit 3 requests como un batch, polleás hasta ended, descargás
+  // los resultados JSONL, y matcheás cada resultado a su custom_id.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Submit un batch con 3 requests (custom_ids: "q-es", "q-fr", "q-ja").
+  //   Cada request pregunta cómo decir "buen día" en un idioma distinto.
+  //   Usá model claude-haiku-4-5, max_tokens 60.
+
+  // TODO 2: Polleá el status cada 10 segundos hasta que processing_status
+  //   sea "ended". Imprimí el status en cada poll.
+
+  // TODO 3: Descargá los resultados y construí un diccionario por custom_id.
+  //   Iterá el stream de results y guardá { custom_id: text }.
+
+  // TODO 4: Imprimí los 3 textos en el orden original ("q-es", "q-fr", "q-ja")
+  //   aunque los resultados hayan llegado desordenados.
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const questions = [
+    { id: "q-es", content: "¿Cómo se dice 'buen día' en español?" },
+    { id: "q-fr", content: "¿Cómo se dice 'buen día' en francés?" },
+    { id: "q-ja", content: "¿Cómo se dice 'buen día' en japonés?" },
+  ];
+
+  const batch = await client.messages.batches.create({
+    requests: questions.map((q) => ({
+      custom_id: q.id,
+      params: {
+        model: "claude-haiku-4-5",
+        max_tokens: 60,
+        messages: [{ role: "user", content: q.content }],
+      },
+    })),
+  });
+  console.log("submitted:", batch.id);
+
+  let current = batch;
+  while (current.processing_status !== "ended") {
+    await new Promise((r) => setTimeout(r, 10_000));
+    current = await client.messages.batches.retrieve(batch.id);
+    console.log(`  poll: ${current.processing_status}`, current.request_counts);
+  }
+
+  const byId: Record<string, string> = {};
+  for await (const entry of await client.messages.batches.results(batch.id)) {
+    if (entry.result.type === "succeeded") {
+      const text = (entry.result.message.content[0] as any).text;
+      byId[entry.custom_id] = text;
+    } else {
+      byId[entry.custom_id] = `[${entry.result.type}]`;
+    }
+  }
+
+  for (const q of questions) {
+    console.log(`${q.id}: ${byId[q.id]}`);
+  }
+
+test_cases:
+  - id: test-batch-created
+    description: "El batch se crea con 3 requests y obtiene un id"
+    test_code: |
+      assert batch.id.startsWith("msgbatch_"), "batch.id debe comenzar con msgbatch_"
+    points: 8
+  - id: test-polling-loop
+    description: "El loop polleá hasta processing_status === 'ended'"
+    test_code: |
+      assert current.processing_status === "ended"
+    points: 8
+  - id: test-match-by-custom-id
+    description: "Los resultados se matchean por custom_id, no por orden"
+    test_code: |
+      assert byId["q-es"] && byId["q-fr"] && byId["q-ja"], "los 3 custom_ids deben estar en byId"
+    points: 9
+
+hints:
+  - "Los batches pueden tardar de 1 min a varios min para terminar incluso con pocos requests — sé paciente."
+  - "client.messages.batches.results(id) devuelve un stream async — usá 'for await'."
+  - "Si un entry tiene result.type === 'errored', no intentes acceder a result.message.content."
+  - "No asumás orden — los resultados pueden venir en cualquier orden. Matcheá por custom_id siempre."
+
+concepts:
+  - message-batches
+  - custom-id
+  - polling
+  - processing-status
+  - batch-results

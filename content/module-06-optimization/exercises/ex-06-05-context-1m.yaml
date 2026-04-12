@@ -1,0 +1,100 @@
+id: ex-06-05-context-1m
+type: code-typescript
+title: "Estimador de costo progresivo para context 1M"
+lesson_ref: lesson-06-05
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 15
+
+starter_code: |
+  // ex-06-05: Estimador de costo para el pricing progresivo de 1M context
+  //
+  // Implementás una función que dada cantidad de input_tokens y output_tokens
+  // calcula el costo según el tier (normal ≤200K, extendido >200K).
+  //
+  // Luego verificás 3 casos canónicos contra valores esperados.
+
+  // Precios ilustrativos Sonnet 4.6 (verificá los actuales en producción):
+  //   Input 0-200K:   $3.00 / M
+  //   Input >200K:    $6.00 / M   (2x)
+  //   Output si input ≤200K:  $15.00 / M
+  //   Output si input >200K:  $22.50 / M  (1.5x)
+
+  // TODO 1: Definí constantes para los 4 precios y el threshold 200_000.
+
+  // TODO 2: Implementá estimateCost(inputTokens, outputTokens) que retorna
+  //   { inputCost, outputCost, total }.
+  //   - Si inputTokens ≤ 200K: todo el input a precio estándar, output a precio estándar.
+  //   - Si inputTokens > 200K: los primeros 200K a estándar, el resto a extendido.
+  //     El output TODO a precio extendido (no se prorratea).
+
+  // TODO 3: Verificá con 3 casos:
+  //   a) 150_000 input, 500 output  → costo bajo (todo estándar)
+  //   b) 800_000 input, 500 output  → input $4.20, output extendido
+  //   c) 200_000 input, 500 output  → exacto en el threshold (todo estándar)
+
+solution_code: |
+  const THRESHOLD = 200_000;
+  const INPUT_STD = 3.0 / 1_000_000;
+  const INPUT_EXT = 6.0 / 1_000_000;
+  const OUTPUT_STD = 15.0 / 1_000_000;
+  const OUTPUT_EXT = 22.5 / 1_000_000;
+
+  function estimateCost(inputTokens: number, outputTokens: number) {
+    let inputCost = 0;
+    if (inputTokens <= THRESHOLD) {
+      inputCost = inputTokens * INPUT_STD;
+    } else {
+      inputCost =
+        THRESHOLD * INPUT_STD + (inputTokens - THRESHOLD) * INPUT_EXT;
+    }
+    const outputPrice = inputTokens > THRESHOLD ? OUTPUT_EXT : OUTPUT_STD;
+    const outputCost = outputTokens * outputPrice;
+    return { inputCost, outputCost, total: inputCost + outputCost };
+  }
+
+  const a = estimateCost(150_000, 500);
+  console.log("150K + 500:", a);
+  // { inputCost: 0.45, outputCost: 0.0075, total: 0.4575 }
+
+  const b = estimateCost(800_000, 500);
+  console.log("800K + 500:", b);
+  // { inputCost: 4.20, outputCost: 0.01125, total: 4.21125 }
+
+  const c = estimateCost(200_000, 500);
+  console.log("200K + 500:", c);
+  // { inputCost: 0.60, outputCost: 0.0075, total: 0.6075 }
+
+  // Asserts simples
+  if (Math.abs(a.total - 0.4575) < 0.001) console.log("✓ case a");
+  if (Math.abs(b.inputCost - 4.2) < 0.001) console.log("✓ case b input");
+  if (Math.abs(c.inputCost - 0.6) < 0.001) console.log("✓ case c threshold exacto");
+
+test_cases:
+  - id: test-below-threshold
+    description: "150K input usa precio estándar completo"
+    test_code: |
+      assert Math.abs(a.inputCost - 0.45) < 0.001, "150K × $3/M = $0.45"
+    points: 5
+  - id: test-above-threshold
+    description: "800K input: primeros 200K a $3/M + 600K a $6/M = $4.20"
+    test_code: |
+      assert Math.abs(b.inputCost - 4.2) < 0.001, "debe aplicar pricing progresivo"
+    points: 5
+  - id: test-output-scaling
+    description: "Output escala a precio extendido cuando input > 200K"
+    test_code: |
+      assert Math.abs(b.outputCost - 0.01125) < 0.001, "output 500 × $22.5/M = $0.01125"
+    points: 5
+
+hints:
+  - "El output no es progresivo por cada token — se cobra todo al tier del input."
+  - "El pricing está solo en Sonnet 4.6 para 1M context al momento — otros modelos pueden no soportarlo."
+  - "Convertí los precios a 'por token' dividiendo por 1_000_000 antes de multiplicar."
+  - "Para inputTokens exactamente = 200_000, todo el input va a tier estándar."
+
+concepts:
+  - context-1m
+  - progressive-pricing
+  - threshold-200k
+  - cost-estimation

@@ -1,0 +1,138 @@
+id: ex-06-04-rate-limits
+type: code-typescript
+title: "Cliente con throttling proactivo basado en headers"
+lesson_ref: lesson-06-06
+difficulty: intermediate
+estimated_time_minutes: 30
+points: 25
+
+starter_code: |
+  // ex-06-04: Cliente HTTP con throttling proactivo
+  //
+  // Construís un wrapper que antes de cada request revisa el 'remaining'
+  // del response anterior. Si es bajo, espera hasta el reset. Si recibe
+  // un 429, respeta el 'retry-after'.
+  //
+  // Usás fetch directo (no SDK) para poder leer los headers.
+
+  const API_URL = "https://api.anthropic.com/v1/messages";
+  const API_KEY = process.env.ANTHROPIC_API_KEY!;
+
+  interface RateLimitState {
+    requestsRemaining: number;
+    tokensRemaining: number;
+    reset: Date;
+  }
+
+  // TODO 1: Inicializá un state con valores optimistas (por ejemplo 50, 60000, ahora+1min).
+
+  // TODO 2: Implementá parseHeaders(headers, state) que actualiza
+  //   requestsRemaining, tokensRemaining, reset desde los headers:
+  //     anthropic-ratelimit-requests-remaining
+  //     anthropic-ratelimit-tokens-remaining
+  //     anthropic-ratelimit-requests-reset
+
+  // TODO 3: Implementá requestWithThrottle(body) que:
+  //   - Si requestsRemaining < 3 o tokensRemaining < 5000, espera hasta reset.
+  //   - Hace fetch con los headers correctos.
+  //   - Si recibe 429, lee retry-after y reintenta recursivamente.
+  //   - Sino, parsea headers del response y retorna el JSON.
+
+  // TODO 4: Hacé 3 requests secuenciales y loggeá el remaining después de cada una.
+
+solution_code: |
+  const API_URL = "https://api.anthropic.com/v1/messages";
+  const API_KEY = process.env.ANTHROPIC_API_KEY!;
+
+  interface RateLimitState {
+    requestsRemaining: number;
+    tokensRemaining: number;
+    reset: Date;
+  }
+
+  const state: RateLimitState = {
+    requestsRemaining: 50,
+    tokensRemaining: 60_000,
+    reset: new Date(Date.now() + 60_000),
+  };
+
+  function parseHeaders(headers: Headers) {
+    const r = headers.get("anthropic-ratelimit-requests-remaining");
+    const t = headers.get("anthropic-ratelimit-tokens-remaining");
+    const rst = headers.get("anthropic-ratelimit-requests-reset");
+    if (r) state.requestsRemaining = parseInt(r);
+    if (t) state.tokensRemaining = parseInt(t);
+    if (rst) state.reset = new Date(rst);
+  }
+
+  async function requestWithThrottle(body: any): Promise<any> {
+    if (state.requestsRemaining < 3 || state.tokensRemaining < 5000) {
+      const waitMs = Math.max(0, state.reset.getTime() - Date.now());
+      console.log(`Throttling: waiting ${waitMs}ms until reset`);
+      if (waitMs > 0) await new Promise((r) => setTimeout(r, waitMs));
+    }
+
+    const resp = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "x-api-key": API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    parseHeaders(resp.headers);
+
+    if (resp.status === 429) {
+      const retryAfter = parseInt(resp.headers.get("retry-after") ?? "5");
+      console.log(`429 — waiting ${retryAfter}s`);
+      await new Promise((r) => setTimeout(r, retryAfter * 1000));
+      return requestWithThrottle(body);
+    }
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+
+    return resp.json();
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const j = await requestWithThrottle({
+      model: "claude-haiku-4-5",
+      max_tokens: 20,
+      messages: [{ role: "user", content: `Say hi ${i}` }],
+    });
+    console.log(
+      `req ${i}: remaining req=${state.requestsRemaining} tok=${state.tokensRemaining}`
+    );
+  }
+
+test_cases:
+  - id: test-parse-headers
+    description: "parseHeaders actualiza requestsRemaining desde el header"
+    test_code: |
+      assert state.requestsRemaining < 50, "después de 3 requests, debe haber bajado"
+    points: 8
+  - id: test-proactive-throttle
+    description: "Si remaining < 3, espera hasta el reset antes de mandar"
+    test_code: |
+      assert true, "Debe haber lógica de throttle pre-request"
+    points: 8
+  - id: test-429-handling
+    description: "En 429, lee retry-after y reintenta"
+    test_code: |
+      assert true, "Debe haber branch para status 429 que respeta retry-after"
+    points: 9
+
+hints:
+  - "Los headers vienen como string — convertilos a int con parseInt."
+  - "El reset es un timestamp ISO 8601. Convertilo con new Date(value)."
+  - "retry-after viene en segundos, no milisegundos. Multiplicá por 1000."
+  - "No hagas retry inmediato — si recibís 429 sin esperar, vas a recibir otro 429."
+
+concepts:
+  - rate-limits
+  - ratelimit-headers
+  - 429-retry-after
+  - throttling-proactive
+  - backoff

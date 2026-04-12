@@ -1,0 +1,152 @@
+id: ex-06-06-lab-optimize
+type: code-typescript
+title: "Lab: optimizar un prompt caro — baseline vs cached"
+lesson_ref: lesson-06-08
+difficulty: advanced
+estimated_time_minutes: 45
+points: 35
+
+starter_code: |
+  // ex-06-06: Lab de optimización
+  //
+  // Corré 5 requests con un system prompt grande de 2 formas:
+  //   A) Baseline: sin caching.
+  //   B) Cached: con cache_control en el system.
+  //
+  // Calculá el costo de cada caso usando los precios de Haiku 4.5 y
+  // reportá el % de ahorro. Target: >70% reducción con caching.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // Precios Haiku 4.5 (abril 2026):
+  //   Input normal:  $1.00 / M
+  //   Cache write:   $1.25 / M (1.25x)
+  //   Cache read:    $0.10 / M (0.10x)
+  //   Output:        $5.00 / M
+
+  // TODO 1: Construí un BIG_SYSTEM de al menos 3000 tokens repitiendo texto estable.
+
+  // TODO 2: Implementá runBaseline(n) que hace n requests SIN caching y acumula
+  //   input_tokens y output_tokens totales. Devuelve { totalInput, totalOutput }.
+
+  // TODO 3: Implementá runCached(n) que hace n requests CON caching y acumula
+  //   cache_creation_input_tokens, cache_read_input_tokens, output_tokens.
+  //   Devuelve { totalWrite, totalRead, totalOutput }.
+
+  // TODO 4: Calculá costo de cada uno con los precios arriba y reportá:
+  //   - costo baseline
+  //   - costo cached
+  //   - ahorro absoluto
+  //   - ahorro %
+
+  // TODO 5: Asertá que el ahorro > 50%.
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const BIG_SYSTEM =
+    "Eres un categorizador de tickets. Reglas: priorizá claridad.\n".repeat(500);
+
+  const USER_MSGS = [
+    "Ticket: no puedo loguearme.",
+    "Ticket: quiero devolver un producto.",
+    "Ticket: error 500 al pagar.",
+    "Ticket: cambio de dirección de envío.",
+    "Ticket: consulta sobre cupón.",
+  ];
+
+  async function runBaseline() {
+    let totalInput = 0, totalOutput = 0;
+    for (const msg of USER_MSGS) {
+      const resp = await client.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 80,
+        system: BIG_SYSTEM,
+        messages: [{ role: "user", content: msg }],
+      });
+      totalInput += resp.usage.input_tokens;
+      totalOutput += resp.usage.output_tokens;
+    }
+    return { totalInput, totalOutput };
+  }
+
+  async function runCached() {
+    let totalWrite = 0, totalRead = 0, totalOutput = 0;
+    for (const msg of USER_MSGS) {
+      const resp = await client.messages.create({
+        model: "claude-haiku-4-5",
+        max_tokens: 80,
+        system: [
+          { type: "text", text: BIG_SYSTEM, cache_control: { type: "ephemeral" } },
+        ],
+        messages: [{ role: "user", content: msg }],
+      });
+      const u: any = resp.usage;
+      totalWrite += u.cache_creation_input_tokens ?? 0;
+      totalRead += u.cache_read_input_tokens ?? 0;
+      totalOutput += u.output_tokens;
+    }
+    return { totalWrite, totalRead, totalOutput };
+  }
+
+  // Precios por token
+  const P_IN = 1 / 1e6;
+  const P_WRITE = 1.25 / 1e6;
+  const P_READ = 0.10 / 1e6;
+  const P_OUT = 5 / 1e6;
+
+  const base = await runBaseline();
+  const baseCost = base.totalInput * P_IN + base.totalOutput * P_OUT;
+  console.log("Baseline:", base, `cost=$${baseCost.toFixed(5)}`);
+
+  const cached = await runCached();
+  const cachedCost =
+    cached.totalWrite * P_WRITE +
+    cached.totalRead * P_READ +
+    cached.totalOutput * P_OUT;
+  console.log("Cached:", cached, `cost=$${cachedCost.toFixed(5)}`);
+
+  const savings = baseCost - cachedCost;
+  const savingsPct = (savings / baseCost) * 100;
+  console.log(`Savings: $${savings.toFixed(5)} (${savingsPct.toFixed(1)}%)`);
+
+  if (savingsPct > 50) {
+    console.log("✓ Objetivo: > 50% de ahorro alcanzado");
+  } else {
+    console.log("✗ Revisá: el system quizás no llega al mínimo de cache (2048)");
+  }
+
+test_cases:
+  - id: test-baseline-ran
+    description: "runBaseline hace 5 requests sin caching"
+    test_code: |
+      assert base.totalInput > 10000, "5 requests con system grande → totalInput > 10K"
+    points: 10
+  - id: test-cached-has-reads
+    description: "runCached muestra cache_read_input_tokens > 0 acumulado"
+    test_code: |
+      assert cached.totalRead > 0, "debe haber reads en runs 2-5"
+    points: 10
+  - id: test-savings-threshold
+    description: "El ahorro supera el 50%"
+    test_code: |
+      assert savingsPct > 50, "caching debe reducir costo > 50% en este escenario"
+    points: 15
+
+hints:
+  - "El system debe superar 2048 tokens para que Haiku 4.5 lo cachee."
+  - "El primer request siempre paga write — el ahorro aparece del segundo en adelante."
+  - "Si savingsPct es negativo o cerca de 0, el cache no se está activando. Verificá que cache_read > 0 en los requests 2-5."
+  - "Usá JSON.stringify(usage) para ver todos los campos, no solo input_tokens/output_tokens."
+  - "Podés compartir los mismos USER_MSGS en ambos runs para comparación fair."
+
+concepts:
+  - optimization-workflow
+  - prompt-caching
+  - cost-measurement
+  - before-after
+  - usage-accounting

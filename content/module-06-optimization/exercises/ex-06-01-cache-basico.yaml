@@ -1,0 +1,111 @@
+id: ex-06-01-cache-basico
+type: code-typescript
+title: "Prompt caching básico: write → read en 2 requests"
+lesson_ref: lesson-06-01
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-06-01: Cache básico — observar write y read
+  //
+  // Hacés dos requests consecutivas con el mismo system prompt cacheado.
+  // La primera debe mostrar cache_creation_input_tokens > 0 (write).
+  // La segunda debe mostrar cache_read_input_tokens > 0 (read).
+  //
+  // Importante: el system prompt debe superar el mínimo del modelo:
+  //   - Haiku 4.5: ≥2048 tokens
+  //   - Sonnet / Opus: ≥1024 tokens
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Construí un system prompt de al menos ~2500 tokens repitiendo
+  //   contenido estable (instrucciones, ejemplos few-shot, etc.).
+
+  // TODO 2: Definí una función call(userMessage) que envía el request con:
+  //   - model: "claude-haiku-4-5"
+  //   - system: array con 1 bloque que tenga cache_control: {type: "ephemeral"}
+  //   - messages: [{role: "user", content: userMessage}]
+  //   - max_tokens: 50
+
+  // TODO 3: Hacé dos llamadas consecutivas y loggeá por cada una:
+  //   - usage.input_tokens
+  //   - usage.cache_creation_input_tokens
+  //   - usage.cache_read_input_tokens
+
+  // TODO 4: Verificá que la primera tuvo write > 0 y la segunda read > 0.
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // ~2500 tokens repitiendo un bloque estable
+  const STABLE_SYSTEM =
+    "Eres un asistente experto en documentación técnica. Seguí estas reglas:\n" +
+    "- Respondé siempre en español.\n- Cita la fuente cuando sea posible.\n".repeat(200);
+
+  async function call(userMessage: string) {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 50,
+      system: [
+        {
+          type: "text",
+          text: STABLE_SYSTEM,
+          cache_control: { type: "ephemeral" },
+        },
+      ],
+      messages: [{ role: "user", content: userMessage }],
+    });
+    const u: any = resp.usage;
+    return {
+      input: u.input_tokens,
+      write: u.cache_creation_input_tokens ?? 0,
+      read: u.cache_read_input_tokens ?? 0,
+    };
+  }
+
+  const first = await call("Hola, ¿quién eres?");
+  console.log("First call:", first);
+
+  const second = await call("Repetí tu rol.");
+  console.log("Second call:", second);
+
+  if (first.write > 0 && second.read > 0) {
+    console.log("✓ Cache funcionando: write en la 1a, read en la 2a");
+  } else {
+    console.log("✗ Cache no activado — revisá que el system supere el mínimo");
+  }
+
+test_cases:
+  - id: test-cache-control-present
+    description: "El system prompt tiene cache_control ephemeral"
+    test_code: |
+      assert true, "Debe usar cache_control: {type: 'ephemeral'}"
+    points: 5
+  - id: test-write-on-first
+    description: "La primera request crea el cache (write > 0)"
+    test_code: |
+      assert first.write > 2000, "cache_creation_input_tokens debe ser > 0 en el primer request"
+    points: 5
+  - id: test-read-on-second
+    description: "La segunda request reutiliza el cache (read > 0)"
+    test_code: |
+      assert second.read > 2000, "cache_read_input_tokens debe ser > 0 en el segundo request"
+    points: 5
+
+hints:
+  - "El mínimo de tokens para cachear en Haiku 4.5 es 2048. Si tu system es muy chico, cache_creation_input_tokens = 0."
+  - "cache_control se pone como propiedad del bloque de contenido, no como top-level del request."
+  - "La segunda request debe salir dentro de los 5 minutos de la primera (TTL default)."
+  - "Si ves write > 0 en ambas, el prefix está cambiando — revisá que STABLE_SYSTEM sea el mismo string."
+
+concepts:
+  - cache-control
+  - ephemeral
+  - cache-creation-tokens
+  - cache-read-tokens
+  - prefix-stability

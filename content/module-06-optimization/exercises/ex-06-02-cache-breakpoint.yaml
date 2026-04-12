@@ -1,0 +1,130 @@
+id: ex-06-02-cache-breakpoint
+type: code-typescript
+title: "Dos breakpoints de cache: tools estables + docs por sesión"
+lesson_ref: lesson-06-02
+difficulty: intermediate
+estimated_time_minutes: 25
+points: 20
+
+starter_code: |
+  // ex-06-02: Dos breakpoints de cache combinando tools + system
+  //
+  // Diseñás un request que cachea por separado:
+  //   - Breakpoint 1: tools (lo más estable, raro cambia)
+  //   - Breakpoint 2: system con docs de sesión (estable por sesión)
+  //
+  // Hacés dos requests en la misma sesión y observás que el segundo
+  // tiene read que incluye AMBOS breakpoints.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Definí al menos 2-3 tools con schemas reales. El último tool
+  //   debe tener cache_control: {type: "ephemeral"} para crear breakpoint 1.
+
+  // TODO 2: Definí un system con 2 bloques:
+  //   - Bloque 1: instrucciones estables (≥1024 tokens)
+  //   - Bloque 2: docs de sesión con cache_control: {type: "ephemeral"}
+
+  // TODO 3: Hacé call(question) que:
+  //   - Envía el request con tools + system + messages
+  //   - Loggea usage: input, cache_creation, cache_read
+
+  // TODO 4: Hacé dos llamadas consecutivas con diferentes questions y
+  //   verificá que la segunda muestra cache_read_input_tokens > 0
+  //   incluyendo la suma de tools + system.
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const tools: any[] = [
+    {
+      name: "search_products",
+      description: "Busca productos en el catálogo.",
+      input_schema: {
+        type: "object",
+        properties: { query: { type: "string" } },
+        required: ["query"],
+      },
+    },
+    {
+      name: "get_order_status",
+      description: "Obtiene el estado de una orden.",
+      input_schema: {
+        type: "object",
+        properties: { order_id: { type: "string" } },
+        required: ["order_id"],
+      },
+      cache_control: { type: "ephemeral" },  // breakpoint 1
+    },
+  ];
+
+  const INSTRUCTIONS = "Sos un agente de atención al cliente.\n".repeat(400);
+  const SESSION_DOCS = "Políticas del catálogo 2026:\n- Devoluciones: 30 días.\n".repeat(400);
+
+  async function call(question: string) {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 100,
+      tools,
+      system: [
+        { type: "text", text: INSTRUCTIONS },
+        {
+          type: "text",
+          text: SESSION_DOCS,
+          cache_control: { type: "ephemeral" },  // breakpoint 2
+        },
+      ],
+      messages: [{ role: "user", content: question }],
+    });
+    const u: any = resp.usage;
+    console.log({
+      input: u.input_tokens,
+      write: u.cache_creation_input_tokens ?? 0,
+      read: u.cache_read_input_tokens ?? 0,
+    });
+    return u;
+  }
+
+  console.log("--- First call (expected writes) ---");
+  await call("¿Cómo puedo devolver un producto?");
+
+  console.log("--- Second call (expected reads) ---");
+  const second: any = await call("¿Cuál es la política de devoluciones?");
+
+  if ((second.cache_read_input_tokens ?? 0) > 0) {
+    console.log("✓ Cache hit en segunda llamada");
+  }
+
+test_cases:
+  - id: test-two-breakpoints
+    description: "El request define al menos 2 breakpoints de cache_control"
+    test_code: |
+      assert true, "Debe haber cache_control en tools[último] y en system[último]"
+    points: 5
+  - id: test-first-has-writes
+    description: "La primera request crea cache en ambos breakpoints"
+    test_code: |
+      assert true, "cache_creation_input_tokens > 0 en el primer request"
+    points: 7
+  - id: test-second-has-reads
+    description: "La segunda request lee del cache (suma de ambos breakpoints)"
+    test_code: |
+      assert second.cache_read_input_tokens > 1000, "cache_read debe incluir tools + system"
+    points: 8
+
+hints:
+  - "El cache_control dentro de un tool cachea TODOS los tools hasta ese punto (inclusive)."
+  - "Podés tener hasta 4 breakpoints por request."
+  - "La suma de tokens antes del último breakpoint alcanzado es lo que se cachea."
+  - "Si la segunda llamada tiene write > 0 en vez de read, significa que el prefix cambió — verificá orden estable de tools."
+
+concepts:
+  - breakpoint-placement
+  - tools-caching
+  - system-multi-block
+  - prefix-stability
+  - cache-read-tokens
