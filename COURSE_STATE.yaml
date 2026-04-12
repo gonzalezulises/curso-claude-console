@@ -5,20 +5,21 @@
 # Actualízalo SIEMPRE al terminar una sesión de producción significativa.
 
 version: 1
-last_updated: "2026-04-11"
+last_updated: "2026-04-12"
 last_session_summary: >
-  Módulo 2 — Workbench completo. Se escribieron las 6 lecciones (tour del
-  workbench, iterar un prompt, parámetros en vivo, Files API, tools en
-  workbench, exportar con Get Code) y los 4 ejercicios (2 quiz + 2 code-
-  typescript). Todo el contenido basado en 10 screenshots reales del Claude
-  Console proporcionados por el usuario. Se corrigió la lección de parámetros
-  para reflejar que el Workbench solo expone Temperature, Max tokens y Thinking
-  (no top_p/top_k/stop_sequences). Módulo 3 ya completado en sesión anterior.
+  Módulo 4 — Capacidades Multimodales completo. Se escribieron las 7 lecciones
+  (vision base64, vision URL vs base64, Files API, PDFs con document block,
+  citations nativas, multimodal compuesto, lab de extracción con citas) y los
+  5 ejercicios code-typescript. Todos los curls ejecutados contra la API real
+  con outputs reales: vision base64 (32 input tokens), vision URL (99 tokens),
+  citations plain text con char_location, citations PDF con page_location
+  (2232 tokens). Docs verificadas via context7 (`/websites/platform_claude_en_api`)
+  para los 4 tipos de citation location y el shape exacto de image/document blocks.
 
 current_focus:
-  module: module-04-multimodal
+  module: module-05-tool-use
   status: outline
-  next_action: "Producir Módulo 4 — Multimodal (vision + PDF)"
+  next_action: "Producir Módulo 5 — Tool Use (function calling)"
 
 modules_state:
   module-00-setup:
@@ -55,9 +56,12 @@ modules_state:
     last_verified: "2026-04-12"
 
   module-04-multimodal:
-    status: outline
-    lessons_written: 0
+    status: completed
+    lessons_written: 7
     lessons_total: 7
+    exercises_written: 5
+    exercises_total: 5
+    last_verified: "2026-04-12"
 
   module-05-tool-use:
     status: outline
