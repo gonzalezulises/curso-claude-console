@@ -1,0 +1,69 @@
+id: module-02
+slug: module-02-workbench
+title: "Workbench: El Laboratorio"
+order: 2
+duration_hours: 3
+is_locked: false
+status: in_progress
+
+description: >
+  Dominio del Workbench de platform.claude.com como laboratorio de
+  iteración de prompts. Tour de la interfaz, ciclo edit-run-compare,
+  parámetros en vivo (temperature, max_tokens, thinking), Files API,
+  definición de tools desde la UI, y exportación a código con Get Code.
+
+learning_outcomes:
+  - "Navegar la interfaz de Claude Console: sidebar, Workbench, Files, Skills, Analytics"
+  - "Iterar prompts en el Workbench con el ciclo edit-run-compare sin escribir código"
+  - "Entender qué hace temperature, max_tokens y el toggle de thinking en la UI"
+  - "Subir archivos con Files API y usarlos como referencia en prompts"
+  - "Definir tools custom y web search desde el panel Tools del Workbench"
+  - "Exportar un prompt como snippet de código (Python/TS/curl) con Get Code"
+  - "Identificar qué partes del snippet exportado hay que cambiar para producción"
+
+prerequisites:
+  - "Módulo 0 completo (cuenta, API key)"
+  - "Módulo 1 completo (entender request/response/parameters)"
+
+lessons:
+  - id: lesson-02-01
+    file: lessons/01-tour-del-workbench.md
+    title: "Tour del Workbench"
+    order: 1
+    duration_minutes: 20
+    exercises: []
+
+  - id: lesson-02-02
+    file: lessons/02-iterar-un-prompt.md
+    title: "Iterar un prompt efectivamente"
+    order: 2
+    duration_minutes: 25
+    exercises: [ex-02-01-iteracion-prompt]
+
+  - id: lesson-02-03
+    file: lessons/03-parametros-en-vivo.md
+    title: "Parámetros en vivo: temperature, max_tokens, thinking"
+    order: 3
+    duration_minutes: 30
+    exercises: [ex-02-02-parametros-efecto]
+
+  - id: lesson-02-04
+    file: lessons/04-files-api.md
+    title: "Files API desde la Console y desde código"
+    order: 4
+    duration_minutes: 30
+    exercises: [ex-02-03-upload-file]
+
+  - id: lesson-02-05
+    file: lessons/05-tools-en-workbench.md
+    title: "Probar tools desde el Workbench"
+    order: 5
+    duration_minutes: 25
+    exercises: []
+
+  - id: lesson-02-06
+    file: lessons/06-exportar-get-code.md
+    title: "Exportar a código: Get Code"
+    order: 6
+    duration_minutes: 20
+    exercises: [ex-02-04-export-workbench]
