@@ -1,0 +1,78 @@
+id: module-04-multimodal
+title: "Capacidades Multimodales"
+slug: multimodal
+description: >
+  Vision con imágenes (base64 y URL), procesamiento de PDFs, gestión de
+  archivos con Files API, y citations nativas para respuestas verificables.
+estimated_hours: 4
+default_model: claude-sonnet-4-6
+
+prerequisites:
+  - module-01-messages-api
+  - module-02-workbench
+  - module-03-prompt-engineering
+
+learning_outcomes:
+  - "Enviar imágenes a Claude en base64 y por URL, entendiendo cuándo usar cada método"
+  - "Subir archivos a Files API y referenciarlos por file_id en múltiples mensajes"
+  - "Procesar PDFs completos con el bloque type: document"
+  - "Activar citations nativas y parsear los 4 tipos de citation location"
+  - "Componer requests multimodales con imagen + texto + PDF en una sola llamada"
+  - "Construir un pipeline de extracción con citas verificables"
+
+lessons:
+  - id: lesson-04-01
+    file: lessons/01-vision-basica-base64.md
+    title: "Vision básica: una imagen en el request"
+    concepts: [image-block, base64, media-type, vision-tokens]
+
+  - id: lesson-04-02
+    file: lessons/02-vision-url-vs-base64.md
+    title: "Vision por URL vs base64"
+    concepts: [url-source, base64-source, fetch-server-side, when-to-use]
+
+  - id: lesson-04-03
+    file: lessons/03-files-api.md
+    title: "Files API: subir una vez, referenciar N veces"
+    concepts: [files-upload, file-id, file-lifecycle, beta-header]
+
+  - id: lesson-04-04
+    file: lessons/04-pdfs-bloque-document.md
+    title: "PDFs: el bloque document"
+    concepts: [document-block, base64-pdf, plain-text-source, pdf-tokens]
+
+  - id: lesson-04-05
+    file: lessons/05-citations-nativas.md
+    title: "Citations nativas"
+    concepts: [citations-enabled, char-location, page-location, content-block-location, document-index]
+
+  - id: lesson-04-06
+    file: lessons/06-multimodal-compuesto.md
+    title: "Multimodal compuesto: imagen + texto + PDF"
+    concepts: [content-array, block-order, mixed-modalities, token-budget]
+
+  - id: lesson-04-07
+    file: lessons/07-lab-extraccion-citas.md
+    title: "Lab: pipeline de extracción con citas"
+    concepts: [multi-document, citation-rendering, verification-pipeline]
+
+exercises:
+  - id: ex-04-01-imagen-base64
+    file: exercises/ex-04-01-imagen-base64.yaml
+    lesson_ref: lesson-04-01
+
+  - id: ex-04-02-imagen-url
+    file: exercises/ex-04-02-imagen-url.yaml
+    lesson_ref: lesson-04-02
+
+  - id: ex-04-03-files-upload
+    file: exercises/ex-04-03-files-upload.yaml
+    lesson_ref: lesson-04-03
+
+  - id: ex-04-04-citations
+    file: exercises/ex-04-04-citations.yaml
+    lesson_ref: lesson-04-05
+
+  - id: ex-04-05-lab-extraction
+    file: exercises/ex-04-05-lab-extraction.yaml
+    lesson_ref: lesson-04-07
