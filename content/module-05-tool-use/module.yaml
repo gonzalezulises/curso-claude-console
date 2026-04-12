@@ -1,0 +1,104 @@
+id: module-05-tool-use
+title: "Tool Use: De Chat a Agente"
+slug: tool-use
+description: >
+  Definir tools con JSON Schema, entender el flujo completo
+  user→tool_use→tool_result→final, usar server-side tools (web_search,
+  bash, code_execution), múltiples tools en paralelo, y optimizaciones
+  beta (strict, defer_loading, eager_input_streaming).
+estimated_hours: 6
+default_model: claude-sonnet-4-6
+
+prerequisites:
+  - module-01-messages-api
+  - module-02-workbench
+  - module-03-prompt-engineering
+
+learning_outcomes:
+  - "Definir un tool con name, description y input_schema JSON Schema válido"
+  - "Ejecutar el loop completo user → tool_use → tool_result → respuesta final"
+  - "Forzar tools específicos con tool_choice y entender auto/any/tool"
+  - "Manejar múltiples tool_use en un mismo turno (paralelismo)"
+  - "Usar server-side tools (web_search, bash, code_execution) con beta headers"
+  - "Aplicar optimizaciones como strict, defer_loading, cache_control en tools"
+  - "Construir un mini-agente con runtime loop y 3 tools cliente"
+
+lessons:
+  - id: lesson-05-01
+    file: lessons/01-que-es-tool-use.md
+    title: "¿Qué es tool use y por qué cambia todo?"
+    concepts: [tool-use, modelo-mental, propone-vs-ejecuta]
+
+  - id: lesson-05-02
+    file: lessons/02-definir-un-tool.md
+    title: "Definir un tool: name, description, input_schema"
+    concepts: [json-schema, tool-definition, description-as-prompt]
+
+  - id: lesson-05-03
+    file: lessons/03-flujo-completo-minimo.md
+    title: "Flujo completo mínimo: tool_use → tool_result"
+    concepts: [stop-reason-tool-use, tool-use-block, tool-result-block, loop]
+
+  - id: lesson-05-04
+    file: lessons/04-tool-choice.md
+    title: "tool_choice: auto, any, forzar un tool"
+    concepts: [tool-choice-auto, tool-choice-any, tool-choice-tool, structured-extraction]
+
+  - id: lesson-05-05
+    file: lessons/05-multiple-tools-paralelo.md
+    title: "Múltiples tools en paralelo"
+    concepts: [parallel-tool-use, multiple-tool-use-blocks, disable-parallel]
+
+  - id: lesson-05-06
+    file: lessons/06-server-side-web-search.md
+    title: "Server-side: web_search"
+    concepts: [server-tool-use, web-search-tool, web-search-citations, max-uses]
+
+  - id: lesson-05-07
+    file: lessons/07-server-side-bash-editor.md
+    title: "Server-side: bash & text_editor"
+    concepts: [bash-tool, text-editor-tool, sandbox-anthropic, when-to-use]
+
+  - id: lesson-05-08
+    file: lessons/08-server-side-code-execution.md
+    title: "Server-side: code_execution (Python sandbox)"
+    concepts: [code-execution, python-sandbox, data-analysis, cost-considerations]
+
+  - id: lesson-05-09
+    file: lessons/09-optimizaciones-beta.md
+    title: "Optimizaciones: strict, defer_loading, cache_control"
+    concepts: [strict-schema, defer-loading, tool-caching, eager-streaming]
+
+  - id: lesson-05-10
+    file: lessons/10-lab-mini-agente.md
+    title: "Lab: mini-agente con 3 tools"
+    concepts: [runtime-loop, tool-dispatch, chained-tools, agent-pattern]
+
+exercises:
+  - id: ex-05-01-primer-tool
+    file: exercises/ex-05-01-primer-tool.yaml
+    lesson_ref: lesson-05-03
+
+  - id: ex-05-02-schema-strict
+    file: exercises/ex-05-02-schema-strict.yaml
+    lesson_ref: lesson-05-09
+
+  - id: ex-05-03-multiple-tools
+    file: exercises/ex-05-03-multiple-tools.yaml
+    lesson_ref: lesson-05-05
+
+  - id: ex-05-04-tool-choice
+    file: exercises/ex-05-04-tool-choice.yaml
+    lesson_ref: lesson-05-04
+
+  - id: ex-05-05-web-search
+    file: exercises/ex-05-05-web-search.yaml
+    lesson_ref: lesson-05-06
+
+  - id: ex-05-06-code-execution
+    file: exercises/ex-05-06-code-execution.yaml
+    lesson_ref: lesson-05-08
+
+  - id: ex-05-07-lab-mini-agente
+    file: exercises/ex-05-07-lab-mini-agente.yaml
+    lesson_ref: lesson-05-10
