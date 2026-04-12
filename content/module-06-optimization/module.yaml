@@ -1,0 +1,90 @@
+id: module-06-optimization
+title: "Optimización & Producción"
+slug: optimization
+description: >
+  Prompt caching para bajar costos 90%, Batch API asíncrona al 50% del
+  precio, extended cache TTL (1h), contexto 1M tokens, rate limits y
+  cómo reaccionar a 429, analytics para detectar hotspots, y el lab de
+  optimizar un prompt caro.
+estimated_hours: 5
+default_model: claude-sonnet-4-6
+
+prerequisites:
+  - module-01-messages-api
+  - module-03-prompt-engineering
+  - module-05-tool-use
+
+learning_outcomes:
+  - "Aplicar prompt caching con cache_control y medir ahorro vía cache_read_input_tokens"
+  - "Estructurar prompts para ser cacheables desde el diseño"
+  - "Usar extended cache TTL de 1h cuando la sesión lo justifica"
+  - "Submit y poll de un Message Batch con /v1/messages/batches (50% más barato, async)"
+  - "Habilitar context 1M tokens con beta header y entender su pricing progresivo"
+  - "Leer headers anthropic-ratelimit-* y responder a 429 con backoff apropiado"
+  - "Usar Analytics para identificar los 3-5 endpoints que consumen el 80% del costo"
+
+lessons:
+  - id: lesson-06-01
+    file: lessons/01-prompt-caching.md
+    title: "Prompt caching: cómo funciona y cuánto ahorra"
+    concepts: [cache-control, ephemeral, cache-creation-tokens, cache-read-tokens, breakpoint]
+
+  - id: lesson-06-02
+    file: lessons/02-prompts-cacheables.md
+    title: "Diseñar prompts cacheables"
+    concepts: [prefix-stability, breakpoint-placement, order-matters, anti-timestamp]
+
+  - id: lesson-06-03
+    file: lessons/03-extended-ttl.md
+    title: "Extended cache TTL: 1 hora"
+    concepts: [extended-cache-ttl, beta-header, ttl-1h, write-cost]
+
+  - id: lesson-06-04
+    file: lessons/04-batch-api.md
+    title: "Batch API: 50% de precio, asíncrono"
+    concepts: [message-batches, custom-id, polling, results-url, async-workloads]
+
+  - id: lesson-06-05
+    file: lessons/05-context-1m.md
+    title: "Context 1M tokens"
+    concepts: [context-1m, beta-header, progressive-pricing, long-context]
+
+  - id: lesson-06-06
+    file: lessons/06-rate-limits.md
+    title: "Rate limits: RPM, ITPM, OTPM"
+    concepts: [rate-limits, ratelimit-headers, 429-retry-after, backoff, tiers]
+
+  - id: lesson-06-07
+    file: lessons/07-analytics-costos.md
+    title: "Leer Analytics para optimizar"
+    concepts: [analytics-dashboard, cost-attribution, hotspots, 80-20-rule]
+
+  - id: lesson-06-08
+    file: lessons/08-lab-optimizar-prompt-caro.md
+    title: "Lab: optimizar un prompt caro"
+    concepts: [optimization-workflow, before-after, cost-measurement]
+
+exercises:
+  - id: ex-06-01-cache-basico
+    file: exercises/ex-06-01-cache-basico.yaml
+    lesson_ref: lesson-06-01
+
+  - id: ex-06-02-cache-breakpoint
+    file: exercises/ex-06-02-cache-breakpoint.yaml
+    lesson_ref: lesson-06-02
+
+  - id: ex-06-03-batch-submit
+    file: exercises/ex-06-03-batch-submit.yaml
+    lesson_ref: lesson-06-04
+
+  - id: ex-06-04-rate-limits
+    file: exercises/ex-06-04-rate-limits.yaml
+    lesson_ref: lesson-06-06
+
+  - id: ex-06-05-context-1m
+    file: exercises/ex-06-05-context-1m.yaml
+    lesson_ref: lesson-06-05
+
+  - id: ex-06-06-lab-optimize
+    file: exercises/ex-06-06-lab-optimize.yaml
+    lesson_ref: lesson-06-08
