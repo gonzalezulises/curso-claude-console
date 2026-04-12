@@ -1,0 +1,147 @@
+id: ex-02-03-upload-file
+type: code-typescript
+title: "Subir un archivo con Files API y referenciarlo"
+lesson_ref: lesson-02-04
+difficulty: intermediate
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-02-03: Files API — upload y referencia
+  // Subís un archivo de texto como "documento" via Files API,
+  // después lo referenciás en un mensaje para que Claude lo resuma.
+  //
+  // NOTA: Files API es beta. Requiere el beta header files-api-2025-04-14.
+  // Este ejercicio puede no funcionar si el beta cambió — verificá docs.
+
+  import Anthropic from "@anthropic-ai/sdk";
+  import { writeFileSync, readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  // Paso 1: Crear un archivo de prueba local
+  const testContent = `Informe trimestral Q1 2025 — TechCorp Solutions
+
+  Resumen ejecutivo: Los ingresos del primer trimestre alcanzaron USD 2.4M,
+  un incremento del 15% respecto al Q4 2024. Los costos operativos se
+  mantuvieron estables en USD 1.8M. El margen neto mejoró de 18% a 25%.
+
+  Clientes nuevos: 47 empresas se sumaron al plan Enterprise, principalmente
+  del sector financiero (23) y salud (14). La tasa de churn bajó de 4.2% a
+  3.1% gracias a las mejoras en onboarding.
+
+  Producto: Se lanzaron 3 features principales: dashboard de analytics en
+  tiempo real, integración con Salesforce, y API v3 con soporte GraphQL.
+  El NPS subió de 42 a 51.
+
+  Proyección Q2: Se espera alcanzar USD 2.8M en ingresos con el cierre de
+  3 contratos enterprise en pipeline avanzado.`;
+
+  writeFileSync("/tmp/informe-q1.txt", testContent);
+
+  // Paso 2: Subir el archivo con Files API
+  // TODO: usar client.beta.files.upload para subir el archivo
+  // Imprimir el file.id resultante
+
+  // Paso 3: Referenciar el archivo en un mensaje
+  // TODO: llamar a client.beta.messages.create con:
+  // - betas: ["files-api-2025-04-14"]
+  // - content array con un bloque type: "file" y un bloque type: "text"
+  // - Pedir un resumen en 3 bullets
+
+  // Paso 4: Cleanup
+  // TODO: borrar el archivo con client.beta.files.delete(fileId)
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+  import { writeFileSync, readFileSync } from "node:fs";
+
+  const client = new Anthropic();
+
+  const testContent = `Informe trimestral Q1 2025 — TechCorp Solutions
+
+  Resumen ejecutivo: Los ingresos del primer trimestre alcanzaron USD 2.4M,
+  un incremento del 15% respecto al Q4 2024. Los costos operativos se
+  mantuvieron estables en USD 1.8M. El margen neto mejoró de 18% a 25%.
+
+  Clientes nuevos: 47 empresas se sumaron al plan Enterprise, principalmente
+  del sector financiero (23) y salud (14). La tasa de churn bajó de 4.2% a
+  3.1% gracias a las mejoras en onboarding.
+
+  Producto: Se lanzaron 3 features principales: dashboard de analytics en
+  tiempo real, integración con Salesforce, y API v3 con soporte GraphQL.
+  El NPS subió de 42 a 51.
+
+  Proyección Q2: Se espera alcanzar USD 2.8M en ingresos con el cierre de
+  3 contratos enterprise en pipeline avanzado.`;
+
+  writeFileSync("/tmp/informe-q1.txt", testContent);
+
+  // Upload
+  const file = await client.beta.files.upload({
+    file: new File(
+      [readFileSync("/tmp/informe-q1.txt")],
+      "informe-q1.txt",
+      { type: "text/plain" },
+    ),
+    purpose: "vision",
+  });
+  console.log("File ID:", file.id);
+
+  // Reference in message
+  const resp = await client.beta.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 300,
+    betas: ["files-api-2025-04-14"],
+    messages: [{
+      role: "user",
+      content: [
+        {
+          type: "file",
+          source: { type: "file", file_id: file.id },
+        },
+        {
+          type: "text",
+          text: "Resumí este informe en exactamente 3 bullets de máximo 20 palabras cada uno. Sin preámbulos.",
+        },
+      ],
+    }],
+  });
+
+  const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+  console.log("Resumen:", text);
+  console.log("Usage:", resp.usage);
+
+  // Cleanup
+  await client.beta.files.delete(file.id);
+  console.log("Archivo borrado:", file.id);
+
+test_cases:
+  - id: test-upload
+    description: "El archivo se sube correctamente y se obtiene un file_id"
+    test_code: |
+      assert file.id !== undefined, "Debe recibir un file_id";
+      assert file.id.startsWith("file-"), "El ID debe empezar con 'file-'";
+    points: 5
+  - id: test-reference
+    description: "El file_id se usa en un mensaje con bloque type: file"
+    test_code: |
+      assert true, "Verificar manualmente que la llamada usa type: 'file' con file_id";
+    points: 5
+  - id: test-cleanup
+    description: "El archivo se borra después de usarlo"
+    test_code: |
+      assert true, "Verificar manualmente que se llama a files.delete";
+    points: 5
+
+hints:
+  - "Files API requiere betas: ['files-api-2025-04-14'] en la llamada"
+  - "El bloque file en content usa: { type: 'file', source: { type: 'file', file_id: '...' } }"
+  - "Usá client.beta.files.upload, no client.files.upload (es beta)"
+  - "No olvides borrar el archivo al final con client.beta.files.delete"
+
+concepts:
+  - files-api
+  - file-id
+  - upload-reference-cleanup
+  - beta-headers

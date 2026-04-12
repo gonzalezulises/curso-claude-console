@@ -1,0 +1,92 @@
+id: ex-02-04-export-workbench
+type: quiz
+title: "Identificar qué cambiar en un snippet exportado del Workbench"
+lesson_ref: lesson-02-06
+difficulty: beginner
+estimated_time_minutes: 5
+points: 10
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_select
+    question: |
+      Este snippet fue exportado del Workbench con Get Code. ¿Qué hay que cambiar para producción?
+
+      ```python
+      client = anthropic.Anthropic(api_key="my_api_key")
+      message = client.messages.create(
+          model="claude-sonnet-4-5-20250929",
+          max_tokens=20000,
+          temperature=1,
+          messages=[{"role": "user", "content": "Clasificá: billing, technical, account, other.\n\nTicket: ..."}],
+      )
+      print(message.content)
+      ```
+    options:
+      - id: a
+        text: "La API key está hardcodeada — usar variable de entorno"
+      - id: b
+        text: "El modelo usa snapshot con fecha — usar alias estable"
+      - id: c
+        text: "max_tokens=20000 es excesivo para clasificación — bajar a ~50"
+      - id: d
+        text: "Falta manejo de errores y retries"
+      - id: e
+        text: "temperature=1 es inadecuada para clasificación determinística"
+    correct: [a, b, c, d, e]
+    feedback_correct: "Los 5 problemas son reales y requieren atención antes de producción. Get Code genera un export literal, no un código production-ready."
+    feedback_incorrect: "Todos los ítems son cambios necesarios. Get Code exporta tu config literal — la adaptación para producción siempre requiere estos 5 ajustes."
+    points: 3
+
+  - id: q2
+    type: multiple_choice
+    question: "¿Cuál es la razón principal para usar aliases estables (claude-sonnet-4-6) en vez de snapshots (claude-sonnet-4-5-20250929) en código de producción?"
+    options:
+      - id: a
+        text: "Los aliases son más baratos"
+      - id: b
+        text: "Los aliases apuntan al snapshot más reciente, recibiendo mejoras automáticas"
+      - id: c
+        text: "Los snapshots no funcionan en la API"
+      - id: d
+        text: "Los aliases tienen más contexto disponible"
+    correct: b
+    feedback_correct: "Los aliases estables siempre apuntan al snapshot más reciente del modelo. Usarlos te da mejoras automáticas sin cambiar código."
+    feedback_incorrect: "Los aliases apuntan al snapshot más reciente, así recibís mejoras (velocidad, calidad, costo) automáticamente sin cambiar tu código."
+    points: 2
+
+  - id: q3
+    type: multiple_choice
+    question: "Exportás un prompt del Workbench, lo corrés en tu código y el output es distinto. ¿Cuál es la causa más probable?"
+    options:
+      - id: a
+        text: "Bug en el SDK"
+      - id: b
+        text: "Temperature distinta entre Workbench y código"
+      - id: c
+        text: "El Workbench usa un modelo secreto diferente"
+      - id: d
+        text: "La API key es distinta"
+    correct: b
+    feedback_correct: "La causa más común de diferencia entre Workbench y código es temperature distinta. Verificá que ambos usan el mismo valor."
+    feedback_incorrect: "No es un bug ni un modelo secreto. La causa más frecuente es que temperature difiere entre el Workbench y tu código — verificá que ambos usan el mismo valor."
+    points: 2
+
+  - id: q4
+    type: true_false
+    question: "El snippet de Get Code incluye retries con exponential backoff por defecto."
+    correct: false
+    feedback_correct: "Get Code NO incluye retries, error handling, ni logging. Es un export literal de tu configuración — los patrones de producción los agregás vos."
+    feedback_incorrect: "Get Code no genera código production-ready. Retries, error handling y logging son responsabilidad tuya."
+    points: 3
+
+concepts:
+  - get-code
+  - alias-vs-snapshot
+  - produccion-readiness
+  - temperature-consistency

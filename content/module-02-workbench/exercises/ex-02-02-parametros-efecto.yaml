@@ -1,0 +1,124 @@
+id: ex-02-02-parametros-efecto
+type: code-typescript
+title: "Reproducir un prompt del Workbench en código TS"
+lesson_ref: lesson-02-03
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-02-02: Reproducir un prompt del Workbench en código
+  // Simulás el workflow "Get Code → adaptar → validar":
+  // tomás una configuración del Workbench y la reproducís con el SDK.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // Esta es la configuración que "exportaste" del Workbench:
+  // - Model: claude-sonnet-4-5-20250929 (snapshot del Workbench)
+  // - System: "Eres un clasificador de tickets..."
+  // - Temperature: 0
+  // - Max tokens: 20000
+  // - Thinking: disabled
+  // - User: "Ticket: No me llegó la factura de marzo"
+
+  // TODO: Adaptá la configuración para producción aplicando los 5 cambios:
+  // 1. Modelo: usar alias estable, no snapshot
+  // 2. Max tokens: ajustar al rango real del output
+  // 3. Temperature: mantener en 0 (ya es correcto para clasificación)
+  // 4. System prompt: mantener como está
+  // 5. Agregar logging de usage
+
+  async function classify(ticketText: string): Promise<string> {
+    // TODO: implementar la llamada a la API con los cambios
+    return "???";
+  }
+
+  // Test con 4 tickets
+  const tickets = [
+    "No me llegó la factura de marzo",
+    "La app se cierra cuando abro el dashboard",
+    "No puedo cambiar mi contraseña",
+    "¿Tienen descuentos para universidades?",
+  ];
+
+  const expected = ["billing", "technical", "account", "other"];
+
+  for (let i = 0; i < tickets.length; i++) {
+    const result = await classify(tickets[i]);
+    const pass = result.trim().toLowerCase() === expected[i];
+    console.log(`${pass ? "✅" : "❌"} "${tickets[i]}" → ${result.trim()} (expected: ${expected[i]})`);
+  }
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  async function classify(ticketText: string): Promise<string> {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 50,
+      temperature: 0,
+      system: "Eres un clasificador de tickets de soporte. Respondés únicamente con una de estas categorías en minúscula: billing, technical, account, other. Sin explicación.",
+      messages: [{
+        role: "user",
+        content: `Ticket: ${ticketText}`,
+      }],
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+
+    // Logging de usage
+    console.log(`  [usage] in=${resp.usage.input_tokens} out=${resp.usage.output_tokens} stop=${resp.stop_reason}`);
+
+    return text;
+  }
+
+  const tickets = [
+    "No me llegó la factura de marzo",
+    "La app se cierra cuando abro el dashboard",
+    "No puedo cambiar mi contraseña",
+    "¿Tienen descuentos para universidades?",
+  ];
+
+  const expected = ["billing", "technical", "account", "other"];
+
+  for (let i = 0; i < tickets.length; i++) {
+    const result = await classify(tickets[i]);
+    const pass = result.trim().toLowerCase() === expected[i];
+    console.log(`${pass ? "✅" : "❌"} "${tickets[i]}" → ${result.trim()} (expected: ${expected[i]})`);
+  }
+
+test_cases:
+  - id: test-alias-estable
+    description: "Usa alias estable del modelo, no snapshot"
+    test_code: |
+      // El código no debe contener snapshots con fecha
+      assert !classify.toString().includes("20250929"), "No usar snapshot con fecha";
+    points: 5
+  - id: test-max-tokens-ajustado
+    description: "max_tokens ajustado a un valor razonable para clasificación"
+    test_code: |
+      // max_tokens debería ser ≤200 para clasificación
+      assert true, "Verificar manualmente que max_tokens es razonable";
+    points: 5
+  - id: test-clasificacion-correcta
+    description: "Clasifica correctamente al menos 3 de 4 tickets"
+    test_code: |
+      assert true, "Verificar manualmente que ≥3/4 son correctos";
+    points: 5
+
+hints:
+  - "Cambio 1: usa 'claude-haiku-4-5' en vez del snapshot con fecha"
+  - "Cambio 2: max_tokens de 50 es suficiente para una sola palabra"
+  - "Cambio 3: temperature 0 ya es correcto para clasificación"
+  - "No olvides loggear resp.usage después de cada llamada"
+
+concepts:
+  - get-code-adaptation
+  - alias-vs-snapshot
+  - max-tokens
+  - temperature
+  - logging-basico

@@ -1,0 +1,78 @@
+id: ex-02-01-iteracion-prompt
+type: quiz
+title: "Interpretar diferencias entre respuestas variando temperature"
+lesson_ref: lesson-02-02
+difficulty: beginner
+estimated_time_minutes: 5
+points: 10
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: "Corrés el mismo prompt 5 veces con temperature 0. ¿Qué esperás ver?"
+    options:
+      - id: a
+        text: "5 respuestas completamente distintas"
+      - id: b
+        text: "5 respuestas casi idénticas (determinísticas)"
+      - id: c
+        text: "5 respuestas con el mismo contenido pero formato distinto"
+      - id: d
+        text: "Un error porque temperature 0 no está permitido"
+    correct: b
+    feedback_correct: "Temperature 0 produce outputs casi determinísticos — el modelo siempre elige los tokens más probables. Es el setting ideal para validar estabilidad."
+    feedback_incorrect: "Temperature 0 no da error ni respuestas distintas. Con temperature 0, el modelo es casi determinístico: elige siempre los tokens más probables, produciendo respuestas casi idénticas en cada corrida."
+    points: 2
+
+  - id: q2
+    type: multiple_choice
+    question: "Iteraste un prompt de clasificación en el Workbench. Funciona con temperature 1 pero al bajar a 0, empieza a fallar en algunos inputs. ¿Qué significa esto?"
+    options:
+      - id: a
+        text: "Temperature 0 es incompatible con clasificación"
+      - id: b
+        text: "El prompt depende de la aleatoriedad para funcionar — necesita más claridad en las instrucciones o more few-shot examples"
+      - id: c
+        text: "Hay un bug en la API con temperature 0"
+      - id: d
+        text: "Tenés que usar Opus en vez de Haiku para temperature 0"
+    correct: b
+    feedback_correct: "Si un prompt necesita temperature alta para funcionar, es una señal de que el modelo 'acierta de casualidad' en algunas corridas. Mejorar la claridad o agregar few-shot elimina la dependencia en la aleatoriedad."
+    feedback_incorrect: "No es un bug ni un tema de modelo. Si un prompt funciona con temperature 1 pero falla con 0, el prompt es frágil — depende de la aleatoriedad para acertar. Reforzá con instrucciones más directas o más few-shot examples."
+    points: 3
+
+  - id: q3
+    type: multiple_choice
+    question: "Querés explorar distintos formatos de output para un resumen. ¿Qué temperature usarías en el Workbench?"
+    options:
+      - id: a
+        text: "0 — para que todas las opciones sean consistentes"
+      - id: b
+        text: "0.3 — un balance entre consistencia y variación"
+      - id: c
+        text: "0.8-1.0 — para ver el rango completo de formatos posibles"
+      - id: d
+        text: "No importa, el formato no depende de temperature"
+    correct: c
+    feedback_correct: "Para exploración, temperature alta te muestra el rango completo de outputs que el modelo puede producir. Una vez que elegís el formato que querés, bajás temperature para estabilizar."
+    feedback_incorrect: "En fase de exploración querés ver la mayor variedad posible — temperature alta (0.8-1.0). Bajá temperature recién cuando hayas elegido el approach y quieras estabilizarlo."
+    points: 2
+
+  - id: q4
+    type: true_false
+    question: "En el Workbench, cada cambio de prompt o parámetro crea automáticamente una nueva versión que podés recuperar después."
+    correct: true
+    feedback_correct: "El Workbench versiona automáticamente. Podés navegar entre versiones para comparar resultados de distintas configuraciones."
+    feedback_incorrect: "Sí, el Workbench versiona automáticamente cada cambio — tanto de prompt como de parámetros del modelo."
+    points: 3
+
+concepts:
+  - temperature
+  - iteracion-de-prompts
+  - versionado-automatico
+  - estabilizacion
