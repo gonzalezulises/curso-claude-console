@@ -22,7 +22,7 @@ MCP es lo que transforma a Claude de "modelo con tools que vos definís" a "mode
 4. **Primitivas 2: resources** — archivos, URLs, bases de datos que el server expone como "contexto disponible". Diferencia con tools (data vs action).
 5. **Primitivas 3: prompts** — templates reutilizables que el server ofrece al host.
 6. **Primitivas 4 y 5: sampling y roots** — sampling deja al server pedir al modelo que genere (raro pero poderoso); roots delimita qué puede ver el server en tu filesystem.
-7. **MCP Connector en la Messages API** — beta `mcp-client-2025-11-20`, cómo un request a `/v1/messages` puede listar servers MCP remotos y Claude descubre+usa tools automáticamente.
+7. **MCP Connector en la Messages API** — beta `mcp-client-2025-04-04`, cómo un request a `/v1/messages` puede listar servers MCP remotos y Claude descubre+usa tools automáticamente.
 8. **Conectarse a un server MCP existente** — ejemplo con un server público (filesystem, fetch, time), en TS y desde curl con MCP Connector.
 9. **Construir tu propio server MCP (TS SDK)** — `@modelcontextprotocol/sdk`, exponer 2 tools + 1 resource, transporte stdio, prueba local con Claude Code.
 10. **Lab: server MCP custom integrado a un agente** — el alumno construye un server MCP que expone 3 tools del dominio de su elección, lo corre localmente y lo consume desde un script que llama a /v1/messages con MCP Connector.
@@ -56,6 +56,6 @@ MCP es lo que transforma a Claude de "modelo con tools que vos definís" a "mode
 
 ## Notas para la sesión de producción
 
-- El beta `mcp-client-2025-11-20` es nuevo — verificar al escribir que sigue siendo el alias activo.
+- El beta activo al producir este módulo es `mcp-client-2025-04-04` (verificado contra `/websites/platform_claude_en_api` el 2026-04-12). Existe también `mcp-client-2025-11-20` en el catálogo de betas — reverificar al escribir cuál es el que Anthropic recomienda en los docs de MCP Connector.
 - El SDK `@modelcontextprotocol/sdk` evoluciona rápido — pinear versión exacta en package.json del ejercicio.
 - Reutilizar los patrones que Ulises ya aplicó en su propio semantic-scholar-mcp (memoria del usuario) como referencia de "así se ve un server real".
