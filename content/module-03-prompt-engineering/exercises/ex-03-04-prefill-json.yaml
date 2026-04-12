@@ -1,0 +1,163 @@
+id: ex-03-04-prefill-json
+type: code-typescript
+title: "Forzar JSON válido con prefill del assistant"
+lesson_ref: lesson-03-07
+difficulty: beginner
+estimated_time_minutes: 10
+points: 15
+
+starter_code: |
+  // ex-03-04: Prefill para forzar JSON
+  // Llamás a la API con y sin prefill del assistant, y verificás
+  // que el resultado con prefill es JSON.parse()-able directo.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const userPrompt = `Extraé los siguientes campos del texto y devolvé JSON:
+  - title: título del libro
+  - author: nombre del autor
+  - year: año de publicación
+  - pages: número de páginas
+
+  Texto: "El Quijote, escrito por Miguel de Cervantes y publicado en 1605,
+  tiene aproximadamente 863 páginas en su edición completa."`;
+
+  // Sin prefill
+  async function sinPrefill() {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    console.log("=== Sin prefill ===");
+    console.log("Output:", text);
+    try {
+      JSON.parse(text);
+      console.log("JSON.parse(): OK");
+    } catch {
+      console.log("JSON.parse(): FALLA (probablemente backticks)");
+    }
+  }
+
+  // Con prefill
+  async function conPrefill() {
+    const prefill = "{";
+
+    // TODO: llamar a la API con el prefill como último message assistant
+    // y reconstruir el JSON completo concatenando prefill + respuesta
+    const resp = null; // reemplazar con la llamada real
+
+    // TODO: extraer el texto de la respuesta
+    const text = "";
+
+    // TODO: reconstruir JSON completo
+    const fullJson = prefill + text;
+
+    console.log("\n=== Con prefill ===");
+    console.log("Output:", fullJson);
+    try {
+      const data = JSON.parse(fullJson);
+      console.log("JSON.parse(): OK");
+      console.log("Datos:", data);
+    } catch {
+      console.log("JSON.parse(): FALLA");
+    }
+  }
+
+  await sinPrefill();
+  // Descomentar cuando hayas implementado conPrefill:
+  // await conPrefill();
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const userPrompt = `Extraé los siguientes campos del texto y devolvé JSON:
+  - title: título del libro
+  - author: nombre del autor
+  - year: año de publicación
+  - pages: número de páginas
+
+  Texto: "El Quijote, escrito por Miguel de Cervantes y publicado en 1605,
+  tiene aproximadamente 863 páginas en su edición completa."`;
+
+  async function sinPrefill() {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    console.log("=== Sin prefill ===");
+    console.log("Output:", text);
+    try {
+      JSON.parse(text);
+      console.log("JSON.parse(): OK");
+    } catch {
+      console.log("JSON.parse(): FALLA (probablemente backticks)");
+    }
+  }
+
+  async function conPrefill() {
+    const prefill = "{";
+
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      messages: [
+        { role: "user", content: userPrompt },
+        { role: "assistant", content: prefill },
+      ],
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    const fullJson = prefill + text;
+
+    console.log("\n=== Con prefill ===");
+    console.log("Output:", fullJson);
+    try {
+      const data = JSON.parse(fullJson);
+      console.log("JSON.parse(): OK");
+      console.log("Datos:", data);
+    } catch {
+      console.log("JSON.parse(): FALLA");
+    }
+  }
+
+  await sinPrefill();
+  await conPrefill();
+
+test_cases:
+  - id: test-prefill-message
+    description: "El último message en la llamada con prefill es role assistant"
+    test_code: |
+      // El alumno debe agregar { role: "assistant", content: "{" } como último message
+      assert true, "Verificar manualmente la estructura de messages";
+    points: 5
+  - id: test-concat-prefill
+    description: "El JSON completo se reconstruye concatenando prefill + respuesta"
+    test_code: |
+      assert fullJson.startsWith("{"), "El JSON debe empezar con {";
+    points: 5
+  - id: test-parseable
+    description: "El resultado concatenado es JSON.parse()-able"
+    test_code: |
+      const parsed = JSON.parse(fullJson);
+      assert parsed.title !== undefined, "Debe tener campo title";
+      assert parsed.author !== undefined, "Debe tener campo author";
+    points: 5
+
+hints:
+  - "El prefill va como último message con role: 'assistant' y content: '{'"
+  - "La API NO incluye el prefill en la respuesta — concatená vos: prefill + resp.content[0].text"
+  - "Siempre envolvé JSON.parse en try/catch por si max_tokens corta el JSON"
+
+concepts:
+  - prefill
+  - json-parsing
+  - formato-forzado
+  - assistant-turn

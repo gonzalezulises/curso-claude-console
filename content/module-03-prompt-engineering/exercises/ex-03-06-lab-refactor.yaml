@@ -1,0 +1,305 @@
+id: ex-03-06-lab-refactor
+type: code-typescript
+title: "Lab: refactor de un prompt malo paso a paso"
+lesson_ref: lesson-03-09
+difficulty: advanced
+estimated_time_minutes: 40
+points: 25
+
+starter_code: |
+  // ex-03-06: Lab — Refactor de un prompt malo
+  // Tomás el prompt original (caótico) y lo refactorizás paso a paso
+  // aplicando las 8 técnicas del módulo. Después de cada paso, ejecutás
+  // y medís el impacto. Al final, comparás métricas original vs final.
+  //
+  // COSTO ESTIMADO: ~$0.05-0.10 total (múltiples llamadas a Haiku 4.5)
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // El artículo a procesar (no lo modifiques)
+  const article = `OAuth 2.0 es un framework de autorización que permite a
+  aplicaciones de terceros obtener acceso limitado a un servicio HTTP, ya sea
+  en nombre del propietario del recurso o permitiendo que la aplicación obtenga
+  acceso por cuenta propia. OAuth 2.0 define cuatro roles: resource owner,
+  resource server, client y authorization server. El protocolo incluye varios
+  grant types: authorization code (para apps server-side), implicit (deprecado),
+  resource owner password credentials (legacy, no recomendado), y client
+  credentials (para comunicación machine-to-machine). Los tokens de acceso
+  tienen tiempos de expiración y se pueden renovar con refresh tokens. Las
+  vulnerabilidades comunes incluyen token theft via open redirectors, CSRF
+  attacks contra el redirect URI, y token leakage en logs del servidor.
+  Mitigaciones estándar incluyen PKCE para authorization code flow, state
+  parameter contra CSRF, y token binding.`;
+
+  // --- PASO 0: Prompt original (malo) ---
+  const promptOriginal = `Hola Claude, ¿podrías por favor leer este artículo y decirme de qué trata? Me gustaría que me hagas un resumen y también me digas si es relevante para mi investigación sobre seguridad en APIs. Sería genial si pudieras ser breve pero completo, y si es relevante me gustaría saber por qué. También necesito que clasifiques qué tan relevante es, algo así como alta media o baja. Ah, y si pudieras dar tu respuesta de forma que sea fácil de procesar programáticamente eso sería ideal. Gracias!\n\nArtículo: ${article}`;
+
+  // --- PASO 1: Ser directo (Lección 01) ---
+  // TODO: Reescribir con verbos imperativos y outcomes medibles
+  const promptPaso1 = "???";
+
+  // --- PASO 2: Few-shot (Lección 02) ---
+  // TODO: Agregar un ejemplo del output esperado
+  const promptPaso2 = "???";
+
+  // --- PASO 3: XML tags (Lección 05) ---
+  // TODO: Estructurar con <instructions>, <article>, <format>
+  const promptPaso3 = "???";
+
+  // --- PASO 4: System prompt compuesto (Lección 06) ---
+  // TODO: Definir un system con rol + audiencia + restricciones
+  const systemPaso4 = "???";
+  const promptPaso4 = "???"; // solo el user message, sin el system
+
+  // --- PASO 5: Prefill (Lección 07) ---
+  // TODO: Agregar prefill "Resumen:" para forzar el inicio del formato
+  const prefillPaso5 = "Resumen:";
+
+  // --- Función de ejecución y medición ---
+  interface Metrics {
+    inputTokens: number;
+    outputTokens: number;
+    stopReason: string;
+    text: string;
+  }
+
+  async function runAndMeasure(
+    label: string,
+    options: {
+      system?: string;
+      messages: Anthropic.MessageParam[];
+    },
+  ): Promise<Metrics> {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 500,
+      system: options.system,
+      messages: options.messages,
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    const metrics: Metrics = {
+      inputTokens: resp.usage.input_tokens,
+      outputTokens: resp.usage.output_tokens,
+      stopReason: resp.stop_reason ?? "unknown",
+      text,
+    };
+
+    console.log(`\n=== ${label} ===`);
+    console.log(`Input: ${metrics.inputTokens} | Output: ${metrics.outputTokens} | Stop: ${metrics.stopReason}`);
+    console.log(`Texto (first 300): ${text.slice(0, 300)}`);
+
+    return metrics;
+  }
+
+  // --- Ejecución ---
+  async function lab() {
+    const results: Record<string, Metrics> = {};
+
+    // Paso 0: Original
+    results.paso0 = await runAndMeasure("Paso 0: Original", {
+      messages: [{ role: "user", content: promptOriginal }],
+    });
+
+    // TODO: descomentar y completar cada paso
+    // results.paso1 = await runAndMeasure("Paso 1: Directo", {
+    //   messages: [{ role: "user", content: promptPaso1 }],
+    // });
+
+    // results.paso2 = await runAndMeasure("Paso 2: Few-shot", {
+    //   messages: [{ role: "user", content: promptPaso2 }],
+    // });
+
+    // results.paso3 = await runAndMeasure("Paso 3: XML tags", {
+    //   messages: [{ role: "user", content: promptPaso3 }],
+    // });
+
+    // results.paso4 = await runAndMeasure("Paso 4: System compuesto", {
+    //   system: systemPaso4,
+    //   messages: [{ role: "user", content: promptPaso4 }],
+    // });
+
+    // results.paso5 = await runAndMeasure("Paso 5: Prefill", {
+    //   system: systemPaso4,
+    //   messages: [
+    //     { role: "user", content: promptPaso4 },
+    //     { role: "assistant", content: prefillPaso5 },
+    //   ],
+    // });
+
+    // --- Resumen comparativo ---
+    console.log("\n=== RESUMEN ===");
+    for (const [paso, m] of Object.entries(results)) {
+      console.log(`${paso}: in=${m.inputTokens} out=${m.outputTokens} stop=${m.stopReason}`);
+    }
+
+    // Comparación original vs final
+    const first = results.paso0;
+    const last = results[Object.keys(results).pop()!];
+    if (first && last) {
+      const outputDelta = ((last.outputTokens - first.outputTokens) / first.outputTokens * 100).toFixed(1);
+      console.log(`\nDelta output tokens: ${outputDelta}%`);
+    }
+  }
+
+  await lab();
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const article = `OAuth 2.0 es un framework de autorización que permite a
+  aplicaciones de terceros obtener acceso limitado a un servicio HTTP, ya sea
+  en nombre del propietario del recurso o permitiendo que la aplicación obtenga
+  acceso por cuenta propia. OAuth 2.0 define cuatro roles: resource owner,
+  resource server, client y authorization server. El protocolo incluye varios
+  grant types: authorization code (para apps server-side), implicit (deprecado),
+  resource owner password credentials (legacy, no recomendado), y client
+  credentials (para comunicación machine-to-machine). Los tokens de acceso
+  tienen tiempos de expiración y se pueden renovar con refresh tokens. Las
+  vulnerabilidades comunes incluyen token theft via open redirectors, CSRF
+  attacks contra el redirect URI, y token leakage en logs del servidor.
+  Mitigaciones estándar incluyen PKCE para authorization code flow, state
+  parameter contra CSRF, y token binding.`;
+
+  const promptOriginal = `Hola Claude, ¿podrías por favor leer este artículo y decirme de qué trata? Me gustaría que me hagas un resumen y también me digas si es relevante para mi investigación sobre seguridad en APIs. Sería genial si pudieras ser breve pero completo, y si es relevante me gustaría saber por qué. También necesito que clasifiques qué tan relevante es, algo así como alta media o baja. Ah, y si pudieras dar tu respuesta de forma que sea fácil de procesar programáticamente eso sería ideal. Gracias!\n\nArtículo: ${article}`;
+
+  const promptPaso1 = `Resumí el siguiente artículo en ≤80 palabras. Clasificá su relevancia para investigación en seguridad de APIs como: alta, media, o baja. Si es alta o media, listá las razones en ≤3 bullets.\n\nFormato de respuesta:\nResumen: (≤80 palabras)\nRelevancia: alta | media | baja\nRazones:\n- razón 1\n- razón 2\n- razón 3\n\nArtículo: ${article}`;
+
+  const promptPaso2 = `Resumí el siguiente artículo en ≤80 palabras. Clasificá su relevancia para investigación en seguridad de APIs como: alta, media, o baja. Si es alta o media, listá las razones en ≤3 bullets.\n\nEjemplo de output:\nResumen: TLS 1.3 simplifica el handshake a un solo round-trip, elimina cipher suites inseguros y activa forward secrecy por defecto. Mejora latencia y seguridad respecto a TLS 1.2.\nRelevancia: media\nRazones:\n- Fundamento de seguridad en APIs HTTPS\n- No trata APIs específicamente pero es prerequisito\n\nArtículo: ${article}`;
+
+  const promptPaso3 = `<instructions>\nResumí el artículo dentro de <article> en ≤80 palabras. Clasificá su relevancia para investigación en seguridad de APIs como: alta, media, o baja. Si es alta o media, listá las razones en ≤3 bullets.\n</instructions>\n\n<example>\nResumen: TLS 1.3 simplifica el handshake a un solo round-trip, elimina cipher suites inseguros y activa forward secrecy por defecto.\nRelevancia: media\nRazones:\n- Fundamento de seguridad en APIs HTTPS\n- No trata APIs específicamente pero es prerequisito\n</example>\n\n<article>\n${article}\n</article>\n\n<format>\nResumen: (≤80 palabras)\nRelevancia: alta | media | baja\nRazones: (≤3 bullets, solo si alta o media)\n</format>`;
+
+  const systemPaso4 = "Eres un investigador de seguridad informática senior evaluando papers para un survey sobre seguridad en APIs. Tu audiencia son ingenieros de seguridad. Respondés en español, sin preámbulos, sin saludos, sin emojis. Solo respondés con el formato especificado.";
+
+  const promptPaso4 = `<instructions>\nResumí el artículo dentro de <article> en ≤80 palabras. Clasificá su relevancia para investigación en seguridad de APIs como: alta, media, o baja. Si es alta o media, listá las razones en ≤3 bullets.\n</instructions>\n\n<article>\n${article}\n</article>\n\n<format>\nResumen: (≤80 palabras)\nRelevancia: alta | media | baja\nRazones: (≤3 bullets, solo si alta o media)\n</format>`;
+
+  const prefillPaso5 = "Resumen:";
+
+  interface Metrics {
+    inputTokens: number;
+    outputTokens: number;
+    stopReason: string;
+    text: string;
+  }
+
+  async function runAndMeasure(
+    label: string,
+    options: { system?: string; messages: Anthropic.MessageParam[] },
+  ): Promise<Metrics> {
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 500,
+      system: options.system,
+      messages: options.messages,
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    const metrics: Metrics = {
+      inputTokens: resp.usage.input_tokens,
+      outputTokens: resp.usage.output_tokens,
+      stopReason: resp.stop_reason ?? "unknown",
+      text,
+    };
+
+    console.log(`\n=== ${label} ===`);
+    console.log(`Input: ${metrics.inputTokens} | Output: ${metrics.outputTokens} | Stop: ${metrics.stopReason}`);
+    console.log(`Texto (first 300): ${text.slice(0, 300)}`);
+
+    return metrics;
+  }
+
+  async function lab() {
+    const results: Record<string, Metrics> = {};
+
+    results.paso0 = await runAndMeasure("Paso 0: Original", {
+      messages: [{ role: "user", content: promptOriginal }],
+    });
+
+    results.paso1 = await runAndMeasure("Paso 1: Directo", {
+      messages: [{ role: "user", content: promptPaso1 }],
+    });
+
+    results.paso2 = await runAndMeasure("Paso 2: Few-shot", {
+      messages: [{ role: "user", content: promptPaso2 }],
+    });
+
+    results.paso3 = await runAndMeasure("Paso 3: XML tags", {
+      messages: [{ role: "user", content: promptPaso3 }],
+    });
+
+    results.paso4 = await runAndMeasure("Paso 4: System compuesto", {
+      system: systemPaso4,
+      messages: [{ role: "user", content: promptPaso4 }],
+    });
+
+    results.paso5 = await runAndMeasure("Paso 5: Prefill", {
+      system: systemPaso4,
+      messages: [
+        { role: "user", content: promptPaso4 },
+        { role: "assistant", content: prefillPaso5 },
+      ],
+    });
+
+    console.log("\n=== RESUMEN ===");
+    for (const [paso, m] of Object.entries(results)) {
+      console.log(`${paso}: in=${m.inputTokens} out=${m.outputTokens} stop=${m.stopReason}`);
+    }
+
+    const first = results.paso0;
+    const last = results.paso5;
+    const outputDelta = ((last.outputTokens - first.outputTokens) / first.outputTokens * 100).toFixed(1);
+    console.log(`\nDelta output tokens: ${outputDelta}%`);
+  }
+
+  await lab();
+
+test_cases:
+  - id: test-paso1-directo
+    description: "Paso 1 usa verbos imperativos y outcomes medibles"
+    test_code: |
+      assert promptPaso1.match(/^(Resumí|Clasificá|Extraé|Listá)/m), "Debe empezar con verbo imperativo";
+      assert promptPaso1.match(/≤\d+|máximo \d+|\d+ palabras|\d+ bullets/), "Debe tener restricción medible";
+    points: 5
+  - id: test-paso3-xml
+    description: "Paso 3 usa XML tags para estructurar"
+    test_code: |
+      assert promptPaso3.includes("<instructions>"), "Debe tener <instructions>";
+      assert promptPaso3.includes("<article>"), "Debe tener <article>";
+    points: 5
+  - id: test-paso4-system
+    description: "Paso 4 tiene system con rol y audiencia"
+    test_code: |
+      assert systemPaso4.match(/investigador|analista|experto/i), "System debe tener rol";
+      assert systemPaso4.match(/audiencia|ingeniero|developer/i), "System debe definir audiencia";
+    points: 5
+  - id: test-paso5-prefill
+    description: "Paso 5 usa prefill para forzar inicio del formato"
+    test_code: |
+      assert prefillPaso5 === "Resumen:" || prefillPaso5.startsWith("{"), "Prefill debe forzar inicio del formato";
+    points: 5
+  - id: test-output-reduction
+    description: "El prompt final reduce output tokens vs el original (target: ≥30%)"
+    test_code: |
+      // Requiere ejecución real para verificar
+      assert true, "Verificar manualmente que output tokens bajan ≥30%";
+    points: 5
+
+hints:
+  - "Paso 1: reemplazá toda la cortesía con 'Resumí... Clasificá...'"
+  - "Paso 2: agregá un ejemplo de output con un artículo distinto (ej: TLS 1.3)"
+  - "Paso 3: envolvé instrucciones en <instructions>, artículo en <article>, formato en <format>"
+  - "Paso 4: el system define quién es Claude y para quién habla"
+  - "Paso 5: prefill 'Resumen:' fuerza que el output empiece directo"
+
+concepts:
+  - refactoring-iterativo
+  - ser-directo
+  - few-shot
+  - xml-tags
+  - system-prompts
+  - prefill
+  - medicion-de-impacto

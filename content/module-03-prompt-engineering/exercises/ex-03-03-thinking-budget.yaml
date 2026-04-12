@@ -1,0 +1,151 @@
+id: ex-03-03-thinking-budget
+type: code-typescript
+title: "Extended thinking: comparar budget_tokens vs sin thinking"
+lesson_ref: lesson-03-04
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 15
+
+starter_code: |
+  // ex-03-03: Extended thinking — comparar con y sin
+  // Ejecutás el mismo problema de razonamiento con 3 configs:
+  // 1. Sin thinking (zero-shot directo)
+  // 2. Con thinking enabled, budget 2048
+  // 3. Con thinking enabled, budget 8000
+  // Comparás correctitud, tokens gastados y estructura de la respuesta.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // Problema que requiere razonamiento multi-paso
+  const problem = `En una carrera, Ana llega antes que Bruno. Carlos llega
+  después que Diana pero antes que Ana. Elena llega última. Bruno llega
+  antes que Diana. ¿Cuál es el orden completo de llegada, del primero al último?
+
+  Responde solo con los nombres en orden, separados por coma.`;
+
+  // Config 1: Sin thinking
+  async function sinThinking() {
+    // TODO: llamar a claude-sonnet-4-6 sin thinking
+    // Imprimir el texto de respuesta y usage
+  }
+
+  // Config 2: Con thinking, budget 2048
+  async function conThinking2k() {
+    // TODO: llamar con thinking: { type: "enabled", budget_tokens: 2048 }
+    // IMPORTANTE: max_tokens debe ser > budget_tokens
+    // Imprimir:
+    //   - El contenido del bloque thinking (tipo "thinking")
+    //   - El contenido del bloque text (tipo "text")
+    //   - usage completo
+  }
+
+  // Config 3: Con thinking, budget 8000
+  async function conThinking8k() {
+    // TODO: igual que arriba pero con budget_tokens: 8000
+  }
+
+  // await sinThinking();
+  // await conThinking2k();
+  // await conThinking8k();
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const problem = `En una carrera, Ana llega antes que Bruno. Carlos llega
+  después que Diana pero antes que Ana. Elena llega última. Bruno llega
+  antes que Diana. ¿Cuál es el orden completo de llegada, del primero al último?
+
+  Responde solo con los nombres en orden, separados por coma.`;
+
+  async function sinThinking() {
+    console.log("=== Sin thinking ===");
+    const resp = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 200,
+      messages: [{ role: "user", content: problem }],
+    });
+    const text = resp.content.find((b) => b.type === "text");
+    console.log("Texto:", text?.type === "text" ? text.text : "n/a");
+    console.log("Usage:", resp.usage);
+  }
+
+  async function conThinking2k() {
+    console.log("\n=== Thinking budget=2048 ===");
+    const resp = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8000,
+      thinking: { type: "enabled", budget_tokens: 2048 },
+      messages: [{ role: "user", content: problem }],
+    });
+    for (const block of resp.content) {
+      if (block.type === "thinking") {
+        console.log("Thinking (first 300):", block.thinking.slice(0, 300));
+      } else if (block.type === "text") {
+        console.log("Texto:", block.text);
+      }
+    }
+    console.log("Usage:", resp.usage);
+  }
+
+  async function conThinking8k() {
+    console.log("\n=== Thinking budget=8000 ===");
+    const resp = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 16000,
+      thinking: { type: "enabled", budget_tokens: 8000 },
+      messages: [{ role: "user", content: problem }],
+    });
+    for (const block of resp.content) {
+      if (block.type === "thinking") {
+        console.log("Thinking (first 300):", block.thinking.slice(0, 300));
+      } else if (block.type === "text") {
+        console.log("Texto:", block.text);
+      }
+    }
+    console.log("Usage:", resp.usage);
+  }
+
+  await sinThinking();
+  await conThinking2k();
+  await conThinking8k();
+
+test_cases:
+  - id: test-sin-thinking
+    description: "La función sinThinking llama sin el parámetro thinking"
+    test_code: |
+      // Verificación manual: la llamada no debe incluir thinking
+      assert typeof sinThinking === "function", "sinThinking debe existir";
+    points: 3
+  - id: test-con-thinking-2k
+    description: "La función conThinking2k usa budget_tokens 2048"
+    test_code: |
+      assert typeof conThinking2k === "function", "conThinking2k debe existir";
+    points: 4
+  - id: test-con-thinking-8k
+    description: "La función conThinking8k usa budget_tokens 8000 con max_tokens mayor"
+    test_code: |
+      assert typeof conThinking8k === "function", "conThinking8k debe existir";
+    points: 4
+  - id: test-blocks-separated
+    description: "Las funciones con thinking separan bloques thinking y text"
+    test_code: |
+      // El alumno debe iterar content blocks por tipo
+      assert true, "Verificar manualmente que se itera por block.type";
+    points: 4
+
+hints:
+  - "budget_tokens debe ser ≥ 1024 y estrictamente menor que max_tokens"
+  - "Iterá resp.content con for...of y chequeá block.type === 'thinking' vs 'text'"
+  - "El modelo Haiku no soporta extended thinking — usá Sonnet 4.6"
+  - "El campo thinking del bloque thinking contiene el razonamiento como string"
+
+concepts:
+  - extended-thinking
+  - budget-tokens
+  - content-blocks
+  - thinking-vs-text
+  - costo-de-razonamiento

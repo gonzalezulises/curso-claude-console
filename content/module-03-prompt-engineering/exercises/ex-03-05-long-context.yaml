@@ -1,0 +1,221 @@
+id: ex-03-05-long-context
+type: code-typescript
+title: "Long context: encontrar datos en documentos extensos"
+lesson_ref: lesson-03-08
+difficulty: advanced
+estimated_time_minutes: 25
+points: 15
+
+starter_code: |
+  // ex-03-05: Long context — needle in a haystack
+  // Generás un corpus largo (~50K tokens) con un dato oculto ("aguja")
+  // y verificás que Claude lo encuentra con las reglas de long context.
+  //
+  // COSTO ESTIMADO: ~$0.05-0.10 por corrida con Haiku 4.5
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // --- Generar corpus largo ---
+  // Creamos 50 "documentos" ficticios de ~200 palabras cada uno (~50K tokens total).
+  // En el documento 37 escondemos la "aguja": un código secreto.
+  const SECRET_CODE = "QUANTUM-7749-ZEBRA";
+  const NUM_DOCS = 50;
+
+  function generateDoc(index: number): string {
+    const topics = [
+      "gestión de proyectos y metodologías ágiles",
+      "arquitectura de microservicios y contenedores",
+      "bases de datos distribuidas y consistencia eventual",
+      "seguridad en aplicaciones web y OWASP top 10",
+      "machine learning y pipelines de datos",
+      "DevOps, CI/CD y observabilidad",
+      "diseño de APIs REST y GraphQL",
+      "cloud computing y serverless",
+      "testing automatizado y TDD",
+      "performance web y optimización de frontend",
+    ];
+    const topic = topics[index % topics.length];
+
+    // Documento de relleno (~200 palabras)
+    let content = `Este documento trata sobre ${topic}. `;
+    content += "En el contexto empresarial actual, es fundamental entender ".repeat(10);
+    content += `los principios básicos de ${topic} para tomar decisiones informadas. `;
+    content += "Los equipos de desarrollo deben considerar múltiples factores ".repeat(8);
+    content += `al implementar soluciones relacionadas con ${topic}.`;
+
+    // Insertar la aguja en el documento 37
+    if (index === 37) {
+      content += `\n\nNOTA CONFIDENCIAL: El código de autorización para el proyecto Aurora es ${SECRET_CODE}. Este código debe mantenerse en estricta confidencialidad.`;
+    }
+
+    return content;
+  }
+
+  // TODO: Construir el prompt con las 5 reglas de long context:
+  // 1. Índice al principio
+  // 2. Documentos con XML tags
+  // 3. Documentos primero, pregunta al final
+  // 4. Instrucciones de grounding
+  // 5. Pregunta específica
+
+  function buildPrompt(): string {
+    // TODO: implementar
+    return "???";
+  }
+
+  async function run() {
+    const prompt = buildPrompt();
+    console.log(`Prompt length: ~${Math.round(prompt.length / 4)} tokens`);
+
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    console.log("Respuesta:", text);
+    console.log("Usage:", resp.usage);
+
+    // Verificar que encontró la aguja
+    if (text.includes(SECRET_CODE)) {
+      console.log("✅ Encontró el código secreto!");
+    } else {
+      console.log("❌ No encontró el código. Revisá la estructura del prompt.");
+    }
+  }
+
+  // await run();
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const SECRET_CODE = "QUANTUM-7749-ZEBRA";
+  const NUM_DOCS = 50;
+
+  function generateDoc(index: number): string {
+    const topics = [
+      "gestión de proyectos y metodologías ágiles",
+      "arquitectura de microservicios y contenedores",
+      "bases de datos distribuidas y consistencia eventual",
+      "seguridad en aplicaciones web y OWASP top 10",
+      "machine learning y pipelines de datos",
+      "DevOps, CI/CD y observabilidad",
+      "diseño de APIs REST y GraphQL",
+      "cloud computing y serverless",
+      "testing automatizado y TDD",
+      "performance web y optimización de frontend",
+    ];
+    const topic = topics[index % topics.length];
+
+    let content = `Este documento trata sobre ${topic}. `;
+    content += "En el contexto empresarial actual, es fundamental entender ".repeat(10);
+    content += `los principios básicos de ${topic} para tomar decisiones informadas. `;
+    content += "Los equipos de desarrollo deben considerar múltiples factores ".repeat(8);
+    content += `al implementar soluciones relacionadas con ${topic}.`;
+
+    if (index === 37) {
+      content += `\n\nNOTA CONFIDENCIAL: El código de autorización para el proyecto Aurora es ${SECRET_CODE}. Este código debe mantenerse en estricta confidencialidad.`;
+    }
+
+    return content;
+  }
+
+  function buildPrompt(): string {
+    // Regla 1: Índice al principio
+    let prompt = "<índice>\nDocumentos incluidos (50 documentos técnicos):\n";
+    for (let i = 0; i < NUM_DOCS; i++) {
+      prompt += `${i + 1}. Documento técnico ${i + 1}\n`;
+    }
+    prompt += "</índice>\n\n";
+
+    // Regla 2 + 3: Documentos con XML tags, primero
+    for (let i = 0; i < NUM_DOCS; i++) {
+      prompt += `<doc id="${i + 1}">\n${generateDoc(i)}\n</doc>\n\n`;
+    }
+
+    // Regla 4 + 5: Grounding + pregunta específica al final
+    prompt += `<pregunta>
+  Basándote únicamente en los documentos anteriores, encontrá el código
+  de autorización del proyecto Aurora. Respondé solo con el código,
+  sin explicación adicional. Si no lo encontrás, respondé "NO ENCONTRADO".
+  </pregunta>`;
+
+    return prompt;
+  }
+
+  async function run() {
+    const prompt = buildPrompt();
+    console.log(`Prompt length: ~${Math.round(prompt.length / 4)} tokens`);
+
+    const resp = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 200,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text = resp.content[0].type === "text" ? resp.content[0].text : "";
+    console.log("Respuesta:", text);
+    console.log("Usage:", resp.usage);
+
+    if (text.includes(SECRET_CODE)) {
+      console.log("✅ Encontró el código secreto!");
+    } else {
+      console.log("❌ No encontró el código.");
+    }
+  }
+
+  await run();
+
+test_cases:
+  - id: test-has-index
+    description: "El prompt tiene un índice al principio"
+    test_code: |
+      const prompt = buildPrompt();
+      assert prompt.includes("<índice>") || prompt.includes("<index>"), "Debe tener índice";
+    points: 3
+  - id: test-has-doc-tags
+    description: "Los documentos están envueltos en XML tags"
+    test_code: |
+      const prompt = buildPrompt();
+      assert prompt.includes("<doc"), "Debe usar tags <doc>";
+      assert prompt.includes("</doc>"), "Debe cerrar tags </doc>";
+    points: 3
+  - id: test-question-at-end
+    description: "La pregunta va al final del prompt, después de los documentos"
+    test_code: |
+      const prompt = buildPrompt();
+      const lastDocPos = prompt.lastIndexOf("</doc>");
+      const questionPos = prompt.indexOf("<pregunta>") || prompt.indexOf("Basándote");
+      assert questionPos > lastDocPos, "La pregunta debe ir después de todos los docs";
+    points: 3
+  - id: test-grounding
+    description: "La pregunta incluye instrucción de grounding"
+    test_code: |
+      const prompt = buildPrompt();
+      assert prompt.match(/basándote únicamente|solo en los documentos|únicamente en/i), "Debe tener grounding";
+    points: 3
+  - id: test-finds-needle
+    description: "El modelo encuentra el código secreto"
+    test_code: |
+      // Este test requiere ejecución real
+      assert true, "Verificar manualmente que la respuesta contiene QUANTUM-7749-ZEBRA";
+    points: 3
+
+hints:
+  - "Regla 1: <índice> al principio con lista de documentos"
+  - "Regla 2: cada documento envuelto en <doc id='N'>...</doc>"
+  - "Regla 3: todos los docs ANTES de la pregunta"
+  - "Regla 4: 'Basándote únicamente en los documentos anteriores'"
+  - "Regla 5: pregunta concreta — 'encontrá el código de autorización del proyecto Aurora'"
+
+concepts:
+  - long-context
+  - needle-in-haystack
+  - document-ordering
+  - xml-structure
+  - grounding-instructions

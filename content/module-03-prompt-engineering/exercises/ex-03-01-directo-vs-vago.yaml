@@ -1,0 +1,170 @@
+id: ex-03-01-directo-vs-vago
+type: code-typescript
+title: "Reescribir prompts vagos a directos"
+lesson_ref: lesson-03-01
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-03-01: Reescribir prompts vagos a directos
+  // Cada prompt vago tiene un objetivo concreto. Tu tarea es reescribirlo
+  // para que sea directo (verbo imperativo, outcome medible, formato fijado)
+  // y comparar los resultados.
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // --- Prompt 1: Resumen ---
+  // Vago: "¿Podrías resumir este texto? Sería genial si fuera breve."
+  // Objetivo: resumir en exactamente 3 bullets de ≤15 palabras cada uno.
+  const vagoResumen = "¿Podrías resumir este texto? Sería genial si fuera breve.";
+
+  // TODO: reescribir como prompt directo
+  const directoResumen = "???";
+
+  // --- Prompt 2: Clasificación ---
+  // Vago: "Necesito que me digas si este ticket es de billing o técnico o de cuenta."
+  // Objetivo: clasificar en billing/technical/account/other, solo la palabra.
+  const vagoClasificacion = "Necesito que me digas si este ticket es de billing o técnico o de cuenta.";
+
+  // TODO: reescribir como prompt directo
+  const directoClasificacion = "???";
+
+  // --- Prompt 3: Extracción ---
+  // Vago: "Extraé la info importante de este email, tipo nombre y eso."
+  // Objetivo: extraer nombre, empresa, monto como JSON con claves fijas.
+  const vagoExtraccion = "Extraé la info importante de este email, tipo nombre y eso.";
+
+  // TODO: reescribir como prompt directo
+  const directoExtraccion = "???";
+
+  // --- Datos de prueba ---
+  const textoResumen = "Los retries con exponential backoff son críticos cuando una API de IA responde 429 o 529. En vez de reintentar inmediatamente, cada intento espera el doble que el anterior más un jitter aleatorio. Sin jitter, múltiples clientes chocan simultáneamente al reintentar. El límite típico es 5 intentos con ceiling de 60 segundos.";
+
+  const textoTicket = "No me llegó la factura de marzo aunque sí se debitó el pago.";
+
+  const textoEmail = "Hola, soy Ana García de TechCorp SA. Necesitamos abonar la factura F-2024-887 por un total de USD 4.850,00 antes del 15 de mayo.";
+
+  async function runComparison(
+    label: string,
+    vago: string,
+    directo: string,
+    inputText: string,
+  ) {
+    console.log(`\n=== ${label} ===`);
+
+    // Prompt vago
+    const respVago = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 300,
+      messages: [{ role: "user", content: `${vago}\n\n${inputText}` }],
+    });
+    const textVago = respVago.content[0].type === "text" ? respVago.content[0].text : "";
+    console.log(`\nVago (${respVago.usage.output_tokens} output tokens):`);
+    console.log(textVago.slice(0, 200));
+
+    // Prompt directo
+    const respDirecto = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 300,
+      messages: [{ role: "user", content: `${directo}\n\n${inputText}` }],
+    });
+    const textDirecto = respDirecto.content[0].type === "text" ? respDirecto.content[0].text : "";
+    console.log(`\nDirecto (${respDirecto.usage.output_tokens} output tokens):`);
+    console.log(textDirecto.slice(0, 200));
+
+    console.log(`\nDelta output tokens: ${respDirecto.usage.output_tokens - respVago.usage.output_tokens}`);
+  }
+
+  // Descomentar cuando hayas reescrito los prompts:
+  // await runComparison("Resumen", vagoResumen, directoResumen, textoResumen);
+  // await runComparison("Clasificación", vagoClasificacion, directoClasificacion, textoTicket);
+  // await runComparison("Extracción", vagoExtraccion, directoExtraccion, textoEmail);
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const vagoResumen = "¿Podrías resumir este texto? Sería genial si fuera breve.";
+  const directoResumen = "Resumí el siguiente texto en exactamente 3 bullets de máximo 15 palabras cada uno. Sin preámbulos, sin cierre, sin headings, sin negritas. Solo los 3 bullets con guión.";
+
+  const vagoClasificacion = "Necesito que me digas si este ticket es de billing o técnico o de cuenta.";
+  const directoClasificacion = "Clasificá el siguiente ticket de soporte en una de estas categorías: billing, technical, account, other. Responde únicamente con la palabra de la categoría en minúscula, sin explicación.";
+
+  const vagoExtraccion = "Extraé la info importante de este email, tipo nombre y eso.";
+  const directoExtraccion = "Extraé del siguiente email estos 3 campos y devolvé JSON con estas claves exactas: sender (nombre completo), company (nombre de empresa), amount (monto con moneda). Sin markdown, sin backticks, solo el JSON.";
+
+  const textoResumen = "Los retries con exponential backoff son críticos cuando una API de IA responde 429 o 529. En vez de reintentar inmediatamente, cada intento espera el doble que el anterior más un jitter aleatorio. Sin jitter, múltiples clientes chocan simultáneamente al reintentar. El límite típico es 5 intentos con ceiling de 60 segundos.";
+
+  const textoTicket = "No me llegó la factura de marzo aunque sí se debitó el pago.";
+
+  const textoEmail = "Hola, soy Ana García de TechCorp SA. Necesitamos abonar la factura F-2024-887 por un total de USD 4.850,00 antes del 15 de mayo.";
+
+  async function runComparison(
+    label: string,
+    vago: string,
+    directo: string,
+    inputText: string,
+  ) {
+    console.log(`\n=== ${label} ===`);
+
+    const respVago = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 300,
+      messages: [{ role: "user", content: `${vago}\n\n${inputText}` }],
+    });
+    const textVago = respVago.content[0].type === "text" ? respVago.content[0].text : "";
+    console.log(`\nVago (${respVago.usage.output_tokens} output tokens):`);
+    console.log(textVago.slice(0, 200));
+
+    const respDirecto = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 300,
+      messages: [{ role: "user", content: `${directo}\n\n${inputText}` }],
+    });
+    const textDirecto = respDirecto.content[0].type === "text" ? respDirecto.content[0].text : "";
+    console.log(`\nDirecto (${respDirecto.usage.output_tokens} output tokens):`);
+    console.log(textDirecto.slice(0, 200));
+
+    console.log(`\nDelta output tokens: ${respDirecto.usage.output_tokens - respVago.usage.output_tokens}`);
+  }
+
+  await runComparison("Resumen", vagoResumen, directoResumen, textoResumen);
+  await runComparison("Clasificación", vagoClasificacion, directoClasificacion, textoTicket);
+  await runComparison("Extracción", vagoExtraccion, directoExtraccion, textoEmail);
+
+test_cases:
+  - id: test-directo-resumen
+    description: "El prompt directo de resumen incluye verbo imperativo y restricción de formato medible"
+    test_code: |
+      assert directoResumen.match(/^(Resumí|Listá|Generá|Escribí)/), "Debe empezar con verbo imperativo";
+      assert directoResumen.includes("bullet") || directoResumen.includes("punto"), "Debe especificar formato medible";
+    points: 5
+  - id: test-directo-clasificacion
+    description: "El prompt directo de clasificación pide solo la palabra sin explicación"
+    test_code: |
+      assert directoClasificacion.includes("billing") && directoClasificacion.includes("technical"), "Debe listar las categorías válidas";
+      assert directoClasificacion.match(/sin explicación|solo.*palabra|únicamente/i), "Debe restringir a solo la categoría";
+    points: 5
+  - id: test-directo-extraccion
+    description: "El prompt directo de extracción especifica formato JSON con claves explícitas"
+    test_code: |
+      assert directoExtraccion.match(/JSON/i), "Debe especificar formato JSON";
+      assert directoExtraccion.includes("sender") || directoExtraccion.includes("nombre"), "Debe listar campos esperados";
+    points: 5
+
+hints:
+  - "Un prompt directo empieza con un verbo imperativo: Resumí, Clasificá, Extraé"
+  - "Las restricciones medibles usan números: '3 bullets', '15 palabras', 'una palabra'"
+  - "Siempre especificá el formato: texto plano, JSON, bullets con guión"
+  - "Las restricciones negativas ('sin preámbulos', 'sin markdown') reducen varianza"
+
+concepts:
+  - verbos-imperativos
+  - outcomes-medibles
+  - restricciones-negativas
+  - formato-de-output
+  - comparacion-de-tokens
