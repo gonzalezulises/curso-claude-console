@@ -40,6 +40,28 @@ export default defineConfig({
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:locale", content: "es_AR" }],
     ["meta", { property: "og:title", content: "Claude Console · Megacurso" }],
+
+    // Defensa en profundidad: si llegara a colarse un XSS en un YAML de ejercicio
+    // o en contenido de terceros, connect-src solo permite la API de Anthropic
+    // (necesaria para el playground BYOK). GH Pages no soporta headers HTTP
+    // custom, por eso lo expresamos como meta http-equiv.
+    [
+      "meta",
+      {
+        "http-equiv": "Content-Security-Policy",
+        content:
+          "default-src 'self'; " +
+          "connect-src 'self' https://api.anthropic.com; " +
+          "img-src 'self' https: data:; " +
+          "script-src 'self' 'unsafe-inline'; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "font-src 'self' data:; " +
+          "object-src 'none'; " +
+          "base-uri 'self'; " +
+          "frame-ancestors 'none'",
+      },
+    ],
+    ["meta", { name: "referrer", content: "strict-origin-when-cross-origin" }],
   ],
 
   themeConfig: {

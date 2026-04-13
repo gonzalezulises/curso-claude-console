@@ -30,6 +30,10 @@ Thumbs.db
 *.swp
 *.swo
 
+# Claude Code local session state (nunca commiteable: contiene historial de prompts,
+# respuestas, y potencialmente fragmentos de código privado).
+.claude/
+
 # Python
 __pycache__/
 *.py[cod]

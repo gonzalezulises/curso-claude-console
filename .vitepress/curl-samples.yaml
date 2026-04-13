@@ -352,7 +352,7 @@ samples:
         }'
     response: |
       {
-        "id": "msg_018QEzVQosBrL1PLJirgd8eD",
+        "id": "msg_01SkillsXlsxExampleId",
         "type": "message",
         "role": "assistant",
         "model": "claude-haiku-4-5-20251001",
@@ -360,13 +360,13 @@ samples:
           {"type": "text", "text": "Voy a ayudarte a crear un archivo Excel. Primero, debo leer las instrucciones de la skill de Excel."},
           {
             "type": "server_tool_use",
-            "id": "srvtoolu_01TBKcYH1f4U4qEKU6ZoYHUY",
+            "id": "srvtoolu_01ExampleServerToolId",
             "name": "bash_code_execution",
             "input": {"command": "cat /skills/xlsx/SKILL.md"}
           },
           {
             "type": "bash_code_execution_tool_result",
-            "tool_use_id": "srvtoolu_01TBKcYH1f4U4qEKU6ZoYHUY",
+            "tool_use_id": "srvtoolu_01ExampleServerToolId",
             "content": {
               "stdout": "---\nname: xlsx\ndescription: ... Use this skill any time a spreadsheet file is the primary input or output...\n---\n\n# Requirements for Outputs\n..."
             }

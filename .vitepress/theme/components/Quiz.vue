@@ -116,7 +116,7 @@ const optionStateClass = (
       >
         <div class="quiz-question__prompt">
           <span class="quiz-question__num">{{ qIdx + 1 }}.</span>
-          <span class="quiz-question__text" v-html="q.question.replace(/\n/g, '<br/>')" />
+          <span class="quiz-question__text">{{ q.question }}</span>
         </div>
 
         <div class="quiz-question__hint" v-if="q.type === 'multiple_select'">
@@ -265,6 +265,10 @@ const optionStateClass = (
   font-weight: 500;
   margin-bottom: 0.35rem;
   line-height: 1.5;
+}
+
+.quiz-question__text {
+  white-space: pre-wrap;
 }
 
 .quiz-question__num {
