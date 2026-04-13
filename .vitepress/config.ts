@@ -1,10 +1,14 @@
 import { defineConfig } from "vitepress";
 import { buildSidebar } from "./build-sidebar";
+import { buildCourseStructure } from "./course-structure";
 
 // Regla de aislamiento #1: este archivo NUNCA modifica content/.
-// Regla de aislamiento #2: no registramos componentes Vue ni MDX — solo GFM.
-// Regla de aislamiento #3: la sidebar se genera desde course.yaml + module.yaml
-// (ver build-sidebar.ts). Nunca declarada a mano.
+// Regla de aislamiento #2: los componentes Vue viven en .vitepress/theme/ y se
+// registran globalmente en theme/index.ts. Los .md siguen siendo GFM estándar;
+// los componentes solo aparecen cuando el .md los usa explícitamente como tags.
+// Regla de aislamiento #3: la sidebar y la courseStructure se generan desde
+// course.yaml + module.yaml (ver build-sidebar.ts y course-structure.ts). Nunca
+// declaradas a mano.
 
 export default defineConfig({
   title: "Claude Console",
@@ -51,6 +55,10 @@ export default defineConfig({
     ],
 
     sidebar: buildSidebar(),
+
+    // Build-time course shape, consumido por componentes Vue via
+    // useData().theme.value.courseStructure.
+    courseStructure: buildCourseStructure(),
 
     search: {
       provider: "local",

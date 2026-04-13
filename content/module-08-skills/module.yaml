@@ -1,0 +1,78 @@
+id: module-08-skills
+title: "Skills: Capacidades Reutilizables"
+slug: skills
+description: >
+  Skills de Anthropic end-to-end: qué es un bundle SKILL.md + scripts +
+  assets, cómo usar las skills oficiales (pdf, docx, pptx, xlsx) desde la
+  Messages API con los tres beta headers, cómo crear y subir skills custom
+  via multipart, cómo gestionar su lifecycle (versions, list, delete), y un
+  lab donde el alumno construye una skill markdown-report con validador
+  Python como quality gate.
+estimated_hours: 3
+default_model: claude-sonnet-4-6
+
+prerequisites:
+  - module-05-tool-use
+  - module-07-mcp
+
+learning_outcomes:
+  - "Diferenciar una skill de un prompt inline, un tool custom y un server MCP"
+  - "Escribir un SKILL.md válido (frontmatter + cuerpo) y entender progressive disclosure"
+  - "Invocar las 4 skills oficiales (pdf, docx, pptx, xlsx) con los tres beta headers"
+  - "Subir una skill custom con multipart y el prefix de folder en los filenames"
+  - "Gestionar el lifecycle completo de una skill: list, versions, delete"
+  - "Diseñar skills con validadores inline que enforca calidad de output"
+
+lessons:
+  - id: lesson-08-01
+    file: lessons/01-que-es-una-skill.md
+    title: "¿Qué es una Skill y cuándo usarla?"
+    concepts: [skill-definition, progressive-disclosure, skill-vs-tool-vs-prompt, skill-vs-mcp]
+    order: 1
+
+  - id: lesson-08-02
+    file: lessons/02-anatomia-skill-md.md
+    title: "Anatomía de una Skill: SKILL.md + scripts + assets"
+    concepts: [skill-md-frontmatter, name-description-rules, bundle-structure, scripts-as-tools]
+    order: 2
+
+  - id: lesson-08-03
+    file: lessons/03-skills-de-anthropic.md
+    title: "Skills de Anthropic: pdf, docx, pptx, xlsx"
+    concepts: [anthropic-skills-prebuilt, beta-headers-skills, container-skills, code-execution-tool]
+    order: 3
+
+  - id: lesson-08-04
+    file: lessons/04-crear-skill-custom.md
+    title: "Crear tu primera skill custom"
+    concepts: [skill-upload-multipart, filename-folder-prefix, skill-invocation-custom, skill-id-format]
+    order: 4
+
+  - id: lesson-08-05
+    file: lessons/05-gestionar-skills-api.md
+    title: "Gestionar skills desde la API"
+    concepts: [skill-list-filters, skill-versions-immutable, skill-delete-order, workspace-scope]
+    order: 5
+
+  - id: lesson-08-06
+    file: lessons/06-lab-skill-reportes.md
+    title: "Lab: skill markdown-report con validador"
+    concepts: [lab, validator-as-gate, structured-output-enforcement, skill-end-to-end]
+    order: 6
+
+exercises:
+  - id: ex-08-01-skills-anthropic
+    file: exercises/ex-08-01-skills-anthropic.yaml
+    lesson_ref: lesson-08-03
+
+  - id: ex-08-02-skill-md
+    file: exercises/ex-08-02-skill-md.yaml
+    lesson_ref: lesson-08-02
+
+  - id: ex-08-03-upload-skill
+    file: exercises/ex-08-03-upload-skill.yaml
+    lesson_ref: lesson-08-05
+
+  - id: ex-08-04-lab-reportes
+    file: exercises/ex-08-04-lab-reportes.yaml
+    lesson_ref: lesson-08-06

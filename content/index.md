@@ -4,7 +4,11 @@ Megacurso técnico que lleva a un developer backend/fullstack desde el primer
 `curl` contra `/v1/messages` hasta arquitectar sistemas multi-agente de
 producción sobre el ecosistema completo de **platform.claude.com**.
 
-> Curso en producción · v0.1.0 · Módulo 1 completo.
+> Curso en producción · v0.1.0.
+
+<CourseProgress />
+
+<ResetProgressButton />
 
 ## ¿Qué vas a aprender?
 
@@ -55,14 +59,14 @@ producción sobre el ecosistema completo de **platform.claude.com**.
 
 ## Por dónde empezar
 
-- **[Módulo 0 — Setup & Primer Contacto](/module-00-setup/lessons/01-bienvenida-al-curso)**
-  Cuenta, API keys, primer `curl`, tour del dashboard, entorno local listo.
-- **[Módulo 1 — Messages API: Fundamentos](/module-01-messages-api/lessons/01-familia-de-modelos)**
-  Diez lecciones + siete ejercicios sobre el único endpoint que sostiene todo
-  lo demás del curso.
+El mapa de "Tu progreso" arriba es la forma canónica de navegar el curso: cada
+tarjeta lleva a la primera lección de su módulo y te muestra cuánto tenés
+avanzado. Los módulos en estado "outline" todavía se están produciendo pero ya
+tienen estructura visible.
 
-Los módulos 2-12 están en producción: cada uno ya tiene un `OUTLINE.md` que
-podés previsualizar desde el sidebar.
+Si es tu primera vez: arrancá por **M00 · Setup** para dejar tu cuenta, API keys
+y entorno local listos. Después **M01 · Messages API** para las fundaciones que
+sostienen todo lo demás.
 
 ---
 

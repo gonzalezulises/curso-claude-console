@@ -1,0 +1,7 @@
+/* Global styles for the course theme. Scoped component styles live in each .vue file. */
+
+:root {
+  --vp-c-brand-1: #d97757;
+  --vp-c-brand-2: #c35d3f;
+  --vp-c-brand-3: #a84b2e;
+}
