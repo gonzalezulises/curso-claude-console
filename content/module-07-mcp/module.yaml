@@ -1,0 +1,106 @@
+id: module-07-mcp
+title: "MCP: El Protocolo del Ecosistema"
+slug: mcp
+description: >
+  Model Context Protocol (MCP) de punta a punta: qué es, sus primitivas
+  (tools, resources, prompts, sampling, roots), cómo usarlo desde la
+  Messages API con el MCP Connector beta, cómo conectarse a servers
+  existentes y cómo construir un server MCP propio en TypeScript con el
+  SDK oficial. Cierra con un lab donde el alumno expone 3 tools de su
+  dominio como server MCP y las consume desde un agente Claude.
+estimated_hours: 6
+default_model: claude-sonnet-4-6
+
+prerequisites:
+  - module-01-messages-api
+  - module-05-tool-use
+
+learning_outcomes:
+  - "Explicar qué es MCP, qué problema resuelve y cómo se diferencia del tool use artesanal"
+  - "Identificar los roles host / client / server en una conexión MCP"
+  - "Distinguir tools, resources y prompts — cuándo usar cada primitiva"
+  - "Describir sampling y roots y cuándo aparecen en la práctica"
+  - "Invocar servers MCP remotos desde /v1/messages con el beta mcp-client-2025-04-04"
+  - "Conectarse a servers MCP oficiales (filesystem, fetch, time) via stdio"
+  - "Construir un server MCP en TypeScript con @modelcontextprotocol/sdk que exponga tools y resources"
+  - "Integrar un server MCP custom con un cliente Claude Code y con la Messages API"
+
+lessons:
+  - id: lesson-07-01
+    file: lessons/01-que-es-mcp.md
+    title: "¿Qué es MCP y por qué existe?"
+    concepts: [mcp, open-standard, tool-use-artesanal, plugins-historia, json-rpc]
+
+  - id: lesson-07-02
+    file: lessons/02-arquitectura.md
+    title: "Arquitectura: host, client, server"
+    concepts: [host, client, server, stdio, http-transport, jsonrpc-2-0]
+
+  - id: lesson-07-03
+    file: lessons/03-primitiva-tools.md
+    title: "Primitiva: tools"
+    concepts: [tools, list-tools, call-tool, input-schema, dynamic-discovery]
+
+  - id: lesson-07-04
+    file: lessons/04-primitiva-resources.md
+    title: "Primitiva: resources"
+    concepts: [resources, uri, list-resources, read-resource, mime-type, context-vs-action]
+
+  - id: lesson-07-05
+    file: lessons/05-primitiva-prompts.md
+    title: "Primitiva: prompts"
+    concepts: [prompts, list-prompts, get-prompt, templates, arguments]
+
+  - id: lesson-07-06
+    file: lessons/06-sampling-roots.md
+    title: "Primitivas avanzadas: sampling y roots"
+    concepts: [sampling, createMessage, roots, listRoots, client-capabilities]
+
+  - id: lesson-07-07
+    file: lessons/07-mcp-connector.md
+    title: "MCP Connector en la Messages API"
+    concepts: [mcp-connector, beta-mcp-client, mcp-servers-param, remote-mcp, url-servers]
+
+  - id: lesson-07-08
+    file: lessons/08-conectar-server-existente.md
+    title: "Conectarse a un server MCP existente"
+    concepts: [filesystem-server, fetch-server, time-server, npx-servers, stdio-client]
+
+  - id: lesson-07-09
+    file: lessons/09-server-custom-ts.md
+    title: "Construir un server MCP propio (TS SDK)"
+    concepts: [mcp-sdk, registerTool, registerResource, StdioServerTransport, zod-schemas]
+
+  - id: lesson-07-10
+    file: lessons/10-lab-server-custom.md
+    title: "Lab: server MCP custom integrado a un agente"
+    concepts: [lab, end-to-end, mcp-connector, custom-domain, three-tools]
+
+exercises:
+  - id: ex-07-01-conceptos-mcp
+    file: exercises/ex-07-01-conceptos-mcp.yaml
+    lesson_ref: lesson-07-03
+
+  - id: ex-07-02-conectar-server-existente
+    file: exercises/ex-07-02-conectar-server-existente.yaml
+    lesson_ref: lesson-07-08
+
+  - id: ex-07-03-mcp-connector
+    file: exercises/ex-07-03-mcp-connector.yaml
+    lesson_ref: lesson-07-07
+
+  - id: ex-07-04-server-basico
+    file: exercises/ex-07-04-server-basico.yaml
+    lesson_ref: lesson-07-09
+
+  - id: ex-07-05-resources
+    file: exercises/ex-07-05-resources.yaml
+    lesson_ref: lesson-07-09
+
+  - id: ex-07-06-transport-http
+    file: exercises/ex-07-06-transport-http.yaml
+    lesson_ref: lesson-07-09
+
+  - id: ex-07-07-lab-custom-server
+    file: exercises/ex-07-07-lab-custom-server.yaml
+    lesson_ref: lesson-07-10
