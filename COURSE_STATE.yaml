@@ -7,25 +7,26 @@
 version: 1
 last_updated: "2026-04-12"
 last_session_summary: >
-  Módulo 6 — Optimización & Producción completo. Se escribieron las 8 lecciones
-  (prompt caching, diseñar prompts cacheables, extended TTL 1h, Batch API,
-  context 1M tokens, rate limits RPM/ITPM/OTPM, Analytics, lab de optimización)
-  y los 6 ejercicios code-typescript (cache básico write→read, dos breakpoints,
-  batch submit+poll+results, cliente con throttling proactivo, estimador de
-  pricing progresivo 1M, lab baseline vs cached con >50% ahorro). Curls reales:
-  3 llamadas consecutivas con prefix 5409 tokens mostrando write→read→read
-  (cache_read_input_tokens=5409, input=15); batch msgbatch_01FAMeAJSnirsW9yZVpRWPNN
-  con 3 requests hello JA/FR/ES completado en 2m37s con service_tier=batch en
-  el usage; headers rate limit Tier 1 Haiku 4.5 capturados (RPM 50, ITPM 50K,
-  OTPM 10K, tokens-limit 60K combinado). Docs verificadas via context7
-  (`/websites/platform_claude_en_api`) para cache_control ephemeral, batch
-  endpoints, ratelimit headers, betas extended-cache-ttl-2025-04-11 y
-  context-1m-2025-08-07.
+  Módulo 7 — MCP (Model Context Protocol) completo. Se escribieron las 10
+  lecciones (qué es MCP, arquitectura host/client/server, primitiva tools,
+  primitiva resources, primitiva prompts, sampling & roots, MCP Connector
+  desde /v1/messages, conectar servers existentes via npx, server custom con
+  SDK TypeScript, lab de server custom con 3 tools) y los 7 ejercicios
+  (quiz de conceptos, cliente SDK contra filesystem server, MCP Connector con
+  DeepWiki, server básico reverse_string, resources estáticos + templates,
+  migración a streamable-http con Express, lab tasks-server con 3 CRUD tools
+  + client.ts + .claude.json). Curls reales: MCP Connector contra
+  https://mcp.deepwiki.com/mcp con beta mcp-client-2025-04-04 mostrando
+  content blocks mcp_tool_use, mcp_tool_result y text (usage input=2283
+  output=130); handshake real con @modelcontextprotocol/server-filesystem@0.2.0
+  via stdio; server propio con @modelcontextprotocol/sdk@1.29.0 verificado
+  end-to-end con initialize → tools/list → tools/call. Corrección aplicada
+  en OUTLINE.md: beta header activo es mcp-client-2025-04-04 (no 2025-11-20).
 
 current_focus:
-  module: module-07-mcp
+  module: module-08-skills
   status: outline
-  next_action: "Producir Módulo 7 — MCP (Model Context Protocol)"
+  next_action: "Producir Módulo 8 — Skills"
 
 modules_state:
   module-00-setup:
@@ -86,9 +87,12 @@ modules_state:
     last_verified: "2026-04-12"
 
   module-07-mcp:
-    status: outline
-    lessons_written: 0
+    status: completed
+    lessons_written: 10
     lessons_total: 10
+    exercises_written: 7
+    exercises_total: 7
+    last_verified: "2026-04-12"
 
   module-08-skills:
     status: outline

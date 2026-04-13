@@ -7,11 +7,11 @@ Tracker vivo del progreso. Actualiza esto al terminar cada módulo.
 | Métrica | Valor |
 |---|---|
 | Módulos totales | 13 (0-12) |
-| Módulos completos | 1 (Módulo 0) |
-| Módulos con outline | 12 (1-12) |
-| Lecciones escritas | 6 / 110 |
-| Ejercicios escritos | 4 / ~80 |
-| Última actualización | 2026-04-10 |
+| Módulos completos | 8 (Módulos 0-7) |
+| Módulos con outline | 5 (8-12) |
+| Lecciones escritas | 66 / 110 |
+| Ejercicios escritos | 46 / ~80 |
+| Última actualización | 2026-04-12 |
 
 ## Plan por sesión
 
@@ -61,9 +61,12 @@ Tracker vivo del progreso. Actualiza esto al terminar cada módulo.
 - [ ] 8 lecciones
 - [ ] Lab: reducir 70% el costo de un caso real
 
-### Sesión 8 — Módulo 7: MCP
-- [ ] 10 lecciones
-- [ ] Lab: construir un MCP server custom en TypeScript + conectarlo a Claude API y Claude Code
+### Sesión 8 — Módulo 7: MCP ✅
+- [x] Verificar MCP Connector (beta `mcp-client-2025-04-04`) con curl real contra DeepWiki
+- [x] Escribir 10 lecciones (qué es MCP, arquitectura, 3 primitivas tools/resources/prompts, sampling+roots, MCP Connector, conectar server existente, server custom TS, lab)
+- [x] Escribir 7 ejercicios (quiz conceptos, client SDK contra filesystem, MCP Connector DeepWiki, reverse-server, resources, streamable-http, lab tasks-server 3 tools + persistencia)
+- [x] Lab: `tasks-server.ts` con 3 CRUD tools + `client.ts` + `.claude.json` integrado a Claude Code
+- [x] Actualizar `COURSE_STATE.yaml`
 
 ### Sesión 9 — Módulo 8: Skills
 - [ ] 6 lecciones
