@@ -74,6 +74,25 @@ Un archivo subido queda disponible hasta que:
 
 **Regla**: si el archivo se va a referenciar 3+ veces, Files API. Si es one-shot, base64.
 
+### Errores típicos del upload (y qué significan)
+
+| Código | Mensaje típico | Causa | Fix |
+|--------|----------------|-------|-----|
+| `400` | `invalid purpose` | Faltó o es incorrecto el campo `purpose` | Usar `purpose=vision` |
+| `400` | `unsupported file type` | MIME type no soportado | Chequear que sea PDF, imagen soportada, o text/plain |
+| `401` | `authentication_error` | Falta header `x-api-key` o es inválido | Verificar `ANTHROPIC_API_KEY` |
+| `403` | Sin acceso al beta | El workspace no tiene el beta habilitado | Activar el beta en Settings o pedirlo a Support |
+| `413` | `payload too large` | Archivo excede el límite de tamaño | Partir el archivo o redimensionar imágenes |
+| `429` | `rate_limit_exceeded` | Demasiados uploads simultáneos | Backoff + batch secuencial |
+
+El más sutil: `400 invalid purpose` suele aparecer cuando seguís ejemplos viejos que usaban otros valores. Mientras dure el beta, el valor seguro es `"vision"`.
+
+### Conceptos de arquitecto
+
+- **Files API es el primer paso hacia un pipeline RAG-light**: subís documentos → guardás `file_id` → consultás con `citations` activado. Esto te evita montar un vector store para corpus pequeños (≤20 docs). Lo vas a ver en el lab de esta misma lección en M04.
+- **El `file_id` no expira de inmediato pero no es eterno**: tratalo como un recurso gestionado. En un pipeline productivo, guardá en tu DB la asociación (nombre de archivo, `file_id`, fecha de upload, última consulta) y revisá que todavía existen antes de usarlos — con un fallback a re-upload si fue borrado.
+- **Files API + prompt caching se combinan bien**: el documento viaja como referencia (ya no paga serialización cada request) y su contenido procesado puede cachearse en el contexto. Volvés a pagar ~10% del costo de input cuando hacés la query N+1 sobre el mismo archivo.
+
 ## Ejecución real
 
 **Paso 1 — Subir un archivo**
@@ -225,6 +244,8 @@ console.log("File deleted:", file.id);
 - ❌ **Omitir el beta header**. Sin `anthropic-beta: files-api-2025-04-14`, los endpoints `/v1/files` devuelven error. El mismo header va en los mensajes que referencian el file_id.
 - ❌ **Hardcodear file_ids en código**. Los IDs son efímeros — los generás al subir. No los pegues como constantes en el código fuente.
 - ❌ **Subir archivos sensibles sin política de cleanup**. Files API guarda el archivo hasta que lo borrás. Si el archivo tiene datos personales, tené un pipeline claro de retención.
+- ❌ **Tratar `file_id` como identificador estable cross-workspace**. Es local al workspace que lo subió. Si movés un proyecto a otro workspace, tenés que re-uploadear.
+- ❌ **Paralelizar 100 uploads sin control**. Files API tiene rate limits. Un for-loop con `Promise.all` sobre 100 archivos probablemente te tira 429. Usá una cola con concurrencia limitada (ej: `p-limit` con 5 concurrentes).
 
 ## Recap
 

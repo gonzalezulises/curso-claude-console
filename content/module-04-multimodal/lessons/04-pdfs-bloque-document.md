@@ -65,6 +65,27 @@ Un PDF de 1 página con 100 palabras consume ~2000-3000 tokens (procesa la image
 
 El trade-off: **10-20× más tokens por la capacidad de ver la estructura visual**.
 
+### Limitaciones prácticas de los PDFs
+
+Antes de mandar un PDF de producción, chequeá estas condiciones:
+
+| Condición | Qué hace el modelo | Workaround |
+|-----------|--------------------|------------|
+| PDF encriptado con password | Falla al decodificar | Desencriptar con herramienta externa antes de subir |
+| PDF con formularios interactivos | Ve los campos pero no siempre el valor que ingresaste | Flatten el PDF (convertir campos en texto estático) |
+| PDF con fuentes no embebidas | Puede ver caracteres raros/nada | Embebé las fuentes al exportar |
+| PDF escaneado (imagen de texto) | OCR visual — funciona, pero es costoso (cada página es imagen) | Si es un escaneo masivo, OCR externo primero |
+| PDF de >100 páginas | Tokens explotan, puede exceder context window | Particionar o usar Files API + caching |
+| PDF con color crítico (ej: códigos por color) | Puede confundir matices sutiles | Describir explícitamente el color coding en el prompt |
+
+Un check rápido de razonabilidad: un PDF de texto normal de **20 páginas** ronda los 50-60k tokens. Si tu caso supera eso, partición o RAG.
+
+### Conceptos de arquitecto
+
+- **`title` es metadata en la respuesta, no solo decoración**: cuando activás `citations`, cada cita trae `document_title` — por eso es obligatorio si tenés ≥2 documentos en el request. Sin título, las citas usan `document_index` (0, 1, 2…) y perdés trazabilidad.
+- **PDF como contenedor vs PDF como input real**: un PDF que en realidad es "texto formateado que alguien exportó" es peor que mandar el texto plano. Antes de asumir que querés el PDF, preguntate: ¿necesito layout? ¿tablas? ¿imágenes? Si la respuesta es no, extraé el texto y ahorrá 10-20× en tokens.
+- **`source.type: "text"` dentro de `type: "document"`**: es el patrón infravalorado. Te permite pasar texto largo como "documento" (con `title` y `citations` asociadas) sin pagar el overhead visual del PDF. Es la mejor opción para texto extraído con calidad verificable vía citations.
+
 ## Ejecución real
 
 **Paso 1 — Enviar un PDF con curl**
@@ -259,6 +280,8 @@ const resp = await client.beta.messages.create({
 - ❌ **Asumir que el PDF viaja completo**. Hay límites de tamaño (verificá docs actuales). PDFs muy grandes fallarán — partí en secciones o usá Files API.
 - ❌ **Olvidar `citations.enabled: true` cuando querés citas**. Sin esto, Claude responde con texto plano sin referencias a página. Para respuestas verificables, siempre activalo (siguiente lección).
 - ❌ **Usar PDF para hacer búsqueda por keyword**. Si necesitás buscar "todas las menciones de X" en un corpus grande, usá un search index, no pases todo el PDF al modelo.
+- ❌ **Asumir que el modelo respeta el "orden de lectura" humano en PDFs multicolumna**. En layouts complejos (2-3 columnas, footers/headers) el modelo puede mezclar el orden al leer. Validá con documentos de ese shape antes de ponerlo en prod.
+- ❌ **Pasar PDFs sin validar tamaño**. Un PDF escaneado de 200 páginas puede consumir 500k+ tokens — superás el context window y el request falla con error 400. Contá páginas antes de enviar.
 
 ## Recap
 

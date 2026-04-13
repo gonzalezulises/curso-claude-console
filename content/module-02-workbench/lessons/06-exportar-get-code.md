@@ -80,6 +80,39 @@ El workflow completo de un prompt desde idea hasta producción:
 
 No saltees el paso 4: corré el código adaptado y compará con lo que veías en el Workbench. Cualquier diferencia es un bug que hay que resolver ahora, no en producción.
 
+### Config Workbench vs config producción (lado a lado)
+
+Esta tabla resume lo que suele diferir entre el snippet exportado y el código que termina commiteado:
+
+| Campo | Workbench (snippet crudo) | Producción (adaptado) |
+|-------|---------------------------|------------------------|
+| API key | Hardcodeada como `"my_api_key"` | Omitida; el SDK lee `ANTHROPIC_API_KEY` del env |
+| `model` | Snapshot fechado (`claude-sonnet-4-5-20250929`) | Alias estable (`claude-sonnet-4-6`) |
+| `max_tokens` | 20000 (default amplio) | Ajustado al rango real (50-2000) |
+| `temperature` | 1 (o lo que tocaste) | Valor decidido (0 para extracción, 0.3 para clasificación, 0.7 para redacción) |
+| Retries | Ninguno | Exponential backoff con límite de reintentos |
+| Logging | `print(message.content)` | `usage.input_tokens`, `output_tokens`, `stop_reason`, cost |
+| Manejo de errores | Ninguno | try/catch con handling distinto para 429, 500, 529 |
+| Validación de output | Ninguna | Parser/schema check del output (si el prompt genera JSON) |
+
+Si tu PR tiene el snippet pegado tal cual, el reviewer debería rechazarlo por todas estas razones.
+
+### Debugging: "funciona en el Workbench, falla en código"
+
+El 90% de estos casos se reduce a una de estas cinco causas. Revisalas **en este orden** antes de buscar cosas más raras:
+
+1. **Modelo distinto**: el Workbench usa snapshot; tu código usa alias. Si el alias apuntó a una versión nueva, el comportamiento puede diferir. Probá pineando el mismo snapshot del Workbench en tu código como prueba.
+2. **Temperature distinta**: el default del Workbench es 1; en tu código el default del SDK también es 1, pero si usaste el slider del Workbench a otro valor y no lo reflejaste en el código, hay discrepancia.
+3. **System prompt distinto**: revisá que copiaste exactamente el system del Workbench, sin espacios de más o saltos de línea cortados.
+4. **Orden de messages**: el Workbench preserva el orden visual; en tu código revisá que el array de `messages` esté en la misma secuencia (primer user, asistente si hay, user final).
+5. **Max tokens recortando la respuesta**: si bajaste `max_tokens` para producción y tu output real es más largo, el `stop_reason` va a ser `"max_tokens"`. Mirá ese campo antes de asumir que el modelo falló.
+
+### Conceptos de arquitecto
+
+- **Get Code documenta tu prompt mejor que cualquier comentario**: el snippet muestra exactamente la configuración que funcionó. Pegalo como comentario de referencia en el código productivo (o en un fixture de test), y cuando alguien pregunte "¿qué prompt usamos?" la respuesta es literal.
+- **El snippet exportado es un test de regresión gratis**: si lo volvés a pegar dentro de 6 meses y el output difiere, algo cambió (modelo, prompt, datos de ejemplo, sampling). Ese test con 3 líneas vale más que cero tests.
+- **Nunca inviertas el flujo**: editar el prompt en código y después "traerlo" al Workbench para iterar es penoso (tenés que reconstruir el estado). Siempre iterá en Workbench → exportá cuando esté estable.
+
 ## Ejecución real
 
 **Paso 1 — Configurar un prompt en el Workbench**

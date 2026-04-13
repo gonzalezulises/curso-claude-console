@@ -92,6 +92,22 @@ Un request con 2 imágenes + PDF de 5 páginas + pregunta: ~15,000-20,000 input 
 
 </warning>
 
+### Patrones de composición que fallan (y sus fixes)
+
+| Anti-patrón | Qué pasa | Fix |
+|-------------|----------|-----|
+| Pregunta antes que documentos | El modelo no tiene contexto al procesar la pregunta | Pregunta siempre al final |
+| 5 PDFs sin `title` | Citations con `document_index` pelados, ininterpretables | `title` obligatorio con ≥2 docs |
+| Imagen **dentro** del PDF + la imagen suelta | Duplicás tokens visuales de la misma cosa | Elegí uno: o el PDF o la imagen suelta |
+| Texto largo pegado como `type: "text"` | El modelo puede perder atención a la mitad | Envolvelo en `type: "document"` con `source.type: "text"` (+ citations si querés trazabilidad) |
+| Instrucción larga + pregunta concreta mezcladas | El modelo responde a la instrucción, no a la pregunta | Partí: system prompt (instrucción) + user con pregunta al final |
+
+### Conceptos de arquitecto
+
+- **El request multimodal es un prompt con "anexos"**: pensalo como un email. El body (pregunta) va corto y claro; los anexos (documentos + imágenes) van antes. Nadie lee un email que arranca "aquí va mi pregunta" con 10 adjuntos abajo — el modelo tampoco.
+- **Presupuestá en tokens antes de enviar**: un request con 3 PDFs + 2 imágenes + pregunta puede sumar 30-50k tokens fácilmente. Con Sonnet a los precios actuales, cada request es ~$0.10-$0.15. Si lo corrés 10k veces/día, son $1.5k/día. Priorizá reducir tokens antes de optimizar prompts.
+- **Multimodal compuesto + Files API + caching es la tríada de RAG-light**: subís los PDFs una vez, los referenciás por `file_id`, activás `cache_control` en el bloque donde matchean — próximas consultas pagan ~10% del input. Ese patrón aguanta cientos de queries por día sobre corpus de 20-50 docs sin montar vector store.
+
 ## Ejecución real
 
 **Paso 1 — Imagen + documento + pregunta**
@@ -269,6 +285,8 @@ await client.beta.files.delete(pdfFile.id);
 - ❌ **Enviar imágenes redundantes con el PDF**. Si el PDF ya contiene el gráfico, no mandes el gráfico por separado. Duplicás tokens.
 - ❌ **No ponerle título a los documentos**. Con múltiples docs es imposible distinguir las citas sin `document_title`. Obligatorio cuando hay ≥2 documentos.
 - ❌ **Requests multimodales gigantes "por si acaso"**. Más modalidades = más tokens = más costo. Incluí solo lo que realmente necesitás para responder.
+- ❌ **Pasar la misma imagen dos veces (base64 y dentro del PDF)**. Dobla los tokens visuales de ese elemento. Si ya está en el PDF, no lo mandes suelto.
+- ❌ **Hacer 10 requests paralelos con los mismos documentos sin caching**. Estás pagando N veces el procesamiento del mismo material. Activá `cache_control: {type: "ephemeral"}` en los bloques de documento del Módulo 6 y bajá ~90% el costo a partir del segundo request.
 
 ## Recap
 

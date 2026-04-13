@@ -98,6 +98,28 @@ Cuando citations está activado, los `content` blocks de tipo `text` cambian:
 
 Claude puede devolver **varios bloques de texto**, cada uno con sus propias citas. Esto es porque intercala texto generado con referencias fuente — podés renderizarlo como texto con footnotes o inline links.
 
+### Casos donde citations justifica su costo extra
+
+Citations agrega latencia (el modelo busca el fragmento) y algunos tokens extra por la metadata. Vale la pena cuando:
+
+| Dominio | Por qué importa |
+|---------|-----------------|
+| **Legal / compliance** | El abogado necesita la cita exacta del contrato que sustenta una conclusión |
+| **Salud** | El profesional debe poder verificar de qué estudio salió cada dato |
+| **Research / academia** | Reviewers exigen que cada afirmación esté respaldada por un fragmento concreto |
+| **Financial / auditorías** | Toda cifra debe ser trazable al documento fuente |
+| **Soporte con knowledge base** | El agente debe poder mostrar al cliente dónde está escrita la política aplicable |
+| **Periodismo asistido** | Fact-checking inmediato de cada aserción antes de publicar |
+
+Para chat casual, generación de ideas o tareas creativas, citations no suma — apagalo para ahorrar.
+
+### Conceptos de arquitecto
+
+- **Citations transforma la alucinación de problema invisible a problema falsificable**: seguís pudiendo tener respuestas incorrectas, pero ahora con citations podés validar cada una contra el documento fuente. Es la base para construir evals automáticas: si el `cited_text` no aparece literalmente en el source, el modelo está inventando.
+- **El cliente ve las citas, no pide que vos las resumas**: es más honesto renderizar `cited_text` tal cual (con markdown blockquote) que reescribirlo. Reescribir reintroduce la capa donde puede colarse un error.
+- **`document_title` es el campo más importante del response para la UI**: un footnote que dice `(About Anthropic, chars 0-66)` es útil; uno que dice `(doc-0, chars 0-66)` no lo es. Si no le ponés título al documento, la UI final va a ser frustrante.
+- **Citations no chunkea por vos**: el fragmento citado es el que el modelo decidió relevante — puede ser una oración o varios párrafos. No asumas tamaños fijos al diseñar la UI.
+
 ## Ejecución real
 
 **Paso 1 — Citations con plain text (char_location)**
@@ -302,6 +324,8 @@ Anthropic was founded in 2021 by Dario Amodei and Daniela Amodei.[^1]
 - ❌ **Usar citations para documentos triviales**. Para un chat casual no las necesitás. Úsalo cuando el usuario debe verificar la respuesta (legal, médico, financiero, research).
 - ❌ **Ignorar `document_title`**. Cuando tenés múltiples documentos, el título es la única forma human-readable de saber de cuál vino la cita.
 - ❌ **Asumir que todas las afirmaciones llevan citation**. Claude cita cuando el texto se apoya en el documento. Frases de transición o resúmenes pueden no tener citation asociada.
+- ❌ **Mezclar docs con y sin `citations.enabled` en el mismo request**. Los bloques de texto van a tener citas para unos y no para otros. Si vas a citar, activá en todos. Si no, apagá en todos — consistencia.
+- ❌ **Renderizar el `cited_text` truncado sin indicar el truncado**. Si limitás a 120 caracteres para UI, agregá "…" al final. El lector tiene que saber que hay más texto en la fuente para poder ir a verificarlo.
 
 ## Recap
 

@@ -62,6 +62,45 @@ El caso de uso más común es enviar una imagen seguida de una pregunta en texto
 
 El orden importa: **la imagen va primero, la pregunta después**. Claude procesa los bloques en orden y necesita "ver" la imagen antes de responder sobre ella.
 
+### Cálculo rápido de tokens por imagen
+
+La aproximación oficial que conviene tener memorizada:
+
+```
+tokens ≈ (width_px × height_px) / 750
+```
+
+Con eso podés estimar antes de pegar una imagen gigante:
+
+| Resolución | Cálculo | Tokens estimados |
+|-----------|---------|------------------|
+| 512×512 | 262k / 750 | ~350 |
+| 1024×768 | 786k / 750 | ~1050 |
+| 1920×1080 | 2.07M / 750 | ~2760 |
+| 4000×3000 | 12M / 750 | ~16000 |
+
+Si la imagen supera los límites del modelo, Anthropic la redimensiona **antes** de cobrarla — pero el redimensionado es genérico, probablemente no el óptimo para tu caso. Si vas a mandar muchas imágenes, redimensioná vos con un criterio claro (ej: lado largo ≤ 1568 px para preservar detalle sin gastar de más).
+
+### Multi-imagen en un solo mensaje
+
+Podés mandar varias imágenes en el mismo `content`:
+
+```json
+"content": [
+  { "type": "image", "source": { ... } },
+  { "type": "image", "source": { ... } },
+  { "type": "text", "text": "Compará las dos imágenes y listá 3 diferencias concretas." }
+]
+```
+
+No hay un máximo teórico "pequeño" (tenés el context window), pero en la práctica más de 20 imágenes en un request degrada la calidad: el modelo empieza a perder detalle por imagen. Si necesitás comparar decenas de imágenes, partí en requests por lotes.
+
+### Conceptos de arquitecto
+
+- **Vision no es OCR**: Claude "lee" texto en imágenes bien, pero no está optimizado para documentos escaneados con layouts complejos o handwriting. Para eso hay servicios dedicados (Google Vision, AWS Textract) más baratos. Usá Claude cuando además del texto necesitás comprensión semántica.
+- **Los tokens de imagen no se cachean con `cache_control` igual que el texto**: parte del procesamiento ocurre antes del cache. Si tu caso es "un misma imagen, muchas preguntas", Files API (lección 03) escala mejor que base64 con caching.
+- **El modelo responde sobre lo que ve, no sobre lo que "debería ver"**: si le mandás una imagen borrosa o con ruido, te va a describir la imagen borrosa. Validá calidad visual antes de diagnosticar el prompt.
+
 ## Ejecución real
 
 **Paso 1 — Crear una imagen de prueba y codificarla en base64**
@@ -186,6 +225,9 @@ console.log(`Tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_token
 - ❌ **Incluir el prefijo `data:image/png;base64,` en el campo `data`**. El campo `data` solo lleva la cadena base64 pura. El `media_type` va en su propio campo.
 - ❌ **Poner la pregunta antes de la imagen**. Claude procesa en orden — la imagen debe ir primero para que el modelo la "vea" al llegar a la pregunta.
 - ❌ **Usar vision para OCR masivo**. Claude es bueno extrayendo texto de imágenes, pero para OCR a escala (miles de documentos) usá herramientas especializadas y reservá Claude para comprensión semántica.
+- ❌ **Mandar 10 imágenes cuando 2 alcanzan**. Cada imagen suma tokens y diluye la atención del modelo. Si vas a pedirle algo sobre "el diagrama", mandá solo ese diagrama, no todo el deck.
+- ❌ **Usar `media_type` que no coincide con el contenido**. Declarar `image/png` pero mandar bytes JPEG hace que el backend rechace el request o procese basura. Detectá el tipo real antes de enviar.
+- ❌ **Pegar el prefix `data:image/png;base64,` en el campo `data`**. El SDK (y la API) esperan solo el payload base64 puro. Con el prefix, el decode falla y recibís un 400.
 
 ## Recap
 

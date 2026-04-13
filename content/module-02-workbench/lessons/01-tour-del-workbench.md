@@ -88,6 +88,26 @@ La primera vez que abrís el Workbench, el panel derecho muestra tips de uso. Lo
 
 La analogía: el dashboard es la carpeta de tu proyecto, el Workbench es el editor abierto con un archivo.
 
+### Los tres "Claudes" que suelen confundirse
+
+Si venís de `claude.ai` o de Claude Code, es útil separar mentalmente las tres superficies — todas son Anthropic pero con roles distintos:
+
+| Superficie | URL/binario | Usuario objetivo | Qué es |
+|-----------|-------------|------------------|--------|
+| **claude.ai** | `claude.ai` | Usuario final (chat) | Interfaz de conversación consumer; Pro/Max/Team/Enterprise |
+| **Claude Console** | `platform.claude.com` | Developer (backend) | Panel de control: API keys, Workbench, Files, Skills, analytics, Admin |
+| **Claude Code** | CLI + extensiones IDE | Developer (en su máquina) | Agente en terminal con filesystem + bash + permisos |
+
+Las tres comparten modelos (mismo Claude 4.6/4.5), pero **no comparten storage**: un prompt guardado en `claude.ai` no está en el Workbench; una skill subida a la API no aparece en `claude.ai`; un proyecto en Claude Code vive solo en tu disco. Vas a volver a esta matriz varias veces en el curso.
+
+### Conceptos de arquitecto
+
+Tres decisiones que conviene fijar desde la primera sesión:
+
+- **¿Qué workspace?** Si tu organización tiene varios workspaces (staging, prod, un cliente por workspace), cada uno es un dominio de facturación y keys aislado. El Workbench siempre muestra prompts del workspace activo — revisá el selector arriba si no encontrás algo que creaste la semana pasada.
+- **¿Qué rol tenés?** Admin puede crear API keys y ver usage de todos. Member solo ve lo propio. El rol aparece al lado de tu nombre abajo del sidebar. Si vas a producir contenido de ejemplo, asegurate de no exponer data de otras personas.
+- **¿El Workbench sobrevive al refresh?** Sí: cada cambio crea una versión persistida en servidores de Anthropic asociada a tu workspace. Pero no es git: no hay diff de prompts, no hay merge, no hay branches. Cuando un prompt es "canónico", copialo a un `.md` del repo (lección 06).
+
 ## Ejecución real
 
 Este módulo es diferente a los anteriores: **la ejecución real es en la UI**, no en curl. Para esta lección:
@@ -108,6 +128,9 @@ Si todo está en su lugar, estás listo para la Lección 02 donde empezamos a it
 - ❌ **No versionar los prompts**. El Workbench versiona automáticamente, pero tus prompts estables deben ir a git. El Workbench no reemplaza tu repo — lo complementa.
 - ❌ **Confundir `platform.claude.com` con `claude.ai`**. Son productos distintos. `claude.ai` es el chat consumer. `platform.claude.com` es la console de developer con API keys, Workbench, analytics y management.
 - ❌ **Explorar Managed Agents antes de dominar la API**. El sidebar te tienta con "Agents" y templates bonitos, pero sin entender Messages API (Módulo 1), tool use (Módulo 5) y MCP (Módulo 7), los agents son una caja negra. Seguí el orden del curso.
+- ❌ **Dar por sentado que un prompt creado en `claude.ai` está en el Workbench**. Son storages independientes. Lo que producís como chat en `claude.ai` no se importa al Workbench (ni al revés). Si necesitás llevarlo, copiás el texto manualmente.
+- ❌ **Trabajar con dos workspaces en simultáneo en pestañas distintas sin mirar el selector**. Un Run del Workbench consume tu workspace activo y aparece en su `Usage`. Si probás un prompt en el workspace equivocado, el costo va al equipo que no corresponde y el prompt no está guardado donde lo buscás mañana.
+- ❌ **Usar tu Admin API key para correr prompts del Workbench**. El Workbench ya usa tu sesión de Console — no tenés que pasarle ninguna key. Las Admin API keys son para operaciones de gobernanza (Admin API, Módulo 11), no para Messages API.
 
 ## Recap
 

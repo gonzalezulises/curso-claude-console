@@ -72,6 +72,28 @@ Para la fase de **estabilización** (ya encontraste el approach y querés que se
 
 El slider de temperature está en el panel Model (icono ⚙). El default es 1.
 
+### Comparación: Workbench vs REPL vs código
+
+El ciclo de iteración del Workbench no es el único disponible. Vale la pena tener explícita la matriz de trade-offs antes de elegir:
+
+| Ciclo | Tiempo por iteración | Versionado | Costo mental | Cuándo usarlo |
+|-------|----------------------|------------|--------------|---------------|
+| **Workbench** | ~5-30 s | Automático (Anthropic) | Bajo | Exploración y estabilización del prompt |
+| **REPL / notebook** | ~10-60 s | Manual (célula por célula) | Medio | Pegar el snippet de Get Code y seguir iterando con datos reales |
+| **Archivo `.ts` + `npx tsx`** | ~60-90 s | Git | Alto | Prompt ya estable + lógica productiva alrededor |
+| **CI/CD + eval suite** | Minutos | Git + runs persistidos | Alto | Validación antes de deploy, golden set |
+
+La regla: **empezás arriba y bajás conforme el prompt se estabiliza**. Subir antes de tiempo (pasarse a `.ts` con un prompt todavía vago) te cuesta velocidad; quedarse en Workbench cuando ya hay datos reales y lógica te cuesta rigor.
+
+### Conceptos de arquitecto
+
+Tres cosas que este loop rápido habilita — y una que oculta:
+
+- **Calibración del modelo correcto**: con el ciclo de 30 s podés correr el mismo prompt en Haiku, Sonnet y Opus y ver con tus propios ojos el salto de calidad/costo. Es el único test honesto para decidir qué modelo va en prod.
+- **Detección de sobre-prompting**: si iterás 8 veces y las respuestas mejoran poco, probablemente el problema no es el prompt sino el modelo (Haiku cuando necesitabas Sonnet) o la tarea (falta de few-shot, falta de contexto).
+- **Data-driven few-shot**: cuando entrás a Evaluate con 10 casos, los que fallan son exactamente los ejemplos que deberías agregar como few-shot. El ciclo te da los datos de training gratis.
+- **Lo que el Workbench NO captura**: latencia real con tu red, retries, fallbacks, caching, errores 429. Un prompt "perfecto" en el Workbench puede romperse en prod por factores que la UI no simula. El Workbench valida calidad del output, no robustez del sistema.
+
 ## Ejecución real
 
 Vamos a hacer una iteración completa en el Workbench: un prompt de clasificación de tickets, desde versión vaga hasta versión estable.
@@ -137,6 +159,8 @@ Este flujo completo (pasos 1 a 5) debería llevarte **menos de 10 minutos**. El 
 - ❌ **Confiar en una sola corrida**. Un prompt que funciona 1/1 veces no es estable. Corré al menos 3-5 veces con distintos inputs. Usá Evaluate para sistematizar.
 - ❌ **Dejar temperature en 1 para producción**. Temperature 1 es para explorar. Para estabilizar y validar, bajá a 0-0.3. No exportes un prompt como "estable" si solo lo probaste con temperature 1.
 - ❌ **Usar "Generate Prompt" sin refinamiento**. El prompt generado es un borrador — nunca es production-ready. Siempre aplicá las técnicas del Módulo 3 (ser directo, formato, restricciones).
+- ❌ **Considerar "estable" un prompt que solo probaste con Sonnet**. Si el plan es correr en prod con Haiku (más barato), validá en Haiku antes de cerrar. El salto de Sonnet a Haiku suele exponer un prompt que dependía de la inteligencia del modelo en vez de la especificidad del prompt.
+- ❌ **Confundir "few-shot del Workbench" con el `content` del request**. Los ejemplos agregados vía el botón **Examples** se convierten en pares `user`/`assistant` en el array `messages` del snippet final. Si los copiás a mano en un `.ts` como system prompt, cambia el comportamiento — el modelo aprende mejor de pares conversacionales que de un bloque de texto con casos.
 
 ## Recap
 

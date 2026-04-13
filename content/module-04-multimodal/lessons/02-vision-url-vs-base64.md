@@ -62,6 +62,26 @@ La imagen en sí consume los mismos tokens con ambos métodos (depende del tama�
 
 Pero el costo de tokens para el modelo es el mismo — lo que cambia es el ancho de banda de tu request HTTP.
 
+### Cuándo URL falla en silencio (y cómo diagnosticarlo)
+
+Los errores más comunes con `source.type: "url"` y cómo se manifiestan:
+
+| Síntoma | Causa probable | Fix |
+|---------|----------------|-----|
+| Error 400 `unable to fetch image` | La URL requiere auth/cookies/JS | Bajar la imagen vos y mandar base64 |
+| Error 400 `invalid image content` | El servidor respondió HTML (login page, 404 "friendly") | Chequear con `curl -I` qué responde realmente |
+| Respuesta inconsistente entre corridas | La URL apunta a un CDN que rota imágenes | Pineá la URL a una revisión específica (ej: con hash) o bajá a base64 |
+| Latencia alta/timeouts | El servidor de la URL es lento desde la región de Anthropic | base64 (ya tenés la imagen localmente) |
+| Funciona para uno del equipo y no para otro | IP-based allowlist o VPN restrictions | base64 |
+
+**Regla de oro de debugging**: cuando URL falla y no entendés por qué, **siempre** probá el mismo test case con base64. Si funciona con base64 y no con URL, el problema está en la accesibilidad pública, no en el prompt.
+
+### Conceptos de arquitecto
+
+- **URL es un pointer, base64 es el contenido**: los pointers pueden romperse (dominios que expiran, paths que cambian, políticas de CDN que cambian). Si tu request tiene valor auditable (análisis de contrato, diagnóstico médico), base64 garantiza que el byte-for-byte de la imagen queda en tu log — el pointer no.
+- **Payload grande ≠ request lento**: enviar 2 MB de base64 no es per se lento. Lo lento es serializar el body + cruzar la red. Para una imagen de 200 KB la diferencia entre URL y base64 es imperceptible; para 20 MB sí importa.
+- **Un CDN propio resuelve ambos mundos**: subí las imágenes a tu CDN (S3+CloudFront, R2, etc.) con URLs estables y públicas. Tenés el beneficio de URL (payload chico) y controlás la estabilidad del pointer.
+
 ## Ejecución real
 
 **Paso 1 — Vision con URL pública**
@@ -193,6 +213,8 @@ console.log(`Tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_token
 - ❌ **Asumir que la URL es estable**. Si linkás a una imagen que puede cambiar (ej: avatar de usuario, screenshot temporal), tu prompt no es reproducible. Preferí base64 para reproducibilidad garantizada.
 - ❌ **Descargar la imagen para re-subirla en base64 cuando la URL pública funciona**. Es redundante — usá URL directamente y ahorrás ancho de banda en tu request.
 - ❌ **Enviar URLs de `localhost` o `192.168.*`**. Los servidores de Anthropic no pueden acceder a tu red local.
+- ❌ **Confiar en que una imagen en redes sociales va a estar ahí mañana**. URLs de Twitter/X, Instagram, Slack (auth-gated), Discord o signed URLs de S3 suelen fallar o variar entre requests. Si la necesitás estable, bajala y subila a tu propio CDN.
+- ❌ **Pasar URLs con espacios o caracteres especiales sin encodear**. El request falla con 400 y el mensaje no siempre es claro. Usá `encodeURIComponent` (TS) o `urllib.parse.quote` (Python) sobre el path.
 
 ## Recap
 

@@ -126,6 +126,43 @@ Files API soporta los tipos de archivo que Claude puede procesar:
 
 Los detalles exactos de tipos soportados y límites de tamaño pueden cambiar — consultá la documentación oficial.
 
+### El parámetro `purpose`
+
+Cada archivo subido declara un **`purpose`** (ej: `"vision"`) que le dice a Anthropic cómo validar y referenciarlo. Es el campo que a más gente se le escapa la primera vez, porque con key válida el upload devuelve `400` sin explicar cuál `purpose` elegir.
+
+| Valor | Cuándo | Dónde se usa |
+|-------|--------|--------------|
+| `"vision"` | PDFs, imágenes, texto que vas a pasar al modelo | Bloques `document` e `image` con `source.type: "file"` |
+| (otros) | Skills upload y code execution usan endpoints distintos (Módulos 7-8) | No aplica a Files API general |
+
+Si tu caso es "quiero preguntarle a Claude sobre este archivo", la respuesta es casi siempre `purpose: "vision"`.
+
+### Lifecycle de un archivo: crear → usar → borrar
+
+Files API no es un filesystem persistente para tu app — es un **workspace de binarios asociado a tu workspace de Anthropic**. El lifecycle conceptual:
+
+```
+[local disk]
+     │ POST /v1/files (multipart: file + purpose)
+     ▼
+[Anthropic storage] ── file_id ──► referenciás en /v1/messages (N veces)
+     │ DELETE /v1/files/:id (cuando termina tu pipeline)
+     ▼
+[limpio]
+```
+
+Tres decisiones que vale la pena tomar antes de subir un archivo:
+
+- **¿Por cuánto tiempo lo voy a usar?** Si son minutos (un pipeline batch que termina), borrá apenas terminás. Si son días/semanas (un PDF de referencia que consulta mucha gente), dejalo.
+- **¿Quién lo puede ver?** El scope de Files API es **workspace**. Cualquier API key del mismo workspace puede referenciar el `file_id`. Si tu workspace tiene múltiples miembros o apps, considerá si el archivo es adecuado para ese scope.
+- **¿Qué pasa si falla un upload?** Manejá `413 Payload Too Large` (archivo excede el límite) y `400` (mime_type no soportado o purpose inválido) antes de pasar al `messages.create`.
+
+### Conceptos de arquitecto
+
+- **Files API evita dos problemas simultáneos**: payload gigante en cada request (costo de red + riesgo de timeouts) y reproceso del archivo en cada request (overhead de parsing dentro de Anthropic). La ganancia escala con N (llamadas) × S (tamaño del archivo).
+- **Prompt caching no reemplaza Files API**: el caching del Módulo 6 reduce tokens de **prompts repetidos**, pero si el payload del archivo viaja en cada llamada seguís pagando ancho de banda y serialización. Files API corta ese viaje de raíz.
+- **Nunca es el Files API de tu app**: no lo uses como blob storage general. Los archivos son para pasarle contenido a Claude. Si tu app necesita guardar archivos del usuario a largo plazo, usá S3/R2/GCS. Files API es un staging area para consulta.
+
 ## Ejecución real
 
 Este ejercicio es exploratorio desde la Console. No hacemos curl porque Files API es beta y los snippets pueden cambiar.
@@ -164,6 +201,9 @@ Es un patrón de **upload once, reference many times** — idéntico a cómo fun
 - ❌ **No limpiar archivos viejos**. Los archivos subidos persisten en tu workspace. Borrá los que ya no necesitás con `DELETE /v1/files/{file_id}` para mantener el workspace limpio.
 - ❌ **Asumir que Files API funciona sin el beta header**. Files API requiere `anthropic-beta: files-api-2025-04-14`. Sin el header, el endpoint no existe.
 - ❌ **Mandar archivos enormes inline en el body de `/v1/messages`**. Un PDF de 10MB como base64 en un JSON es ~13MB de payload — lento, frágil, y puede exceder límites del servidor. Files API es la solución para archivos grandes.
+- ❌ **Hardcodear `file_id` en el código fuente**. Los IDs se generan al upload y están scoped al workspace. Si los dejás como constantes, la primera rotación de archivos rompe el código. Subilos en un script, pasá el `id` por env var o por config.
+- ❌ **Usar Files API como "mini-S3" de tu app**. No está diseñado para ser el storage primario de objetos de usuario. No tiene CDN, no tiene signed URLs, no tiene versionado. Es un staging area para pasarle archivos al modelo — nada más.
+- ❌ **Asumir que borrar un archivo invalida referencias cacheadas**. Si tu pipeline tiene un caché de `file_id` → resultado de Claude, borrar el archivo en Anthropic no limpia tu caché local. Hacés ambas limpiezas de forma coordinada, o invalidás tu caché por TTL.
 
 ## Recap
 

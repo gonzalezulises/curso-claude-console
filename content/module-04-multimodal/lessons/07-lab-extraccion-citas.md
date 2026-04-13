@@ -256,6 +256,25 @@ Una vez que el pipeline base funciona, podés extenderlo:
 3. **Long context beta**: con corpus ≥200K tokens, agregá el beta header `context-1m-2025-08-07`.
 4. **UI de citas hoverables**: en una web, cada footnote puede hacer highlight del cited_text en el PDF original.
 
+### Cuándo este patrón deja de escalar
+
+Este pipeline es elegante pero tiene piso y techo:
+
+| Corpus | Patrón recomendado | Por qué |
+|--------|---------------------|---------|
+| 1-20 documentos, <100k tokens total | Long context + citations (este lab) | Simple, citas exactas, sin infra extra |
+| 20-100 docs, <200k total | Long context + citations + caching agresivo | Caching amortiza el costo entre queries |
+| 100-1000 docs | Híbrido: retrieval top-k + citations | Filtrás con un vector store barato antes de meter al modelo |
+| 1000+ docs | RAG clásico con vector DB dedicado | Vas a necesitar chunking, reranking, eval infra |
+
+El salto de "Long context + citations" a RAG clásico **no es un switch**, es progresivo: empezás agregando retrieval para filtrar, después chunking, después un vector store dedicado. Cada paso extra lo agregás cuando el paso anterior deja de aguantar.
+
+### Conceptos de arquitecto
+
+- **Verificabilidad vs rendimiento**: citations te da el fragmento exacto que el modelo usó, algo que un RAG típico no puede ofrecer (te da el chunk que le pasaste, no el fragmento real del razonamiento). Para dominios regulados, esa precisión justifica el mayor costo por query.
+- **Eval automática gratis**: con el `cited_text` devuelto, podés correr un test automático: ¿el fragmento aparece literalmente en el documento fuente? Si no, el modelo alucinó. Este check es una línea de código y detecta regresiones reales.
+- **El pipeline se empaqueta como `skill` o como MCP server**: el patrón de este lab (upload + query + parse citas) aparece en varios proyectos. Cuando se repite 3+ veces, extraelo a una skill (Módulo 8) o a un server MCP (Módulo 7) para reutilizarlo entre agentes y equipos.
+
 ## Anti-patterns
 
 - ❌ **Llamar al pipeline con documentos que cambian seguido sin cleanup**. Files API acumula archivos — siempre borrá al terminar si son temporales.
@@ -263,6 +282,8 @@ Una vez que el pipeline base funciona, podés extenderlo:
 - ❌ **No diferenciar titles de documentos**. Si los 3 papers se llaman "paper.txt", las citations son indistinguibles. Siempre títulos descriptivos.
 - ❌ **Usar este patrón para corpus masivo (100+ docs)**. No escala. Ahí sí necesitás RAG con vector store — citations te sirve dentro del subconjunto retrieval-seleccionado.
 - ❌ **Mostrar el resumen sin citas al usuario**. Si activaste citations, muéstralas. Sino pagaste tokens extra sin valor para el end-user.
+- ❌ **Indexar los documentos cada request**. Si tus 3 PDFs no cambian, subí una vez a Files API y guardá los `file_id` en tu DB. Re-uploadearlos en cada query cuesta ancho de banda y latencia.
+- ❌ **Usar Sonnet cuando Haiku alcanza**. Para preguntas directas sobre un corpus, Haiku suele dar respuestas correctas con citas al 1/8 del costo. Validá con Haiku primero; subí a Sonnet solo si falla en casos concretos.
 
 ## Recap
 

@@ -82,6 +82,28 @@ Para **iterar prompts** (que es lo que hacés en el Workbench), usá cualquier m
 
 Cuando exportes con Get Code (Lección 06), cambiá el snapshot por el **alias estable** en tu código de producción.
 
+### Temperature y thinking: la interacción que sorprende
+
+No son parámetros ortogonales. Algunas combinaciones tienen más sentido que otras:
+
+| `temperature` | `thinking` | Caso típico |
+|---------------|------------|-------------|
+| 0 | Disabled | Extracción, clasificación, parseo — determinismo estricto |
+| 0 | Enabled | Razonamiento multi-paso que debe ser reproducible (evals, tests de regresión) |
+| 0.7 | Disabled | Redacción general, resúmenes, explicaciones |
+| 0.7 | Enabled | Análisis cualitativo donde querés ver el razonamiento sin forzar determinismo |
+| 1.0 | Disabled | Brainstorming, generación creativa, ideación de nombres |
+| 1.0 | Enabled | Raro — la varianza alta diluye el beneficio del razonamiento paso a paso |
+
+La intuición: thinking funciona mejor con temperaturas bajas porque el razonamiento se apoya en cadenas consistentes. Con temperature 1 y thinking activo, el modelo explora ramas que luego descarta — gastás tokens de thinking sin mucha ganancia.
+
+### Conceptos de arquitecto
+
+- **Los 3 parámetros del Workbench son los únicos que mueven la aguja en el 99% de los casos**. Si estás tentado de tocar `top_p` o `top_k`, pará: probablemente el problema real es el prompt, no el sampling. Anthropic intencionalmente no los expone en el Workbench para evitar que devs gasten horas debuggeando el parámetro equivocado.
+- **Max tokens como contrato económico**: es la única variable que te protege de un bill inesperado si el modelo alucina o entra en un loop. Ponela siempre ajustada al rango esperado, no al máximo del modelo.
+- **Thinking no es un "mejorador" universal**: para tareas atómicas (extraer un campo, clasificar en 4 clases) thinking suele empeorar el output — el modelo razona cuando no hace falta y puede introducir segundas adivinadas. Activalo solo cuando haya varios pasos encadenados.
+- **Reproducibilidad real**: temperature 0 no garantiza determinismo absoluto entre corridas (hay factores de infra). Si necesitás reproducibilidad forense (ej: una respuesta auditable), guardá el request Y la response — temperature 0 es necesaria pero no suficiente.
+
 ## Ejecución real
 
 **Paso 1 — Experimentar con temperature**
@@ -135,6 +157,8 @@ Si el modelo falla sin thinking pero acierta con él, tenés un caso donde think
 - ❌ **Confundir temperature con "inteligencia"**. Temperature 0 no es más inteligente que 1. Es más predecible. La calidad depende del modelo (Haiku vs Sonnet vs Opus), no de la temperature.
 - ❌ **Usar snapshots en tu código de producción**. El Workbench muestra `claude-sonnet-4-5-20250929` — no copies eso a tu código. Usá aliases estables (`claude-sonnet-4-6`).
 - ❌ **Buscar top_p/top_k en el Workbench**. No están. Usá la API directa si realmente los necesitás (en la práctica, temperature solo cubre el 99% de los casos).
+- ❌ **Dejar thinking activo "por las dudas" en un prompt productivo**. Duplica o triplica el output_tokens. Medí con y sin thinking sobre 10 casos: si la calidad no mejora de forma consistente, apagalo.
+- ❌ **Mover temperature de 1 a 0.5 esperando menos varianza y seguir sorprendiéndote**. El cambio grande es de 1 → 0 (o 0.2). Entre 0.5 y 1.0 la varianza es similar en la práctica para la mayoría de tasks.
 
 ## Recap
 
