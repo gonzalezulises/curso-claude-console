@@ -64,6 +64,7 @@ Al terminar esta lección sabrás **implementar el loop completo de tool use**: 
 El array `messages` crece a lo largo del loop:
 
 <terminology>
+
 **Mensaje 1** (`role: "user"`): tu pregunta original.
 
 **Mensaje 2** (`role: "assistant"`): el turno del modelo con el `tool_use` block. **Debés incluir el content EXACTO que devolvió la API** — incluido el `id` del tool_use. Sin eso, el modelo no puede matchear el result.
@@ -71,6 +72,7 @@ El array `messages` crece a lo largo del loop:
 **Mensaje 3** (`role: "user"`): un nuevo turno del user con el `tool_result` block. El `tool_use_id` debe matchear el `id` del tool_use previo.
 
 **Mensaje 4** (`role: "assistant"`): la respuesta final del modelo, típicamente `type: "text"`, con `stop_reason: "end_turn"`.
+
 </terminology>
 
 ### La estructura de tool_result

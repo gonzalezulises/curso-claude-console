@@ -25,11 +25,13 @@ Estas tools existen principalmente en el ecosistema de **Managed Agents** y de *
 ```
 
 <terminology>
+
 **`bash_20250124`**: versión con fecha. Proximamente puede salir un update `bash_20260515` — usá siempre la última estable documentada.
 
 **`text_editor_20250124`**: la variante moderna. Tiene comandos sub-tipo: `view`, `create`, `str_replace`, `insert`, `undo_edit`.
 
 **Ambas son server-side**: Anthropic ejecuta el comando. `stop_reason: "end_turn"` al final del turno — no hay `tool_result` que devolver desde tu código.
+
 </terminology>
 
 ### bash — la tool más simple

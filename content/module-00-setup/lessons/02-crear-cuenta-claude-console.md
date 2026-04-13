@@ -21,9 +21,11 @@ La plataforma developer de Anthropic vive en **`platform.claude.com`**. Este es 
 Es distinto de **`claude.ai`** (la app de chat para consumidores). Un arquitecto de Claude Code vive en `platform.claude.com`.
 
 <terminology>
+
 **Organization**: el contenedor top-level de tu cuenta en Anthropic. Una sola organization puede agrupar múltiples workspaces, múltiples miembros, un plan de billing, y políticas de IAM. Tu API Organization UUID (tipo `1fce3c9c-ec75-4c43-8e30-9d091b3f9def`) identifica unívocamente tu organization.
 
 **Workspace**: una subdivisión lógica dentro de tu organization. Cada workspace tiene sus propias API keys, sus propios límites, y su propio tracking de uso. Útil para separar `production` de `staging`, o para aislar equipos. Cuando creas tu cuenta nueva, Anthropic te provisiona automáticamente un workspace llamado `Default`.
+
 </terminology>
 
 La distinción importa porque afecta **dónde** creas cada cosa. Los API keys normales (los que usas para llamar a `/v1/messages`) viven bajo un workspace específico. Los Admin API keys viven a nivel de organization. Los usage reports se pueden filtrar por workspace. Los límites de rate se aplican por workspace.

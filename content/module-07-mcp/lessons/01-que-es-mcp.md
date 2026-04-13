@@ -44,11 +44,13 @@ MCP hace lo mismo para agentes LLM:
 - Claude Code, Claude en Messages API, Managed Agents, y cualquier otro host que hable MCP pueden consumir ese server sin código adicional.
 
 <terminology>
+
 **Protocolo**: un contrato de mensajes. MCP define request/response shapes, nombres de métodos, y semántica. No es un SDK — es una especificación.
 
 **JSON-RPC 2.0**: el transporte subyacente. Mensajes con `jsonrpc: "2.0"`, `method`, `params`, `id`. Funciona sobre stdio (proceso local) o HTTP (remoto).
 
 **Estándar abierto**: Anthropic publicó MCP con spec pública en [modelcontextprotocol.io](https://modelcontextprotocol.io). OpenAI, Google y otros pueden implementarlo — y algunos ya lo hacen.
+
 </terminology>
 
 ### Comparación: tool use artesanal vs MCP

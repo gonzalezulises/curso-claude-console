@@ -31,7 +31,9 @@ Cuando usás `source.type: "url"`:
 3. **El modelo** procesa la imagen descargada.
 
 <warning>
+
 Esto significa que la URL debe ser **accesible públicamente** desde los servidores de Anthropic. URLs detrás de firewalls, VPNs, autenticación, o localhost **no funcionan**. Si tu imagen es privada, usá base64.
+
 </warning>
 
 ### Cuándo usar cada método
@@ -46,7 +48,9 @@ Esto significa que la URL debe ser **accesible públicamente** desde los servido
 | Reproducibilidad | 🟢 Idéntica cada vez | ⚠️ La URL puede cambiar |
 
 <terminology>
+
 **Regla práctica**: si la imagen es un archivo local o privado, base64. Si es una URL pública estable, URL. En caso de duda, base64 — siempre funciona.
+
 </terminology>
 
 ### Diferencia de tokens

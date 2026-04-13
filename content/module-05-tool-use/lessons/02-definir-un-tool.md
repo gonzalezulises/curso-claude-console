@@ -31,11 +31,13 @@ Al terminar esta lección sabrás **cómo definir un tool correctamente** con lo
 ```
 
 <terminology>
+
 **name**: identificador único. Debe matchear exactamente el nombre que devolvés en el `tool_use.name` y que usás en `tool_result`. Snake_case por convención, ASCII, sin espacios.
 
 **description**: **parte del prompt efectivo**. El modelo la lee para decidir cuándo usar la tool. Una descripción vaga = el modelo la usa en casos incorrectos o no la usa cuando debería. Invertí tiempo acá.
 
 **input_schema**: JSON Schema Draft 2020-12 para los argumentos. `type: "object"` obligatorio. `properties` describe cada campo. `required` lista los obligatorios. Claude valida sus propuestas contra este schema.
+
 </terminology>
 
 ### La description es parte del prompt
@@ -59,7 +61,9 @@ El modelo no sabe si devuelve el pronóstico, la temperatura actual, o algo espe
 ```
 
 <warning>
+
 **Regla del pulgar**: si tu description no le diría a un developer junior cuándo y cómo usar la función, no le dice al modelo tampoco. Tratá la description como documentación de una API pública.
+
 </warning>
 
 ### JSON Schema: lo que importa

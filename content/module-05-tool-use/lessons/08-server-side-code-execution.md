@@ -35,11 +35,13 @@ Pedir eso por texto libre = el modelo alucina resultados plausibles. La solució
 ```
 
 <terminology>
+
 **`type: "code_execution_20250522"`**: versión actual. Revisá la docs oficial — puede haber versiones nuevas con más features (ej. soporte de archivos, librerías extra).
 
 **`name: "code_execution"`**: nombre fijo.
 
 **Beta header requerido**: `anthropic-beta: code-execution-2025-05-22` (o equivalente actual).
+
 </terminology>
 
 ### La forma del response

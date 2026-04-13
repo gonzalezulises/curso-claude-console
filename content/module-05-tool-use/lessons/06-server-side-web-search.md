@@ -43,11 +43,13 @@ Tu código                              Anthropic
 ```
 
 <terminology>
+
 **`type: "web_search_20250305"`**: versión de la server-side tool. El `_20250305` es el date de release — usalo tal cual.
 
 **`name: "web_search"`**: nombre fijo; el modelo lo invoca con ese nombre.
 
 **`max_uses`**: tope de búsquedas por turno. Limita costo y latencia. Default: ilimitado dentro de `max_tokens`; sea explícito (3-5 típico).
+
 </terminology>
 
 ### La forma del response — 4 content blocks

@@ -40,6 +40,7 @@ La forma canónica (verificada con la documentación oficial):
 Las variantes posibles del objeto `thinking`:
 
 <terminology>
+
 **`{ type: "enabled", budget_tokens: N }`** — activa extended thinking. `budget_tokens` es cuántos tokens puede gastar el modelo razonando. **Restricciones duras**:
 - `budget_tokens` debe ser ≥ **1024**.
 - `budget_tokens` debe ser **estrictamente menor** que `max_tokens`.
@@ -51,6 +52,7 @@ Las variantes posibles del objeto `thinking`:
 **`display: "summarized"` | `"omitted"`** — campo opcional en `enabled` y `adaptive`. Controla cómo aparecen los bloques `thinking` en la respuesta:
 - `"summarized"` (default): devuelve un resumen del razonamiento, legible, con la firma que permite continuar multi-turno.
 - `"omitted"`: no devuelve el contenido, pero sí una firma criptográfica (`signature`) que podés reusar en turnos posteriores para que el modelo "recuerde" su razonamiento sin exponerlo al cliente.
+
 </terminology>
 
 El piso de 1024 tokens es **diseño, no arbitrario**: debajo de ese número el razonamiento no tiene suficiente espacio para ser útil y Anthropic prefiere que ni lo intentes. Si solo necesitás 500 tokens de razonamiento, probablemente no necesitás extended thinking — un CoT clásico en el prompt alcanza.

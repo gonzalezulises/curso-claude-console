@@ -19,11 +19,13 @@ No hay endpoints separados para "chat" vs "completion" vs "tool use". Es uno sol
 ### Los tres headers obligatorios
 
 <terminology>
+
 **`x-api-key`** — tu workspace API key (`sk-ant-api03-...`). Es cómo Anthropic te autentica y te factura.
 
 **`anthropic-version`** — la versión del protocolo HTTP. El valor estable actual es `2023-06-01`. Esta versión no cambia al ritmo de los modelos — es la versión de **cómo hablas con la API**, no del modelo.
 
 **`content-type`** — `application/json`, porque el body es JSON. Obvio pero obligatorio.
+
 </terminology>
 
 Hay un cuarto header opcional pero muy importante: **`anthropic-beta`**, que activa features beta (prompt caching extendido, contexto de 1M, skills, managed agents, etc.). No lo necesitas en esta lección.

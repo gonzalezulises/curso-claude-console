@@ -24,6 +24,7 @@ Para enviar un PDF, usás un bloque `type: "document"`:
 ```
 
 <terminology>
+
 **source.type**: tres opciones — `"base64"` (PDF embebido), `"text"` (plain text embebido), o `"file"` (referencia a Files API).
 
 **source.media_type**: `"application/pdf"` para PDFs, `"text/plain"` para texto plano.
@@ -31,6 +32,7 @@ Para enviar un PDF, usás un bloque `type: "document"`:
 **title**: opcional pero recomendado. Aparece en los objetos de citation como `document_title` — útil cuando enviás varios documentos y querés distinguir de cuál vino cada cita.
 
 **citations.enabled**: si `true`, Claude devuelve citas estructuradas con page/char location. Si `false` u omitido, responde sin citas (más barato y rápido).
+
 </terminology>
 
 ### Cómo procesa Claude un PDF

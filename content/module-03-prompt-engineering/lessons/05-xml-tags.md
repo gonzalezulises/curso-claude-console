@@ -31,6 +31,7 @@ Los XML tags ganan por tres razones técnicas:
 No hay una lista oficial cerrada — Anthropic usa muchas combinaciones. Pero hay tags que aparecen en la documentación con frecuencia y son buenos defaults:
 
 <terminology>
+
 **`<instructions>`** — la tarea que el modelo debe ejecutar. Va al principio. Contiene verbos imperativos y outcomes.
 
 **`<context>` o `<background>`** — información de contexto que el modelo debe usar pero no es el input principal. Ej: información sobre la empresa, el usuario, el dominio.
@@ -44,6 +45,7 @@ No hay una lista oficial cerrada — Anthropic usa muchas combinaciones. Pero ha
 **`<criteria>` o `<rubric>`** — criterios de evaluación. Útil cuando pedís a Claude que juzgue, clasifique o puntúe algo.
 
 **`<thinking>`** (dentro del prompt, no confundir con extended thinking) — un scratchpad donde Claude "piensa" antes de responder. Técnica alternativa a CoT explícito.
+
 </terminology>
 
 Usá las que tengan sentido semántico para tu prompt. **No inventes tags porque sí** — si tu prompt tiene una sola sección, no necesita tags.
@@ -127,7 +129,7 @@ curl -s https://api.anthropic.com/v1/messages \
 
 Output real:
 
-```
+````
 ```json
 {
   "sender": "Ana García",
@@ -138,7 +140,7 @@ Output real:
 ```
 
 usage: input_tokens=141, output_tokens=59
-```
+````
 
 En este caso Claude **resistió el intento de inyección** e hizo la extracción correctamente. Pero fijate: lo único que separa la instrucción del email son saltos de línea. **Para un modelo entrenado con XML, eso es una señal débil**, y en inputs más largos o con intentos de inyección más sofisticados la separación puede fallar.
 
@@ -163,7 +165,7 @@ curl -s https://api.anthropic.com/v1/messages \
 
 Output real:
 
-```
+````
 ```json
 {
   "sender": "Ana García",
@@ -174,7 +176,7 @@ Output real:
 ```
 
 usage: input_tokens=179, output_tokens=59
-```
+````
 
 Mismo resultado funcional: extracción correcta, inyección ignorada. La versión con XML tags gastó **+38 input tokens** por las tags, pero ganó:
 

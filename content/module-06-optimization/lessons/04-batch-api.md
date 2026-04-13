@@ -45,9 +45,11 @@ POST /v1/messages/batches
 ```
 
 <terminology>
+
 **`custom_id`**: identificador que vos elegís, único dentro de la batch. Los resultados pueden volver en orden arbitrario — usás el `custom_id` para matchearlos a tu input.
 
 **`params`**: es un objeto idéntico al body de `/v1/messages` — mismos campos (`model`, `max_tokens`, `system`, `messages`, `tools`, etc.). Cada request dentro de la batch puede usar **distintos** modelos y parámetros.
+
 </terminology>
 
 Response inmediato:

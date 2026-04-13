@@ -11,11 +11,13 @@ El body de `/v1/messages` es un JSON con unos pocos campos obligatorios y un pu�
 ### Los 3 campos obligatorios
 
 <terminology>
+
 **`model`** *(string)* — alias o snapshot del modelo a usar. `claude-haiku-4-5`, `claude-sonnet-4-6`, `claude-opus-4-6` o un snapshot con fecha.
 
 **`max_tokens`** *(integer)* — techo superior de tokens que Claude puede generar en esta respuesta. Es un **máximo**, no un objetivo: el modelo puede (y suele) terminar antes. Obligatorio porque la API se niega a dejarte pedir una respuesta sin cota.
 
 **`messages`** *(array)* — la lista de turnos de la conversación. Cada elemento es `{ "role": "user" | "assistant", "content": <string | array de bloques> }`. Ya vamos a ver multi-turno en la Lección 05.
+
 </terminology>
 
 Con esos tres campos ya tenés un request válido. Los demás son opcionales, pero los vas a usar muchísimo.

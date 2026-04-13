@@ -51,6 +51,7 @@ En Node/TS con el SDK oficial esto está abstraído, pero entenderlo a mano te d
 En orden cronológico de una respuesta típica:
 
 <terminology>
+
 **`message_start`** — se envía una sola vez al inicio. La carga es un objeto `message` con `id`, `model`, `role`, `content: []` (vacío), `stop_reason: null`, y un `usage` **inicial** que ya contiene `input_tokens` definitivo pero `output_tokens: 1` (sí, 1 — no 0; el API cuenta desde el primer token). Pensalo como "el esqueleto del mensaje que va a ir llenándose".
 
 **`content_block_start`** — se envía cada vez que empieza un nuevo bloque dentro de `content[]`. Incluye `index` (0, 1, 2...) y el objeto `content_block` inicial vacío: `{ "type": "text", "text": "" }`, o `{ "type": "tool_use", ... }`, o `{ "type": "thinking", ... }`. Un stream puede tener varios `content_block_start` si la respuesta tiene múltiples bloques.
@@ -64,6 +65,7 @@ En orden cronológico de una respuesta típica:
 **`message_stop`** — último evento. Indica que terminó todo. No trae carga útil — es un marcador de EOF.
 
 **`ping`** — evento de keepalive que la API puede emitir en cualquier momento para evitar que intermediarios cierren la conexión por idle. Ignoralo en el parser — no aporta data.
+
 </terminology>
 
 **Gotcha importante**: el `usage` del `message_start` y el del `message_delta` **no son iguales**. El de `message_start` es preliminar (`output_tokens: 1` por protocolo); el de `message_delta` es el acumulado real al final. **Para contar tokens, leé el `message_delta`**, no el `message_start`.

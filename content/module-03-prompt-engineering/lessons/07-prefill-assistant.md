@@ -41,11 +41,13 @@ Es la técnica más barata y confiable para forzar formato hasta que llegues a s
 ### Los 3 casos de uso clásicos
 
 <terminology>
+
 **1. Forzar JSON válido**: prefill con `{` o `[`. Claude continúa con JSON válido. Concatená el prefill con la respuesta para tener el JSON completo.
 
 **2. Forzar idioma**: prefill con el inicio de una frase en el idioma deseado. Ej: `"Acá está la respuesta:"` fuerza español, `"Here is the answer:"` fuerza inglés. El modelo continúa en el mismo idioma.
 
 **3. Forzar estructura de output**: prefill con el inicio del formato. Ej: `"| Nombre | Empresa | Monto |\n|"` fuerza tabla markdown. `"1."` fuerza lista numerada. `"<result>"` fuerza que el output empiece con un tag XML.
+
 </terminology>
 
 ### ¿Qué pasa con el prefill en la respuesta?

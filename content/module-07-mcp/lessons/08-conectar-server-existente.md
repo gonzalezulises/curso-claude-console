@@ -25,11 +25,13 @@ npx -y @modelcontextprotocol/server-filesystem /ruta/permitida
 La flag `-y` le dice a npx "descargá si hace falta, sin preguntar". Los servers TypeScript del repo corren sobre Node; los Python usan `uv`. Revisá el README del server específico al integrarlo.
 
 <terminology>
+
 **stdio transport**: estos servers usan stdin/stdout para hablar JSON-RPC. Cada mensaje va en **una línea** (NDJSON). stderr queda libre para logs del server.
 
 **Allowed directory**: el server `filesystem` pide un directorio como argumento. Todas las operaciones se limitan a ese scope — cualquier path afuera devuelve "Access denied".
 
 **Normalización de paths**: en macOS, `/tmp` es symlink a `/private/tmp`. El server resuelve el symlink al validar. Si al server le diste `/private/tmp/x`, pedirle que lea `/tmp/x` falla. Usá siempre el path resuelto.
+
 </terminology>
 
 ### Handshake a mano: tres mensajes

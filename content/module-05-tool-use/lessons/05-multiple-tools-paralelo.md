@@ -24,9 +24,11 @@ assistant (un solo turno):
 El modelo identificó que las dos tools son independientes (no hace falta el resultado de una para llamar a la otra) y propuso las dos simultáneamente. **Esto reduce latencia**: en vez de 2 roundtrips (pregunta → tool A → result A → tool B → result B → respuesta), hacés 1 roundtrip con 2 resultados.
 
 <terminology>
+
 **Parallel tool use**: el modelo emite >1 `tool_use` block en el mismo turno de assistant. Todos los IDs son distintos. `stop_reason` sigue siendo `tool_use`.
 
 **Secuencial** (NO paralelo): el modelo emite 1 solo `tool_use`, espera tu `tool_result`, y solo entonces decide si llamar a otra tool. Esto pasa cuando la segunda tool depende del resultado de la primera.
+
 </terminology>
 
 ### Cómo responder con múltiples tool_results

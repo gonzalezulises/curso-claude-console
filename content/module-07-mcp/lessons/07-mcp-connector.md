@@ -19,11 +19,13 @@ El **MCP Connector** es una feature beta de la Messages API que hace a la API **
 Todo en un solo round-trip desde tu código.
 
 <terminology>
+
 **Beta header**: `anthropic-beta: mcp-client-2025-04-04`. Sin este header, el parámetro `mcp_servers` no es aceptado (HTTP 400: "Extra inputs are not permitted"). Existe también `mcp-client-2025-11-20` en el catálogo de betas — consultá las docs específicas para saber cuál recomienda Anthropic para tu caso.
 
 **URL server**: por ahora el MCP Connector solo acepta servers MCP accesibles por URL (transporte `streamable-http`). Servers stdio locales NO se pueden conectar via Connector — para eso usás Claude Code o tu propio client MCP (lección 8).
 
 **Tool configuration**: un filtro que le decís al Connector para limitar qué tools del server se exponen al modelo (`allowed_tools: ["only_this_one"]`) o desactivarlas del todo (`enabled: false`).
+
 </terminology>
 
 ### Shape del request

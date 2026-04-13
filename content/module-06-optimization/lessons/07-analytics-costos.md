@@ -162,8 +162,8 @@ Algunas cuentas enterprise tienen acceso a un endpoint de Cost & Usage que devue
 
 En `platform.claude.com`:
 - **Home → Usage**: gráficos de costo por día, split por modelo.
-- **Workspaces → <workspace> → Usage**: el mismo breakdown pero filtrado por workspace.
-- **API Keys → <key> → Usage**: por-key (si hay múltiples apps).
+- **Workspaces → `<workspace>` → Usage**: el mismo breakdown pero filtrado por workspace.
+- **API Keys → `<key>` → Usage**: por-key (si hay múltiples apps).
 
 Usá los filtros de **fecha**, **modelo**, y **workspace** para encontrar el hotspot.
 

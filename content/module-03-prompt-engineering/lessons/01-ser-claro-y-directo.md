@@ -13,6 +13,7 @@ Anthropic documenta una regla muy simple para Claude 4.x: **decile al modelo exa
 Lo que cuenta como "directo":
 
 <terminology>
+
 **Verbo imperativo al inicio**: `Resumí`, `Listá`, `Traducí`, `Clasificá`, `Extraé`. No `¿Podrías...?` ni `Necesito que...`. El modelo no se ofende; gasta tokens en parsear la cortesía.
 
 **Outcome medible**: `en 3 bullets`, `máximo 15 palabras por bullet`, `en formato JSON con las claves X, Y, Z`, `sin exceder 200 tokens`. "Sé breve" no es medible. "3 bullets de 15 palabras" sí.
@@ -22,6 +23,7 @@ Lo que cuenta como "directo":
 **Formato de salida fijado**: Decile si querés markdown, JSON, texto plano, CSV. Si no lo decís, Claude va a elegir (y suele elegir markdown con headings y emojis, que es lo que **no** querés consumir desde código).
 
 **Audiencia implícita del output**: `para que lo lea un parser`, `para un developer senior`, `para un estudiante`, `para copiar-pegar a un ticket de Jira`. Ancla el nivel de detalle y el registro.
+
 </terminology>
 
 ### Por qué importa: el modelo "rellena los huecos" con sus priors

@@ -53,11 +53,13 @@ Podés marcar un bloque con `cache_control`, y Anthropic cachea **todo lo que es
 ```
 
 <terminology>
+
 **Breakpoint**: un `cache_control` sobre un content block. El block y todo lo anterior (tools, system previos, messages previos) se cachea hasta ese punto.
 
 **Ephemeral**: único tipo soportado hoy. TTL default `5m`, opcional `1h` (beta — ver lección 03).
 
 **Prefix match**: el cache hit requiere que los bytes del prefix sean **idénticos** al request original. Un carácter distinto → cache miss.
+
 </terminology>
 
 ### Mínimos de tokens cacheables

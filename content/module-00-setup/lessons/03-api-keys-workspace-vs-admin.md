@@ -11,9 +11,11 @@ Al terminar esta lección sabrás **cuántos tipos de API keys existen en Anthro
 Anthropic maneja dos familias distintas de API keys. La diferencia no es cosmética — cada una abre puertas a endpoints distintos, y confundirlas te puede costar caro.
 
 <terminology>
+
 **Workspace API key** — el prefijo es `sk-ant-api03-...`. Da acceso a los endpoints de **inferencia** (`/v1/messages`, `/v1/messages/count_tokens`, `/v1/messages/batches`, `/v1/files`, `/v1/models`, etc.). Vive **dentro de un workspace específico** y hereda sus rate limits. Es la key que tu aplicación backend usa en producción para hablar con los modelos.
 
 **Admin API key** — el prefijo es `sk-ant-admin01-...`. Da acceso a los endpoints de **gobernanza** bajo `/v1/organizations/*` (leer info de la org, listar workspaces, crear/rotar/archivar workspace keys, generar reportes de uso y costo, gestionar miembros e invitaciones). Vive a **nivel de organization**, no de workspace. Es la key que un script de automatización usa para tareas administrativas.
+
 </terminology>
 
 Regla mental corta: **workspace key = runtime, admin key = IAM + billing**. Son dominios distintos.

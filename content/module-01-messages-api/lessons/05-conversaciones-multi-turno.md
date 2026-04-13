@@ -73,11 +73,13 @@ En el Módulo 9 (Managed Agents) vas a ver una tercera opción que Anthropic ofr
 Si el último turno del array `messages` es `{ "role": "assistant", "content": "<texto parcial>" }`, Claude interpreta eso como **"el assistant ya empezó a hablar así, continuá desde ahí"**. Es la puerta de atrás para:
 
 <terminology>
+
 **Forzar formato JSON real** — ponés `{ "role": "assistant", "content": "{" }` y Claude continúa escribiendo el JSON, sin markdown alrededor. Como el assistant ya "abrió" el JSON, tiene que cerrarlo.
 
 **Forzar que arranque con una palabra específica** — si querés que la respuesta empiece con "Sí," o "Basado en los datos:", metelo en el prefill.
 
 **Saltar explicaciones innecesarias** — si Claude suele responder con un preámbulo "Claro, aquí tienes..." que no querés, prefilleá con lo que sí querés que empiece.
+
 </terminology>
 
 **La gotcha crítica del prefill**: la respuesta **NO incluye el prefill**. Si prefilleaste con `"{"`, `content[0].text` va a contener lo que Claude generó **después** del `{` — o sea, NO tiene el `{`. Para reconstruir el output completo tenés que **concatenar prefill + respuesta en tu cliente**.

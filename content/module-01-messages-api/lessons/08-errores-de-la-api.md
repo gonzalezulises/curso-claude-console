@@ -32,6 +32,7 @@ Lo bueno de tener un shape único: tu código de manejo de errores es un solo lu
 ### La tabla de códigos HTTP y qué significan
 
 <terminology>
+
 **`400 invalid_request_error`** — tu request está mal formado. Campos faltantes (`max_tokens`), JSON roto, modelos inexistentes a veces, parámetros fuera de rango, tipos incorrectos. **Fatal**: reintentar con el mismo body va a fallar igual. El mensaje te dice qué campo está mal.
 
 **`401 authentication_error`** — la `x-api-key` es inválida, revocada, o está mal. **Fatal** en caliente: reintentar con la misma key no sirve. Acción: alertar al equipo porque probablemente la key se rotó y tu app no se enteró.
@@ -47,6 +48,7 @@ Lo bueno de tener un shape único: tu código de manejo de errores es un solo lu
 **`500 api_error`** — algo se rompió del lado del servidor de Anthropic y no es tu culpa. **Reintentable con backoff**: raro de ver, pero si pasa, es un problema transitorio.
 
 **`529 overloaded_error`** — la infraestructura de Anthropic está saturada. Pasa en picos de demanda. **Reintentable con backoff más largo**: la API básicamente te pide que la dejes respirar.
+
 </terminology>
 
 ### La política por código

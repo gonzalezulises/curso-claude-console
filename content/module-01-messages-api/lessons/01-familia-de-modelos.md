@@ -11,11 +11,13 @@ Al terminar sabrás **cuándo usar Haiku 4.5, Sonnet 4.6 u Opus 4.6**, cómo com
 En la generación actual (4.x) hay **tres modelos que vas a usar en el día a día**, y cada uno está optimizado para un punto distinto del triángulo inteligencia/velocidad/costo:
 
 <terminology>
+
 **`claude-haiku-4-5`** — el más rápido y barato. Descrito oficialmente como "el modelo más veloz con inteligencia cercana a frontier". Es tu **default mental**: arranca todo prototipo y toda lección con Haiku, y solo sube si el resultado no alcanza.
 
 **`claude-sonnet-4-6`** — el balance entre velocidad e inteligencia. Pensado para agents y coding en producción cuando Haiku se queda corto pero no necesitas lo máximo. Mismo precio que Sonnet 4.5 y Sonnet 4, pero más capaz que ambos.
 
 **`claude-opus-4-6`** — el modelo más inteligente de la familia, pensado para **building agents and coding** complejos. También es el único que soporta **fast mode** (output ~6x más rápido a 6x el precio) como research preview.
+
 </terminology>
 
 Hay modelos previos (4.5, 4.1, 4.0, 3.7, 3.5, etc.) todavía disponibles por compatibilidad, pero no los vas a elegir para proyectos nuevos salvo razón específica de reproducibilidad. Son los 4.6/4.5 los que debés tener en la cabeza.

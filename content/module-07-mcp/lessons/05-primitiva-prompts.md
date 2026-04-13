@@ -17,11 +17,13 @@ Ejemplo: un server de GitHub podría ofrecer un prompt `summarize_pr` que, dado 
 El usuario lo invoca — no el modelo. El host lo expande y lo manda a Claude como parte del mensaje.
 
 <terminology>
+
 **Slash command**: la forma habitual en que los hosts exponen prompts al user. Claude Code muestra los prompts de servers conectados como `/server-name:prompt-name`.
 
 **Prompt vs tool**: el modelo invoca tools; el user invoca prompts. Un prompt genera **mensajes** (típicamente para empujar al modelo en una dirección); una tool ejecuta código y devuelve datos.
 
 **Argument**: parámetros que el user (o el host) rellena al invocar el prompt. El server declara qué argumentos acepta.
+
 </terminology>
 
 ### Los dos métodos

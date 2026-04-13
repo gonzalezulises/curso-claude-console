@@ -46,6 +46,7 @@ print(message.content)
 El snippet exportado es un **punto de partida**, no un producto terminado. Estos son los cambios obligatorios:
 
 <terminology>
+
 **1. La API key hardcodeada**: el snippet genera `api_key="my_api_key"` como placeholder. En producción, **nunca hardcodeés la key**. Usá `process.env.ANTHROPIC_API_KEY` (TS) o `os.environ.get("ANTHROPIC_API_KEY")` (Python). El SDK lee la variable de entorno por defecto si no le pasás nada — omití el parámetro directamente.
 
 **2. El snapshot del modelo**: el snippet usa el snapshot exacto del Workbench (ej: `claude-sonnet-4-5-20250929`). En producción, **cambiá al alias estable** (`claude-sonnet-4-6`). Los aliases apuntan al snapshot más reciente del modelo, así recibís mejoras automáticas.
@@ -55,6 +56,7 @@ El snippet exportado es un **punto de partida**, no un producto terminado. Estos
 **4. Retries y error handling**: el snippet no tiene ningún manejo de errores. En producción, **agregá retries con exponential backoff** (que ya aprendiste en el Módulo 1, Lección 09) y handling de errores 429/500/529.
 
 **5. Logging**: el snippet hace `print(message.content)`. En producción, **loggeá** `usage.input_tokens`, `usage.output_tokens`, `stop_reason`, y el costo estimado. Es la base de observabilidad que vas a ver en el Módulo 6.
+
 </terminology>
 
 ### El snippet como "contrato" entre UI y código

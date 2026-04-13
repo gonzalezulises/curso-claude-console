@@ -32,9 +32,11 @@ No hay orden obligatorio, pero esta heurística funciona bien:
 ```
 
 <terminology>
+
 **Por qué en este orden**: Claude lee los bloques en secuencia. Si ponés la pregunta primero, el modelo aún no tiene el contexto (documentos + imágenes). Al ponerla al final, el modelo llega a la pregunta ya habiendo "procesado" todo el material.
 
 **Excepción**: si tu prompt tiene instrucciones muy específicas sobre cómo leer los documentos, podés poner una breve instrucción al principio y la pregunta concreta al final — es el mismo patrón de "pre-instrucción + material + post-pregunta" que usás en documentos largos.
+
 </terminology>
 
 ### Casos de uso típicos
@@ -85,7 +87,9 @@ Cada modalidad consume tokens — sumalos antes de armar un request pesado:
 Un request con 2 imágenes + PDF de 5 páginas + pregunta: ~15,000-20,000 input tokens. Para contexto, claude-sonnet-4-6 maneja hasta 200K tokens por default (1M con beta `context-1m-2025-08-07`).
 
 <warning>
+
 **Regla de composición**: antes de armar un request multimodal grande, preguntate "¿puedo resolver esto con menos contexto?" A veces un resumen en texto del PDF basta en vez del PDF entero. Menos tokens = menos costo, menos latencia, mejor foco del modelo.
+
 </warning>
 
 ## Ejecución real

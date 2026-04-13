@@ -84,7 +84,9 @@ Por eso la mayoría de los hosts **no lo habilitan por default**. Claude Code hi
 3. Pone límites duros de tokens y costos por sesión.
 
 <warning>
+
 Si vas a habilitar sampling en un host que estás construyendo, tratalo como dar shell a un proceso externo. Auditá, rate-limitá, confirmá. La capability técnicamente es opcional — activala solo si el caso lo justifica.
+
 </warning>
 
 ### Roots: el server pregunta "¿qué puedo mirar?"

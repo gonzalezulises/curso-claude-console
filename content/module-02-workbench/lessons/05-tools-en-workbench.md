@@ -11,9 +11,11 @@ Al terminar sabrás **cómo definir tools custom en el panel Tools del Workbench
 En el Workbench, el panel derecho tiene un ícono de herramientas que abre el panel **Tools**. Tiene dos tabs:
 
 <terminology>
+
 **Custom**: donde definís tools propias con un JSON schema. Cuando definís un tool acá, el Workbench lo incluye en el request como parámetro `tools` y Claude puede invocarlo durante la generación.
 
 **Web search**: toggle para habilitar la herramienta de búsqueda web de Anthropic. Claude puede buscar en la web para responder preguntas que requieren información actualizada.
+
 </terminology>
 
 El estado inicial muestra: "No tools defined. Tools let you equip Claude with a variety of tasks. Learn more."

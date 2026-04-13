@@ -44,6 +44,7 @@ Regla operativa: **si la instrucción aplica a toda la conversación, va en `sys
 Los elementos que importan para que el system realmente mueva la aguja:
 
 <terminology>
+
 **Rol explícito**: "Eres un X con Y experiencia". Da al modelo un ancla semántica. "Eres un asistente" no sirve — demasiado genérico. "Eres un ingeniero de redes con 15 años de experiencia explicando a pares técnicos" mueve el registro y la jerga.
 
 **Audiencia explícita**: "respondes a developers senior", "explicas a estudiantes de secundaria", "redactas para equipo legal". Cambia el vocabulario y el nivel de detalle.
@@ -53,6 +54,7 @@ Los elementos que importan para que el system realmente mueva la aguja:
 **Restricciones explícitas**: "no uses emojis", "no uses tablas", "no incluyas disclaimers". Las restricciones negativas funcionan bien cuando son específicas; las genéricas ("sé breve") no mueven tanto.
 
 **Idioma**: si tu audiencia es hispanohablante, poné *"respondes en español"* en el `system` aunque el modelo ya entienda el idioma del user turn. Eso ancla el registro y reduce variabilidad.
+
 </terminology>
 
 ### Los system prompts fallan en silencio (spoiler importante)

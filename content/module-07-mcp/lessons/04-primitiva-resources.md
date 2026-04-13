@@ -21,11 +21,13 @@ Un server MCP puede exponer ambos. Ejemplo real del server `filesystem`:
 La diferencia práctica: un **resource está disponible para que el host lo use antes o después del modelo**, sin que el modelo tenga que "pedirlo" como tool. El host puede, por ejemplo, listar los resources al iniciar la sesión y mostrárselos al user como "contexto adjunto".
 
 <terminology>
+
 **URI (Uniform Resource Identifier)**: el identificador único de un resource. Puede ser `file://`, `https://`, o un scheme custom (`postgres://db/table`, `notion://page/abc`). No tiene que ser resolvible externamente — solo tiene que ser único dentro del server.
 
 **Resource template**: una URI parametrizada (ej: `file:///logs/{date}.log`). El server la publica para que el client la rellene con valores concretos al leer.
 
 **MIME type**: qué tipo de contenido trae el resource. `text/plain`, `application/json`, `image/png`. Permite al host decidir cómo mostrarlo.
+
 </terminology>
 
 ### Los cuatro métodos

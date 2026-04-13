@@ -16,9 +16,11 @@ Al terminar esta lección sabrás **habilitar el contexto de 1 millón de tokens
 Con `anthropic-beta: context-1m-2025-08-07`, podés enviar hasta **1,000,000 tokens** de input (suma de system + tools + messages) en Sonnet 4.6.
 
 <terminology>
+
 **Progressive pricing**: los tokens **por encima de 200K** se facturan a una tarifa **superior** (aprox 2x). Los primeros 200K se cobran al precio estándar. Esto es un disuasivo explícito para no usar 1M a la ligera.
 
 **Beta**: la feature está en beta abierta — shape estable, pero revisá la docs antes de producción (los multiplicadores y disponibilidad por modelo cambian).
+
 </terminology>
 
 ### El pricing progresivo

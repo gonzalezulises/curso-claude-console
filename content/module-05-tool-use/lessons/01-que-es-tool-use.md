@@ -37,9 +37,11 @@ Claude (turno 2): "En Tokio hay 22°C con condiciones soleadas."
 ```
 
 <terminology>
+
 **Principio clave**: Claude **NUNCA ejecuta código**. Solo genera JSON estructurado que dice "quiero usar esta tool con estos argumentos". Es tu runtime (TypeScript, Python, Go) el que ejecuta la función y le devuelve el resultado.
 
 Esta separación es **la única razón por la que tool use es seguro**: Claude no tiene acceso directo a tu DB, tu bash, tu red. Todo pasa por tu código, que puede validar, auditar, loguear, o rechazar.
+
 </terminology>
 
 ### Por qué esto cambia todo

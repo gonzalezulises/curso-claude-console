@@ -20,11 +20,13 @@ tool_choice: { type: "tool", name: "extract_contact" }
 ```
 
 <terminology>
+
 **auto**: el modelo decide. Si la pregunta requiere una tool, la usa. Si no, responde con texto normal. Default cuando pasás `tools[]` sin `tool_choice`.
 
 **any**: el modelo está obligado a usar **alguna** de las tools disponibles, no puede responder con texto libre. Útil cuando sabés que la respuesta correcta siempre involucra una tool, pero no te importa cuál.
 
 **tool específico**: el modelo está obligado a usar **esa tool exacta**. Útil para extracción estructurada — querés forzar el shape de la respuesta.
+
 </terminology>
 
 ### Cuándo usar cada modo

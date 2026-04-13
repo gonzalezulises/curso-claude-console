@@ -26,11 +26,13 @@ DELETE /v1/files/:id # Borrar un archivo
 ```
 
 <terminology>
+
 **Beta header requerido**: Files API requiere el header `anthropic-beta: files-api-2025-04-14` en todas las llamadas relacionadas (upload, delete, y mensajes que referencian el file_id). Al ser beta, puede cambiar sin previo aviso.
 
 **Purposes**: al subir, declarás el `purpose` del archivo. `"vision"` para imágenes y PDFs que vas a pasar al modelo. El purpose informa a Anthropic cómo validar y almacenar el archivo.
 
 **file_id**: string con prefijo `file-` (ej: `file-abc123def456`). Es la referencia que usás en los mensajes.
+
 </terminology>
 
 ### El flujo upload → reference → cleanup
@@ -55,7 +57,9 @@ Un archivo subido queda disponible hasta que:
 2. Expira automáticamente (política de retención — consultá docs).
 
 <warning>
+
 **Siempre cleanup**: no dejes archivos colgando. Si tu pipeline procesa documentos temporales, borrá al terminar. Si es un documento que vas a reusar, mantenelo. Pero nunca "subí y me olvidé".
+
 </warning>
 
 ### Cuándo usar Files API vs base64

@@ -64,6 +64,7 @@ La buena noticia: **con prompt engineering adecuado, la degradación se minimiza
 ### Las 5 reglas de long context
 
 <terminology>
+
 **1. Documentos primero, pregunta al final**: poné todo el material (documentos, código, transcripciones) **antes** de la instrucción/pregunta. Claude 4.x está optimizado para este patrón: leer material → recibir pregunta → responder con lo leído fresco en el contexto reciente.
 
 ```
@@ -97,6 +98,7 @@ Los siguientes documentos están incluidos en orden:
 **4. Instrucciones de grounding**: decile explícitamente "basándote únicamente en los documentos proporcionados" o "citá la sección donde encontraste cada dato". Esto reduce alucinación — en lugar de completar con conocimiento general, el modelo se ancla en el material.
 
 **5. Preguntas específicas sobre secciones**: "¿Qué dice el documento 2 sobre rate limits?" es mucho más fácil de responder correctamente que "Resumí todo". Si tu tarea final es un resumen, dividila en sub-preguntas por sección y combiná los resultados.
+
 </terminology>
 
 ### Costo progresivo: la ecuación real

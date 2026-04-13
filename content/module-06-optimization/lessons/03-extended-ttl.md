@@ -59,9 +59,11 @@ El write de 1h es **2x** el precio normal (vs 1.25x del 5m). Reads son iguales.
 - Si no estás seguro, medí: probá ambos y comparás `usage` acumulado durante una hora.
 
 <terminology>
+
 **Ephemeral 5m** (default): TTL 5 minutos, write a 1.25x.
 **Ephemeral 1h** (beta): TTL 1 hora, write a 2.00x.
 **Ambos** son "ephemeral" — el nombre distingue el tipo de breakpoint que estás creando. No hay un "persistent" cache; todo lo que cacheás puede evaporarse si el TTL expira.
+
 </terminology>
 
 ### Combinar 5m y 1h en el mismo request

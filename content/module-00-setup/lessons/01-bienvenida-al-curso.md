@@ -13,7 +13,9 @@ Este curso asume que nunca tocaste Claude. Quizás probaste ChatGPT en el navega
 Al terminar los 13 módulos, vas a poder hacer cosas que hoy probablemente te parecen impredecibles:
 
 <outcome>
+
 Serás capaz de decidir, con criterio técnico y no intuición, si un problema dado se resuelve mejor con la Messages API cruda, con Managed Agents hospedados por Anthropic, o integrando el Claude Agent SDK en tu propio backend. Vas a poder construir un agente de producción que combina tool use, MCP servers remotos, Skills reutilizables y Credential Vaults — y vas a saber exactamente dónde viven los secretos, qué rate limits te afectan, y cómo monitorear el costo real. Vas a configurar Claude Code en tu proyecto con subagents especializados, hooks de CI/CD, permission modes apropiados al tipo de repo, y MCP servers custom. Y al final, vas a arquitecturar un sistema multi-agente end-to-end con seguridad, observabilidad y deploy — el capstone del Módulo 12.
+
 </outcome>
 
 Esto no es hipérbole. Es literalmente el temario.

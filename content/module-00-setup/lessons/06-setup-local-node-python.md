@@ -26,11 +26,13 @@ No necesitás saber Python bien para completar el curso — los scripts en Pytho
 ### Versiones mínimas requeridas
 
 <terminology>
+
 **Node.js 20+** — LTS actual al momento de escribir este curso. El SDK de Anthropic y Claude Code requieren fetch nativo y Web Streams API, disponibles desde Node 18, pero 20 es el baseline recomendado.
 
 **Python 3.11+** — porque el SDK oficial `anthropic` usa features modernas de typing y async. 3.11 también mejora significativamente el rendimiento de asyncio.
 
 **`uv`** — gestor de venvs y dependencias de Python, 10-100x más rápido que `pip + venv`. Si ya usás `uv`, perfecto; si no, lo instalamos en el Paso 3.
+
 </terminology>
 
 ### ¿Qué vamos a instalar?

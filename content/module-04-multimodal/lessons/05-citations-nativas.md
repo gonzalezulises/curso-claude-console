@@ -48,9 +48,11 @@ Se activa en el bloque del documento:
 ```
 
 <terminology>
+
 **Obligatorio**: `citations.enabled: true` en cada documento del que querés citas. Omitido o `false` → no hay citas.
 
 **Efecto**: los `content` blocks de tipo `text` en la respuesta incluyen un array `citations` con las referencias usadas para cada porción de texto generado.
+
 </terminology>
 
 ### Los 4 tipos de citation location

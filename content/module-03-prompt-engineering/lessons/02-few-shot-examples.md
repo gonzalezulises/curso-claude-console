@@ -83,6 +83,7 @@ Las dos funcionan. La segunda escala mejor cuando tenés más de 5 ejemplos o in
 La respuesta honesta de Anthropic: **depende de cuántas categorías o patrones distintos necesitás cubrir**. Reglas operativas:
 
 <terminology>
+
 **Regla del "un ejemplo por caso distintivo"**: si tu tarea tiene 4 categorías, mínimo 1 ejemplo por categoría = 4 ejemplos. Menos y el modelo podría no considerar las categorías que nunca vio usadas.
 
 **Regla del techo en 5-8**: pasar de 8 ejemplos raramente mejora el output y sí infla tokens. Si 8 no alcanzan, el problema no es few-shot — necesitás mejor definición de la tarea, o fine-tuning.
@@ -92,6 +93,7 @@ La respuesta honesta de Anthropic: **depende de cuántas categorías o patrones 
 **Regla del orden importa poquito pero importa**: poné los ejemplos más representativos primero. El modelo pondera ligeramente más los primeros ejemplos.
 
 **Regla del no-sesgo**: si tus 4 ejemplos son todos de la categoría `billing`, el modelo asume que "billing" es la respuesta por defecto. Balanceá: cubrí cada categoría al menos una vez antes de repetir ninguna.
+
 </terminology>
 
 ### El costo real de few-shot: más input, menos output

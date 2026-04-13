@@ -22,6 +22,7 @@ En el Módulo 1 aprendiste que `content` puede ser un string o un array de bloqu
 ```
 
 <terminology>
+
 **source.type**: define cómo le pasás la imagen al modelo. `"base64"` significa que la imagen viaja embebida en el JSON como string base64. También existe `"url"` (que vemos en la lección siguiente).
 
 **source.media_type**: el MIME type de la imagen. Valores soportados:
@@ -31,6 +32,7 @@ En el Módulo 1 aprendiste que `content` puede ser un string o un array de bloqu
 - `"image/webp"` — formato moderno comprimido
 
 **source.data**: el contenido de la imagen codificado en base64 (sin el prefijo `data:image/png;base64,`).
+
 </terminology>
 
 ### Cómo se cuentan los tokens de una imagen

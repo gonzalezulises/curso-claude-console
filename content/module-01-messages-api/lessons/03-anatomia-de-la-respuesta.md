@@ -59,6 +59,7 @@ El modelo que **efectivamente atendió** la request. Ya lo vimos en la Lección 
 Tipos de bloques que podés ver:
 
 <terminology>
+
 **`text`** — texto plano. La forma más común. `{ "type": "text", "text": "..." }`. Si también pasaste `citations` en un bloque de documentos (Módulo 4), este bloque puede incluir un campo `citations` con las referencias que el modelo ancló.
 
 **`thinking`** — el razonamiento interno del modelo cuando activaste extended thinking. `{ "type": "thinking", "thinking": "...", "signature": "..." }`. Lo vas a ver en tareas donde habilitaste `thinking` en el request. El `signature` sirve para permitir que el modelo *resuma* su thinking en turnos siguientes sin revelar el texto completo.
@@ -68,6 +69,7 @@ Tipos de bloques que podés ver:
 **`server_tool_use`** — Claude llamó a una herramienta **que corre en la infraestructura de Anthropic** (web search, web fetch, code execution). El resultado viene en un bloque `server_tool_use_result` posterior en el mismo `content[]`. Módulo 5 también.
 
 **`container_upload`** — usado en requests, no en respuestas, pero lo vas a ver en el Módulo 4 (multimodal con code execution).
+
 </terminology>
 
 **Lección crítica**: tratar `content` como array desde el día 1 hace que tu código **no tenga que refactorizarse** cuando activas tool use, thinking o citations. El patrón canónico para extraer solo texto:

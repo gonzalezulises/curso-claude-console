@@ -40,9 +40,11 @@ Con `strict: true`:
 - Los `enum` se respetan (no aparecen valores fuera del set).
 
 <terminology>
+
 **Costo**: `strict` tiene overhead de inferencia. Para tools triviales (1-2 parámetros), no lo necesitás. Para tools con schemas complejos, `strict` reemplaza a toda tu capa de validación Ajv/Zod.
 
 **Limitación**: el schema debe usar un subset de JSON Schema soportado (`type`, `properties`, `required`, `enum`, sin `oneOf` exóticos). Consultá la docs cuando actives `strict`.
+
 </terminology>
 
 **Sin strict:**
@@ -110,9 +112,11 @@ Con `defer_loading: true`, la definición completa de la tool **NO se inyecta al
 El `cache_control` sobre la **última** tool del array marca un "cache breakpoint": todo el prefix (system prompt + tools hasta ese punto) se cachea. En requests siguientes dentro del TTL, Anthropic reusa el cache y te cobra **una fracción de los tokens** (cache hit).
 
 <terminology>
+
 **`type: "ephemeral"`**: tipo de cache (el único soportado hoy).
 **`ttl`**: `"5m"` (default) o `"1h"`. El `"1h"` es beta — header `anthropic-beta: extended-cache-ttl-2025-04-11`.
 **Breakpoint**: el `cache_control` puede ir en tools, system prompt, user messages o assistant messages. El patrón canónico: poner uno en tools (para cachear las definiciones fijas) y otro en system (para cachear instrucciones fijas).
+
 </terminology>
 
 **Cuándo cachea**:

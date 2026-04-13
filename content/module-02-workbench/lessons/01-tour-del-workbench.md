@@ -17,6 +17,7 @@ La URL de entrada es `platform.claude.com/dashboard`. Al entrar ves un saludo pe
 El sidebar izquierdo es tu mapa. Tiene estas secciones principales:
 
 <terminology>
+
 **Build** — las herramientas de construcción:
 - **Workbench**: el laboratorio de iteración de prompts. Es donde vas a pasar la mayor parte de este módulo.
 - **Files**: gestión de archivos subidos via Files API (PDFs, imágenes, documentos).
@@ -42,6 +43,7 @@ El sidebar izquierdo es tu mapa. Tiene estas secciones principales:
 - **API keys**: crear y gestionar workspace API keys.
 - **Limits**: ver y configurar rate limits.
 - **Workspace settings**: nombre del workspace, miembros, configuración general.
+
 </terminology>
 
 Abajo del todo está **Documentation** (enlace a los docs oficiales) y tu usuario con el rol y la organización (ej: "Ulises — Admin · Rizo.ma").

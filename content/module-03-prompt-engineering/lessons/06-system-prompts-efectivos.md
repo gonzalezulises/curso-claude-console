@@ -17,6 +17,7 @@ En esta lección profundizamos: **cómo componer un system prompt que realmente 
 Un system prompt efectivo tiene **hasta 5 componentes**. No necesitás todos siempre, pero cuando los combinás bien, el output se vuelve predecible:
 
 <terminology>
+
 **1. Rol con experiencia concreta**: "Eres una arquitecta de software senior con 12 años de experiencia" > "Eres un asistente útil". La experiencia concreta ancla el nivel técnico del output. "12 años" no es literal — pero le dice al modelo "producí texto como lo haría alguien con esa profundidad".
 
 **2. Audiencia con contexto**: "explicando a developers backend que ya conocen HTTP y criptografía" > "explicando a usuarios". Le dice al modelo qué puede asumir como sabido y qué necesita explicar. **Lo que no se dice es tan importante como lo que se dice**: si decís "developers", el modelo no va a explicar qué es una variable.
@@ -26,6 +27,7 @@ Un system prompt efectivo tiene **hasta 5 componentes**. No necesitás todos sie
 **4. Restricciones concretas (lo que NO)**: "sin emojis, sin tablas, sin listas ordenadas". Las restricciones positivas ("sé breve") son vagas; las negativas ("sin emojis") son binarias y verificables.
 
 **5. Directiva de estilo/enfoque**: "Preferís decir QUÉ algo es y POR QUÉ existe antes que listar sus partes mecánicas". Esto es la pieza más sutil — mueve el **enfoque** del output, no solo el formato. Muy útil para cambiar de "enciclopedia" a "mentoría".
+
 </terminology>
 
 ### ¿Por qué "Eres un asistente útil" no sirve?

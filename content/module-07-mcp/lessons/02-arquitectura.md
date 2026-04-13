@@ -40,11 +40,13 @@ MCP define tres actores y una dirección clara de dependencias:
 **Server**: un proceso independiente (local o remoto) que expone primitivas (tools, resources, prompts). Puede estar escrito en cualquier lenguaje — lo único que importa es que hable MCP por el transporte acordado.
 
 <terminology>
+
 **Capability**: lo que cada lado declara que soporta al handshake inicial. El server declara "ofrezco tools y resources"; el client declara "soporto sampling". Esto evita romper cuando un server usa features que el client no entiende.
 
 **Transport**: cómo viajan los mensajes. Los dos oficiales son `stdio` (proceso hijo, stdin/stdout) y `streamable-http` (HTTP con SSE para eventos server-push).
 
 **Initialize**: el primer mensaje del handshake. El client envía `initialize` con su protocol version y sus capabilities; el server responde con las suyas. Hasta que no pase ese ida y vuelta, no se puede llamar a `tools/list` ni a nada más.
+
 </terminology>
 
 ### Por qué el LLM no habla con el server directamente
@@ -102,7 +104,9 @@ Ideal para:
 - El beta **MCP Connector** de la Messages API (lección 7), que consume URLs HTTP.
 
 <warning>
+
 En HTTP con auth, el host NO debe inyectar credenciales del servidor directamente en el prompt del modelo. La auth vive en el transporte. El modelo solo ve los resultados de las tools.
+
 </warning>
 
 ### Un host, varios servers

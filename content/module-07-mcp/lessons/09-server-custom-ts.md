@@ -17,11 +17,13 @@ npm install @modelcontextprotocol/sdk zod
 Existe también un package `@modelcontextprotocol/server` en 2.x alpha que reempaqueta la API de server con Standard Schema y un naming más limpio. En producción, hasta que 2.x salga estable, **usá 1.x**.
 
 <terminology>
+
 **High-level API**: `McpServer`. Abstrae el manejo de mensajes JSON-RPC, el handshake, el routing. Vos solo registrás tools, resources y prompts con handlers. Es lo que vas a usar el 95% del tiempo.
 
 **Low-level API**: `Server` (sin "Mcp"). Da acceso directo a los handlers de cada método JSON-RPC. Útil si necesitás comportamiento raro o composición avanzada. Fuera de scope de esta lección.
 
 **Transport**: clase que maneja el wire. El SDK trae `StdioServerTransport` (stdio) y `StreamableHTTPServerTransport` (HTTP). Vos le das una al server y el server la usa para hablar.
+
 </terminology>
 
 ### Anatomía de un server mínimo

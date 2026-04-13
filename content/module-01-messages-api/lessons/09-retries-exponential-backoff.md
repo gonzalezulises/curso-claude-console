@@ -9,6 +9,7 @@ Al terminar sabrás qué **errores reintentar** y cuáles son fatales (ya viste 
 ### ¿Qué errores reintentar? (repaso rápido de Lección 08)
 
 <terminology>
+
 **Reintentable** (transitorio, el problema no es tu body):
 - **408 Request Timeout** — el servidor no procesó a tiempo.
 - **409 Conflict** — condición de carrera a nivel de servidor.
@@ -23,6 +24,7 @@ Al terminar sabrás qué **errores reintentar** y cuáles son fatales (ya viste 
 - **403 `permission_error`**
 - **404 `not_found_error`**
 - **413 `request_too_large`**
+
 </terminology>
 
 La regla operativa: **reintentar fatal = DoS a tu propia app**. Clasificá antes de decidir.
@@ -78,6 +80,7 @@ Regla de oro: **si hay `retry-after`, usalo en vez de tu fórmula calculada**. S
 El SDK de Anthropic (todos los lenguajes: TypeScript, Python, Go, Java, Ruby, C#) trae retries **activados por defecto**:
 
 <terminology>
+
 **Default**: `maxRetries: 2` — el SDK reintenta hasta 2 veces cada request fallido.
 
 **Qué reintenta**: errores de conexión (network drop, DNS), `408 Request Timeout`, `409 Conflict`, `429 Rate Limit`, y cualquier `5xx Internal Server`.
@@ -85,6 +88,7 @@ El SDK de Anthropic (todos los lenguajes: TypeScript, Python, Go, Java, Ruby, C#
 **Cómo espera**: short exponential backoff entre intentos. Respeta `retry-after` cuando el servidor lo envía.
 
 **Qué NO reintenta**: `400`, `401`, `403`, `404`, `413` — consistente con la clasificación fatal vs transitorio.
+
 </terminology>
 
 Configurarlo es trivial en TypeScript:

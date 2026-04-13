@@ -19,11 +19,13 @@ Anthropic aplica 3 tipos de rate limit por ventana deslizante de 1 minuto:
 **Regla**: el que primero llegue a su límite dispara el 429. Si enviás 50 requests de 1M input tokens cada una, vas a golpear ITPM antes que RPM.
 
 <terminology>
+
 **Tiers**: Anthropic escala los límites según tu uso histórico. Empezás en Tier 1, y al gastar / demostrar uso estable subís automáticamente a Tier 2, 3, 4 con límites progresivamente mayores. Los valores actuales por modelo están en la docs oficial.
 
 **Acceleration limits**: aparte de los límites base, si tu tráfico sube **abruptamente**, podés recibir 429 incluso con headroom en RPM/ITPM/OTPM. La solución: ramp up gradual.
 
 **Priority tier**: requests con `service_tier: "priority"` tienen límites separados y menos 429s — pagás un premium.
+
 </terminology>
 
 ### Los headers de rate limit en cada response
