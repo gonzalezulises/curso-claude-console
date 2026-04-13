@@ -5,6 +5,7 @@ import LessonProgress from "./components/LessonProgress.vue";
 import CourseProgress from "./components/CourseProgress.vue";
 import ResetProgressButton from "./components/ResetProgressButton.vue";
 import Quiz from "./components/Quiz.vue";
+import LiveCurl from "./components/LiveCurl.vue";
 
 import "./style.css";
 
@@ -16,6 +17,7 @@ const theme: Theme = {
     app.component("CourseProgress", CourseProgress);
     app.component("ResetProgressButton", ResetProgressButton);
     app.component("Quiz", Quiz);
+    app.component("LiveCurl", LiveCurl);
   },
 };
 

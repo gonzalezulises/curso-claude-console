@@ -267,6 +267,13 @@ if (textBlock && textBlock.type === "text") {
 
 Notar el narrowing explícito `b.type === "thinking"` — sin eso, TypeScript no sabe que el campo `thinking` existe en ese objeto.
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m03-extended-thinking" />
+
 ## Anti-patterns
 
 - ❌ **`budget_tokens` ≥ `max_tokens`**. La API responde 400 `invalid_request_error`. El budget debe ser estrictamente menor al `max_tokens`.

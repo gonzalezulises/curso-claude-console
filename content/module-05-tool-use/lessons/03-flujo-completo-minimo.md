@@ -324,6 +324,13 @@ Output:
 Answer: En Buenos Aires hay 24°C y está parcialmente nublado.
 ```
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m05-tool-use-weather" />
+
 ## Anti-patterns
 
 - ❌ **Olvidar incluir el tool_use block en el historial**. Si mandás el `tool_result` sin el `tool_use` previo en `messages[role=assistant]`, la API devuelve error — el `tool_use_id` no existe en el historial.

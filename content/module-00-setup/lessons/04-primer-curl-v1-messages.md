@@ -191,6 +191,13 @@ Recibes algo así:
 
 Esta forma `{ type: "error", error: { type, message } }` es el formato estándar de errores de la API. Lo vas a ver en 401 (auth), 400 (request mal formado), 404 (modelo inexistente), 429 (rate limit), 529 (overload). Siempre la misma forma, solo cambian `error.type` y `error.message`.
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m00-first-message" />
+
 ## Anti-patterns
 
 - ❌ **Pegar la API key directo en el curl en lugar de usar `$ANTHROPIC_API_KEY`.** Es tentador para un "one-liner de prueba", pero la key queda en `history` del shell y en screenshots. Usa siempre la variable de entorno.

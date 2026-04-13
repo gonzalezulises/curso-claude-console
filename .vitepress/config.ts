@@ -2,6 +2,7 @@ import { defineConfig } from "vitepress";
 import { buildSidebar } from "./build-sidebar";
 import { buildCourseStructure } from "./course-structure";
 import { buildQuizIndex } from "./quizzes";
+import { buildCurlIndex } from "./curl-samples";
 
 // Regla de aislamiento #1: este archivo NUNCA modifica content/.
 // Regla de aislamiento #2: los componentes Vue viven en .vitepress/theme/ y se
@@ -64,6 +65,10 @@ export default defineConfig({
     // Build-time index de quizzes por id, leído desde content/**/exercises/*.yaml.
     // Consumido por <Quiz id="..." /> con useData().theme.value.quizzes.
     quizzes: buildQuizIndex(),
+
+    // Build-time index de curl samples con responses capturadas, leído desde
+    // .vitepress/curl-samples.yaml. Consumido por <LiveCurl id="..." />.
+    curlSamples: buildCurlIndex(),
 
     search: {
       provider: "local",

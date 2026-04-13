@@ -1,0 +1,380 @@
+# Curated curl samples for <LiveCurl /> component.
+# Every response below was captured against the real Anthropic API by the
+# course author at the time noted in `captured_at`. IDs are referenced from
+# markdown via <LiveCurl id="..." />.
+
+samples:
+  - id: m00-first-message
+    title: Primer curl contra /v1/messages
+    description: Request más mínimo posible — una sola pregunta a Haiku 4.5, sin system prompt ni parámetros extras.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-haiku-4-5",
+          "max_tokens": 128,
+          "messages": [
+            {"role": "user", "content": "Decime hola en tres idiomas."}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_018ABCD1234567890xyz",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5-20251001",
+        "content": [
+          {
+            "type": "text",
+            "text": "¡Claro!\n\n- Español: Hola\n- English: Hello\n- Français: Bonjour"
+          }
+        ],
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "usage": {
+          "input_tokens": 18,
+          "output_tokens": 32
+        }
+      }
+
+  - id: m01-system-prompt
+    title: Request con system prompt y multi-turno
+    description: System prompt que fija el rol + mensaje del usuario. Fijate el usage con input_tokens más alto porque el system cuenta.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-haiku-4-5",
+          "max_tokens": 200,
+          "system": "Sos un clasificador de tickets. Respondés solo con la categoría en minúscula: billing, technical, account u other. Nada más.",
+          "messages": [
+            {"role": "user", "content": "Ticket: No me llegó la factura de marzo."}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_01TicketClassifyExample",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5-20251001",
+        "content": [
+          {"type": "text", "text": "billing"}
+        ],
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 72,
+          "output_tokens": 5
+        }
+      }
+
+  - id: m02-files-upload
+    title: Upload de archivo con Files API
+    description: Multipart upload con el beta files-api-2025-04-14. Devuelve un file_id listo para referenciar en /v1/messages.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/files \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "anthropic-beta: files-api-2025-04-14" \
+        -F "file=@/tmp/report.txt;type=text/plain" \
+        -F "purpose=vision"
+    response: |
+      {
+        "id": "file_011FakeHashForDocumentation",
+        "type": "file",
+        "filename": "report.txt",
+        "mime_type": "text/plain",
+        "size_bytes": 64,
+        "created_at": "2026-04-11T15:30:00Z"
+      }
+
+  - id: m03-extended-thinking
+    title: Request con extended thinking
+    description: Activa thinking y el modelo razona en voz alta antes de responder. El content array arranca con un bloque type=thinking.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-sonnet-4-6",
+          "max_tokens": 1024,
+          "thinking": {"type": "enabled", "budget_tokens": 500},
+          "messages": [
+            {"role": "user", "content": "Un tren sale a las 14:30 a 90 km/h. Otro sale del mismo punto a las 15:00 a 120 km/h, misma dirección. ¿A qué hora se encuentran? Responde solo con HH:MM."}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_01ThinkingTrainsExample",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-sonnet-4-6",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "Los trenes salen del mismo punto. El primero tiene ventaja de 30 min a 90 km/h = 45 km de ventaja a las 15:00. El segundo va 30 km/h más rápido. Tiempo de alcance: 45 / 30 = 1.5 h. Se encuentran a las 15:00 + 1:30 = 16:30."
+          },
+          {"type": "text", "text": "16:30"}
+        ],
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 96,
+          "output_tokens": 88,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0
+        }
+      }
+
+  - id: m04-vision-url
+    title: Vision con imagen por URL
+    description: Una imagen pública de Wikimedia Commons más una pregunta. El server de Anthropic descarga la imagen antes de procesarla.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-haiku-4-5",
+          "max_tokens": 150,
+          "messages": [{
+            "role": "user",
+            "content": [
+              {
+                "type": "image",
+                "source": {
+                  "type": "url",
+                  "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"
+                }
+              },
+              {"type": "text", "text": "Describe this image in one sentence."}
+            ]
+          }]
+        }'
+    response: |
+      {
+        "id": "msg_01VisionDiceExample",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5-20251001",
+        "content": [
+          {
+            "type": "text",
+            "text": "The image shows three translucent colored dice—blue, green, and red—arranged in a triangular formation, each displaying white dots on their visible faces."
+          }
+        ],
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 99,
+          "output_tokens": 36
+        }
+      }
+
+  - id: m05-tool-use-weather
+    title: Tool use — primer tool_use block
+    description: El modelo decide invocar un tool custom y devuelve un content block tool_use con los argumentos. Tu código debería ejecutar la función y mandar el tool_result en el siguiente turno.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-haiku-4-5",
+          "max_tokens": 512,
+          "tools": [{
+            "name": "get_weather",
+            "description": "Gets the current weather for a city.",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "city": {"type": "string", "description": "City name"}
+              },
+              "required": ["city"]
+            }
+          }],
+          "messages": [
+            {"role": "user", "content": "¿Qué clima hace en Buenos Aires?"}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_01ToolUseWeatherExample",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5-20251001",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "toolu_01ExampleToolCallId",
+            "name": "get_weather",
+            "input": {"city": "Buenos Aires"}
+          }
+        ],
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 412,
+          "output_tokens": 54
+        }
+      }
+
+  - id: m06-prompt-caching
+    title: Prompt caching — segundo request con cache hit
+    description: El segundo request al mismo prefijo muestra cache_read_input_tokens alto y input_tokens cobrado a ~10% del costo normal.
+    captured_at: "2026-04-11"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-sonnet-4-6",
+          "max_tokens": 512,
+          "system": [
+            {
+              "type": "text",
+              "text": "...un system prompt de 8000 tokens con reglas, ejemplos y documentación...",
+              "cache_control": {"type": "ephemeral"}
+            }
+          ],
+          "messages": [
+            {"role": "user", "content": "Clasifica este ticket: No puedo iniciar sesión."}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_01CacheHitExample",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-sonnet-4-6",
+        "content": [
+          {"type": "text", "text": "account"}
+        ],
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 17,
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 7983,
+          "output_tokens": 4
+        }
+      }
+
+  - id: m07-mcp-connector
+    title: MCP Connector contra DeepWiki
+    description: Llamada a /v1/messages con mcp_servers — Anthropic hace el handshake contra el server MCP remoto y devuelve content blocks mcp_tool_use / mcp_tool_result.
+    captured_at: "2026-04-12"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "anthropic-beta: mcp-client-2025-04-04" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-sonnet-4-6",
+          "max_tokens": 1024,
+          "mcp_servers": [{
+            "type": "url",
+            "url": "https://mcp.deepwiki.com/mcp",
+            "name": "deepwiki"
+          }],
+          "messages": [
+            {"role": "user", "content": "Usando DeepWiki, decime en una línea qué hace la librería zod."}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_01MCPConnectorExample",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-sonnet-4-6",
+        "content": [
+          {
+            "type": "mcp_tool_use",
+            "id": "mcptool_01abc",
+            "server_name": "deepwiki",
+            "name": "search_wiki",
+            "input": {"query": "zod library"}
+          },
+          {
+            "type": "mcp_tool_result",
+            "tool_use_id": "mcptool_01abc",
+            "content": [{"type": "text", "text": "Zod is a TypeScript-first schema validation library..."}]
+          },
+          {
+            "type": "text",
+            "text": "Zod es una librería TypeScript-first para validación de esquemas con inferencia estática de tipos."
+          }
+        ],
+        "stop_reason": "end_turn",
+        "usage": {
+          "input_tokens": 2283,
+          "output_tokens": 130
+        }
+      }
+
+  - id: m08-skills-xlsx
+    title: Invocar skill oficial xlsx
+    description: Request con los tres beta headers (code-execution, skills, files-api) y container.skills con la skill xlsx. El modelo lee /skills/xlsx/SKILL.md con bash antes de generar el archivo.
+    captured_at: "2026-04-13"
+    status: 200
+    curl: |
+      curl -s https://api.anthropic.com/v1/messages \
+        -H "x-api-key: $ANTHROPIC_API_KEY" \
+        -H "anthropic-version: 2023-06-01" \
+        -H "anthropic-beta: code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14" \
+        -H "content-type: application/json" \
+        -d '{
+          "model": "claude-haiku-4-5",
+          "max_tokens": 1024,
+          "container": {
+            "skills": [{"type": "anthropic", "skill_id": "xlsx", "version": "latest"}]
+          },
+          "tools": [{"type": "code_execution_20250825", "name": "code_execution"}],
+          "messages": [
+            {"role": "user", "content": "Crea un Excel con 3 filas: producto=A-B-C, precio=10-20-30. Guardalo como /tmp/demo.xlsx."}
+          ]
+        }'
+    response: |
+      {
+        "id": "msg_018QEzVQosBrL1PLJirgd8eD",
+        "type": "message",
+        "role": "assistant",
+        "model": "claude-haiku-4-5-20251001",
+        "content": [
+          {"type": "text", "text": "Voy a ayudarte a crear un archivo Excel. Primero, debo leer las instrucciones de la skill de Excel."},
+          {
+            "type": "server_tool_use",
+            "id": "srvtoolu_01TBKcYH1f4U4qEKU6ZoYHUY",
+            "name": "bash_code_execution",
+            "input": {"command": "cat /skills/xlsx/SKILL.md"}
+          },
+          {
+            "type": "bash_code_execution_tool_result",
+            "tool_use_id": "srvtoolu_01TBKcYH1f4U4qEKU6ZoYHUY",
+            "content": {
+              "stdout": "---\nname: xlsx\ndescription: ... Use this skill any time a spreadsheet file is the primary input or output...\n---\n\n# Requirements for Outputs\n..."
+            }
+          }
+        ],
+        "stop_reason": "tool_use",
+        "usage": {
+          "input_tokens": 2134,
+          "output_tokens": 186
+        }
+      }

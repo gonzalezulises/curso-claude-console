@@ -242,6 +242,13 @@ for (const block of resp.content) {
 
 El SDK expone el Connector bajo `client.beta.messages` con la opción `betas: ["mcp-client-2025-04-04"]`.
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m07-mcp-connector" />
+
 ## Anti-patterns
 
 - ❌ **Olvidar el beta header**. Es el error más común. `mcp_servers` sin beta = HTTP 400.

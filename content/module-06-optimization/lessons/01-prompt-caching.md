@@ -204,6 +204,13 @@ call 4: input=15 write=0    read=5409
 call 5: input=15 write=0    read=5409
 ```
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m06-prompt-caching" />
+
 ## Anti-patterns
 
 - ❌ **Meter un timestamp o UUID al inicio del prompt**. Si el prefix cambia cada request, nunca hay cache hit. Poné lo variable al final del user message.

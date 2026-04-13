@@ -198,11 +198,11 @@ curl -s https://api.anthropic.com/v1/messages \
 
 Output real:
 
-```
+````
 ```json
 {"language": "es", "port": 443, "secure": true}
 ```
-```
+````
 
 **Claude nos desobedeció.** Le dijimos explícitamente "nada de markdown, ni ```" y devolvió ``` igual. El JSON adentro es correcto, pero un `JSON.parse(resp.content[0].text)` **tira error de parseo** porque los backticks rompen el formato.
 
@@ -213,6 +213,13 @@ Esta es la lección sobre la cual se construye gran parte del Módulo 3 (prompt 
 3. **Structured outputs** del API (`output_config.format: { type: "json_schema", json_schema: ... }`) — la API valida del lado del servidor (Módulo 3).
 
 Por ahora solo memorizá: el system prompt es **fuerte**, pero **no es un contrato**.
+
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m01-system-prompt" />
 
 ## Anti-patterns
 

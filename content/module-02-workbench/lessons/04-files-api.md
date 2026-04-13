@@ -194,6 +194,13 @@ Cleanup: DELETE /v1/files/{file_id} cuando ya no lo necesitás
 
 Es un patrón de **upload once, reference many times** — idéntico a cómo funcionan los attachments en cualquier API de storage.
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m02-files-upload" />
+
 ## Anti-patterns
 
 - ❌ **Re-subir el mismo archivo en cada request**. Si tenés un PDF que 100 usuarios van a consultar, subilo una vez con Files API y reutilizá el `file_id`. Re-subirlo 100 veces es desperdicio.

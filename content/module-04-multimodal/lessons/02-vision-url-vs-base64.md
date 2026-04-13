@@ -207,6 +207,13 @@ console.log(`Tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_token
 // Los input_tokens serán los mismos (~99) — misma imagen, mismos tokens
 ```
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m04-vision-url" />
+
 ## Anti-patterns
 
 - ❌ **Usar URL para imágenes privadas o efímeras**. URLs detrás de auth, CDN con tokens temporales, o URLs de signed uploads van a fallar cuando Anthropic intente descargarlas.

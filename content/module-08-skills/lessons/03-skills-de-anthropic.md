@@ -153,6 +153,13 @@ Observá tres cosas:
 
 En producción vas a interactuar con esto vía SDK (`@anthropic-ai/sdk` o `anthropic` de Python), que abstrae el loop. El shape de los content blocks es el mismo.
 
+
+## Curl en vivo
+
+Este es el mismo request que se muestra arriba. Presioná **Ejecutar** para revelar la respuesta real que capturé contra la API al escribir esta lección.
+
+<LiveCurl id="m08-skills-xlsx" />
+
 ## Anti-patterns
 
 - ❌ **Usar la skill sin el `code_execution_20250825` tool**. Error 400. La skill vive en el container; sin el tool no hay container.
