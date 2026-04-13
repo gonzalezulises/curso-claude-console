@@ -206,6 +206,13 @@ console.log("Fecha extraída:", fecha);
 
 El razonamiento sigue disponible en `text` si querés loguearlo para auditoría.
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m03-playground" />
+
 ## Anti-patterns
 
 - ❌ **Usar CoT para lookups puros** ("¿cuál es la capital de Francia?"). Le pedís al modelo que razone sobre algo que ya sabe, y a veces inventa razonamientos intermedios incorrectos que lo llevan a alucinación.

@@ -3,6 +3,7 @@ import { buildSidebar } from "./build-sidebar";
 import { buildCourseStructure } from "./course-structure";
 import { buildQuizIndex } from "./quizzes";
 import { buildCurlIndex } from "./curl-samples";
+import { buildPlaygroundIndex } from "./playgrounds";
 
 // Regla de aislamiento #1: este archivo NUNCA modifica content/.
 // Regla de aislamiento #2: los componentes Vue viven en .vitepress/theme/ y se
@@ -69,6 +70,10 @@ export default defineConfig({
     // Build-time index de curl samples con responses capturadas, leído desde
     // .vitepress/curl-samples.yaml. Consumido por <LiveCurl id="..." />.
     curlSamples: buildCurlIndex(),
+
+    // Build-time index de playground seeds (BYOK), leído desde
+    // .vitepress/playgrounds.yaml. Consumido por <LivePlayground id="..." />.
+    playgrounds: buildPlaygroundIndex(),
 
     search: {
       provider: "local",

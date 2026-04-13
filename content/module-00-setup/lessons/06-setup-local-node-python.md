@@ -232,6 +232,13 @@ rm _smoke.py
 - **Error `429 rate_limit_error` en el primer hello world**. Muy raro; probablemente hay otro script corriendo en background agotando tu rate limit. Esperá 60 segundos y reintenta.
 - **`npm run verify` dice `OK` pero `npm run hello` falla con error de modelo inexistente**. Tu key podría estar en un workspace sin acceso a Haiku 4.5 — cambiá a `claude-sonnet-4-5` o revisá permisos del workspace.
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m00-playground" />
+
 ## Anti-patterns
 
 - ❌ **Instalar Node con `sudo`.** Rompe permisos de `~/.npm` y eventualmente vas a tener problemas instalando paquetes. Usá Homebrew o nvm.

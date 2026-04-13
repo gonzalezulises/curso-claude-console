@@ -151,6 +151,13 @@ Hacé click en el tab **Evaluate**. Creá test cases con los 4 tickets. Corré t
 
 Este flujo completo (pasos 1 a 5) debería llevarte **menos de 10 minutos**. El mismo flujo en código (editar .ts, correr, leer output, cambiar input, re-correr) llevaría 30-45 minutos. **Esa es la razón de existir del Workbench.**
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m02-playground" />
+
 ## Anti-patterns
 
 - ❌ **Saltar del primer prompt al código sin iterar**. Si tu primer prompt funciona "bien", probablemente no lo probaste con suficientes inputs. Usá variables y Evaluate antes de exportar.

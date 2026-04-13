@@ -143,6 +143,13 @@ Output real:
 
 Cuatro skills oficiales. `id` corto (`pdf`, `xlsx`, etc.) y versión como fecha (`20260203`). Las tuyas propias van a tener `source: "custom"`, `id` empezando con `skill_01...` y versión como timestamp unix.
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m08-playground" />
+
 ## Anti-patterns
 
 - ❌ **Convertir cualquier prompt largo en skill**. Si solo lo usás en un agente, el prompt inline es más simple. Skills brillan con reutilización cross-conversación.

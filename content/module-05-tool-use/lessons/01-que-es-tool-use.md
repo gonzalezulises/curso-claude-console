@@ -136,6 +136,13 @@ Observá **el cambio respecto a lo que ya sabías**:
 
 Ese loop lo vas a implementar en las próximas lecciones.
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m05-playground" />
+
 ## Anti-patterns
 
 - ❌ **Creer que Claude "llama" la API por vos**. No lo hace. Claude solo genera el JSON que describe la llamada. Tu código la ejecuta.

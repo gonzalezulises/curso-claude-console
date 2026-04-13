@@ -135,6 +135,13 @@ Más adelante vas a ejecutar esto de verdad — en la lección 8 vas a levantar 
 
 > **Nota:** los mensajes de arriba están tomados de la spec oficial ([modelcontextprotocol.io/specification](https://modelcontextprotocol.io/specification)) y representan el shape real del wire protocol. Verificá contra la spec al implementar.
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m07-playground" />
+
 ## Anti-patterns
 
 - ❌ **Usar MCP para todo "porque es el estándar"**. Si tus tools viven en el mismo process que tu agente y no se reutilizan, tool use artesanal es más simple y rápido. MCP agrega un proceso extra (el server) y una capa de protocolo — pagás overhead por reutilización que quizá no necesitás.

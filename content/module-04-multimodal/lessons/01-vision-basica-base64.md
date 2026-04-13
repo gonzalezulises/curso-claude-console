@@ -219,6 +219,13 @@ console.log("Respuesta:", text);
 console.log(`Tokens: in=${resp.usage.input_tokens} out=${resp.usage.output_tokens}`);
 ```
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m04-playground" />
+
 ## Anti-patterns
 
 - ❌ **Enviar imágenes gigantes sin necesidad**. Si vas a preguntar "¿hay texto en esta imagen?", un thumbnail de 800px basta — no mandes el original de 8000px. Más píxeles = más tokens = más costo y latencia.

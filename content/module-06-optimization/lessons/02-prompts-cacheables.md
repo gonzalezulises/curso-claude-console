@@ -252,6 +252,13 @@ const resp = await client.messages.create({
 
 Tools estables cachean aparte del system. Cambiar el system no invalida el cache de tools (si el prefix completo hasta bp1 coincide).
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m06-playground" />
+
 ## Anti-patterns
 
 - ❌ **Timestamp o UUID al inicio del prompt**. Invalida cache siempre. Movelo al user message o normalizá a granularidad estable (fecha día).

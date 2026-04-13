@@ -214,6 +214,13 @@ Respuesta real:
 
 La respuesta es idéntica a si no hubieras pasado `metadata` — **el `user_id` no afecta el contenido**. El efecto lo vas a ver en **Analytics** del dashboard, donde vas a poder desagregar consumo por ese identificador. No vas a ver feedback inmediato en este curl; es infraestructura para el futuro.
 
+
+## Probalo con tu API key
+
+Tu propia API key queda en el `localStorage` de tu navegador. Los requests los paga tu workspace y podés ajustar el prompt libremente.
+
+<LivePlayground id="m01-playground" />
+
 ## Anti-patterns
 
 - ❌ **Tocar `top_p` y `temperature` juntos**. La propia doc dice explícitamente: alterá una o la otra, no las dos. Si no sabés por qué estás tocando `top_p`, no lo toques.

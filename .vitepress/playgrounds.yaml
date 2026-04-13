@@ -1,0 +1,85 @@
+# Seeds para <LivePlayground />. Cada seed es un prompt pre-cargado con
+# system + user + model + max_tokens. El componente renderiza un editor que
+# el alumno puede modificar y correr con su propia API key contra la API real.
+# Los valores son sugerencias pedagógicas — el alumno los edita libremente.
+
+playgrounds:
+  - id: m00-playground
+    title: "Tu primer request desde el browser"
+    description: "Correlo con tu API key y vas a ver la respuesta real de Haiku 4.5. Probá cambiar el prompt y comparar la respuesta."
+    model: claude-haiku-4-5
+    max_tokens: 256
+    user: "Decime hola en español, inglés y japonés. Usá bullets."
+    learning_tip: "Mirá el campo usage.input_tokens y usage.output_tokens al final — es tu costo por request."
+
+  - id: m01-playground
+    title: "Clasificador con system prompt"
+    description: "Probá el role del system prompt: forzar al modelo a responder solo con una palabra. Editá el system para romper el contrato y ver qué pasa."
+    model: claude-haiku-4-5
+    max_tokens: 50
+    system: "Sos un clasificador de tickets. Respondés SOLO con la categoría en minúscula: billing, technical, account u other. Nada más."
+    user: "Ticket: No puedo cerrar sesión, el botón no hace nada."
+    learning_tip: "Bajá max_tokens a 10 y mirá cómo se corta — podés forzar respuestas más compactas."
+
+  - id: m02-playground
+    title: "Iterar un prompt (simulando el Workbench)"
+    description: "El ciclo clásico del Workbench: editá el prompt, corré, comparán. Acá lo hacés desde la lección con tu key."
+    model: claude-haiku-4-5
+    max_tokens: 300
+    user: "Explicá qué es OAuth 2.0 en 3 bullets. Público: developer backend que nunca lo usó."
+    learning_tip: "Probá variar max_tokens (50, 150, 500) y ver cómo el modelo ajusta la densidad."
+
+  - id: m03-playground
+    title: "Chain of thought a mano"
+    description: "Probá la técnica: pedí 'pensá paso a paso antes de responder' y observá cómo cambia la estructura y calidad."
+    model: claude-sonnet-4-6
+    max_tokens: 600
+    user: |
+      Pensá paso a paso antes de responder.
+
+      Problema: Un tren sale a las 14:30 a 90 km/h. Otro sale a las 15:00 a 120 km/h,
+      del mismo punto en la misma dirección. ¿A qué hora se encuentran?
+
+      Mostrá tu razonamiento, después la respuesta final en formato HH:MM.
+    learning_tip: "Compará la respuesta vs. borrá 'Pensá paso a paso' y correlo de nuevo — vas a ver la diferencia de rigor."
+
+  - id: m04-playground
+    title: "Pregunta libre a Sonnet"
+    description: "Multimodal real necesita subir imágenes (complejo desde browser). Este playground te deja probar el modelo con cualquier texto; usá la Messages API directa para ver structure."
+    model: claude-sonnet-4-6
+    max_tokens: 400
+    user: "Explicá en qué se diferencia un bloque type='image' con source.type='url' vs source.type='base64' — dame un ejemplo concreto de cuándo usar cada uno."
+    learning_tip: "Esta respuesta viene del modelo 'conversando' sobre multimodal — la Lección 04 y 05 muestran cómo mandarle imágenes reales."
+
+  - id: m05-playground
+    title: "Modelo sin tools (baseline)"
+    description: "Antes de agregar tool use, confirmá qué puede responder el modelo solo. Fijate si alucina o dice 'no tengo acceso'."
+    model: claude-haiku-4-5
+    max_tokens: 200
+    user: "¿Qué clima hace ahora mismo en Buenos Aires?"
+    learning_tip: "Claude no tiene acceso a datos en tiempo real. Observá cómo responde — debería decir que no puede. Con tool use (lección 03), eso cambia."
+
+  - id: m06-playground
+    title: "Observar usage sin cache"
+    description: "Este playground NO activa caching. Corré el mismo prompt 2 veces y fijate cómo input_tokens se cobra completo las dos veces. En la lección vas a ver cómo bajar a ~10%."
+    model: claude-sonnet-4-6
+    max_tokens: 150
+    system: "Sos un asistente de soporte técnico. Respondés en español, formal, máximo 2 oraciones."
+    user: "El servidor tira 503. ¿Qué reviso primero?"
+    learning_tip: "Usage sin cache: input_tokens completo cada request. Usage con cache: input_tokens chico + cache_read_input_tokens grande."
+
+  - id: m07-playground
+    title: "Request sin MCP (base para comparar)"
+    description: "MCP Connector necesita beta headers y un server remoto accesible. Este playground te deja correr un request directo al mismo prompt sin MCP — comparalo mentalmente con la lección 07."
+    model: claude-haiku-4-5
+    max_tokens: 250
+    user: "Explicame qué es la librería zod para TypeScript, en una línea."
+    learning_tip: "Sin MCP, el modelo responde desde su training data. Con MCP (lección 07), la respuesta viene de una fuente externa viva — verificable."
+
+  - id: m08-playground
+    title: "Antes de activar una skill"
+    description: "Un request estándar sin skills. Probá el mismo prompt mentalmente con la skill xlsx activa (lección 03) para ver cómo cambia la forma en que el modelo responde."
+    model: claude-haiku-4-5
+    max_tokens: 300
+    user: "Describime los pasos para crear un Excel con 3 columnas y 4 filas de datos de ejemplo. Sin código — solo los pasos."
+    learning_tip: "Con skill xlsx activada, Claude realmente generaría el archivo. Sin skill, solo describe qué haría."
