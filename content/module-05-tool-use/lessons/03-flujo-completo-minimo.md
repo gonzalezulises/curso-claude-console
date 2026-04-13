@@ -341,6 +341,11 @@ Answer: En Buenos Aires hay 24°C y está parcialmente nublado.
 - `stop_reason === "end_turn"` → listo. `stop_reason === "tool_use"` → seguí iterando.
 - El runtime loop es tu responsabilidad con la API cruda — ese loop es lo que Managed Agents hace por vos después.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-05-08-quiz-tool-use" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/build-with-claude/tool-use/implementation](https://platform.claude.com/docs/en/build-with-claude/tool-use/implementation)

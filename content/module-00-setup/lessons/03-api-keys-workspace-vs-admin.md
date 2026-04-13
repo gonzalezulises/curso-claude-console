@@ -139,6 +139,11 @@ Obtienes un error de autenticación. **Esto es bueno** — es la separación fun
 - La separación es una aplicación del **principio de menor privilegio**. Una admin key comprometida es catastrófica; una workspace key comprometida es contenible.
 - **Nunca commitees keys**, nunca las pegues en chats, nunca uses admin keys en código de cliente. Si una se filtra, **rota inmediatamente** — crear una nueva, desplegar, después revocar la vieja.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-00-04-crear-y-rotar-key" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/api/admin-api/overview](https://platform.claude.com/docs/en/api/admin-api/overview)

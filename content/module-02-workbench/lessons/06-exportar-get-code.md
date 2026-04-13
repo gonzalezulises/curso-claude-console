@@ -179,6 +179,11 @@ Corré el script. Si la respuesta es `billing` con `stop_reason: "end_turn"`, tu
 - **El snippet no es production-ready** — es un punto de partida que vos adaptás.
 - **Si difiere del Workbench**, revisá temperature y los 5 cambios antes de buscar bugs más exóticos.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-02-04-export-workbench" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)

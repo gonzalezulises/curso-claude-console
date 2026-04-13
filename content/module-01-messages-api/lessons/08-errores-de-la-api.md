@@ -260,6 +260,11 @@ Este switch vive una sola vez en tu cliente de la API. Lo que viene arriba (usua
 - **`request_id` es oro**: loggealo siempre. Es lo primero que soporte va a pedirte en un incidente.
 - **`stop_reason: "refusal"` y `stop_reason: "max_tokens"` NO son errores HTTP** — son respuestas 200 OK con una condición que tu app tiene que manejar explícitamente.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-01-06-error-matrix" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/api/errors](https://platform.claude.com/docs/en/api/errors)

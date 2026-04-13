@@ -1,0 +1,95 @@
+id: ex-04-06-quiz-multimodal
+type: quiz
+title: "Quiz integrador: decisiones multimodales"
+lesson_ref: lesson-04-06
+difficulty: intermediate
+estimated_time_minutes: 8
+points: 14
+
+description: |
+  Valida las decisiones de arquitectura al componer requests multimodales:
+  base64 vs URL, PDF vs texto, cuándo Files API, y cómo funcionan
+  citations nativas.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: |
+      Tu pipeline procesa un PDF de 80 páginas para responder 15 preguntas
+      distintas sobre su contenido. ¿Cuál es la estrategia más eficiente?
+    options:
+      - id: a
+        text: "Mandar el PDF en base64 en cada una de las 15 requests"
+      - id: b
+        text: "Subir el PDF una vez con Files API, referenciarlo por `file_id` en las 15 requests, con `cache_control: ephemeral`"
+      - id: c
+        text: "Extraer el texto del PDF y mandarlo como `text/plain` inline en cada request"
+      - id: d
+        text: "Dividir el PDF en 15 partes y mandar una parte por request"
+    correct: b
+    feedback_correct: "Correcto. Files API + caching es la tríada: upload único (no re-transferís 80 páginas), `file_id` como referencia ligera, y ephemeral caching amortiza el procesamiento entre requests 2 a 15 (~90% de ahorro)."
+    feedback_incorrect: "Re-transferir el PDF 15 veces es despilfarro de ancho de banda y tokens. Files API soluciona el re-transfer; caching soluciona el re-procesamiento. Partir el PDF pierde contexto global."
+    points: 3
+
+  - id: q2
+    type: multiple_select
+    question: "¿En cuáles casos usarías `source.type: 'base64'` en vez de `'url'` para una imagen? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "La imagen está en tu disco local, nunca en internet"
+      - id: b
+        text: "La imagen vive detrás de autenticación (Slack, Google Drive privado)"
+      - id: c
+        text: "Necesitás reproducibilidad exacta auditable (ej: diagnóstico médico)"
+      - id: d
+        text: "La imagen es pública y estable en un CDN (ej: Wikimedia Commons)"
+    correct: [a, b, c]
+    feedback_correct: "Correcto. base64 gana cuando no hay URL pública, cuando necesitás reproducibilidad (el byte queda en tu log) o cuando hay auth en el medio. Para URLs públicas y estables, URL es más eficiente (payload chico) y equivalente en tokens."
+    feedback_incorrect: "La opción D es el caso ideal de URL, no de base64. URL gana cuando la imagen es pública, estable y accesible desde los servidores de Anthropic. base64 gana en los otros tres casos (local, privada, reproducibilidad forense)."
+    points: 4
+
+  - id: q3
+    type: multiple_choice
+    question: |
+      Activaste `citations: { enabled: true }` en un PDF y estás parseando
+      la respuesta. ¿Qué tipo de location vas a encontrar en las citas?
+    options:
+      - id: a
+        text: "`char_location` con `start_char_index` / `end_char_index`"
+      - id: b
+        text: "`page_location` con `start_page_number` / `end_page_number`"
+      - id: c
+        text: "`search_result_location`"
+      - id: d
+        text: "No hay location — solo el `cited_text`"
+    correct: b
+    feedback_correct: "Correcto. El tipo de location depende del tipo de documento: PDF → `page_location`; text/plain → `char_location`; bloques → `content_block_location`; resultados de web search → `search_result_location`. Todos incluyen `cited_text` más los campos específicos del tipo."
+    feedback_incorrect: "El tipo de location se asigna según el documento de origen. Para PDFs es `page_location` con números de página. `char_location` es para `source.type: 'text'`."
+    points: 4
+
+  - id: q4
+    type: true_false
+    question: |
+      Activar citations elimina la alucinación: si el modelo cita un
+      fragmento, ese fragmento siempre aparece literalmente en el
+      documento fuente.
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: b
+    feedback_correct: "Correcto. Falso. Citations hace la alucinación **falsificable** — podés verificar cada cita contra el documento. Pero no elimina la posibilidad de que el modelo cite un fragmento impreciso. La garantía práctica es que podés detectar el problema automáticamente (si el `cited_text` no matchea, hay regresión)."
+    feedback_incorrect: "Falso. Citations convierte un problema invisible (el modelo afirma algo sin evidencia) en un problema verificable (podés comparar `cited_text` con el documento fuente). Eso es distinto de eliminar la alucinación — seguís teniendo que validar."
+    points: 3
+
+concepts:
+  - files-api-lifecycle
+  - base64-vs-url
+  - citations-location-types
+  - citations-verifiability

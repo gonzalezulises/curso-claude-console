@@ -296,6 +296,11 @@ await client.beta.files.delete(pdfFile.id);
 - **Title obligatorio** cuando usás múltiples documentos con citations.
 - Files API + multimodal funciona: referenciás PDFs por `file_id` y seguís pudiendo mezclar con imágenes base64 o URL.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-04-06-quiz-multimodal" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/build-with-claude/overview](https://platform.claude.com/docs/en/build-with-claude/overview)

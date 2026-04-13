@@ -1,0 +1,97 @@
+id: ex-05-08-quiz-tool-use
+type: quiz
+title: "Quiz integrador: diseño de tool use"
+lesson_ref: lesson-05-03
+difficulty: intermediate
+estimated_time_minutes: 8
+points: 14
+
+description: |
+  Valida las decisiones de diseño detrás de tool use: cómo se estructura el
+  loop, qué hace tool_choice, cuándo usar tools server-side, y cómo
+  escribir schemas que el modelo sepa usar.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: |
+      El modelo devolvió un content block `tool_use` con
+      `name: "get_weather"`, `input: { city: "Madrid" }`. ¿Cuál es el
+      siguiente paso en el loop?
+    options:
+      - id: a
+        text: "Llamar de nuevo a `/v1/messages` con el mismo `messages` — Claude completará por sí mismo"
+      - id: b
+        text: "Ejecutar tu función `get_weather('Madrid')` localmente y mandar el resultado como un content block `tool_result` en el siguiente turno user"
+      - id: c
+        text: "Parsear la respuesta y mostrarla al usuario — el tool_use ya contiene la respuesta final"
+      - id: d
+        text: "Ignorar el tool_use porque significa que el modelo se rindió"
+    correct: b
+    feedback_correct: "Correcto. El loop es: modelo genera `tool_use` → tu código ejecuta la función → devolvés el resultado como `tool_result` en un nuevo turno user → el modelo continúa con la respuesta final. `tool_use` es una petición, no la respuesta final."
+    feedback_incorrect: "El `tool_use` es una petición del modelo: quiere invocar esa función. Tu código debe ejecutarla y devolver el resultado como content block `tool_result` (con el mismo `tool_use_id`) en el siguiente turno `user`."
+    points: 4
+
+  - id: q2
+    type: multiple_choice
+    question: |
+      ¿Cuándo usarías `tool_choice: { type: "any" }` en un request?
+    options:
+      - id: a
+        text: "Siempre — es la forma óptima por defecto"
+      - id: b
+        text: "Cuando querés forzar al modelo a usar cualquiera de los tools disponibles (sin decidirse a responder sin tool), ej: un agente de routing"
+      - id: c
+        text: "Cuando querés que el modelo no use ningún tool"
+      - id: d
+        text: "Cuando querés paralelismo automático"
+    correct: b
+    feedback_correct: "Correcto. `tool_choice: any` obliga al modelo a invocar algún tool (el que le parezca mejor), pero no a responder directamente. Útil en routing (ej: un agente que siempre clasifica hacia alguna herramienta). `auto` es el default razonable; `none` desactiva tools; un nombre específico fuerza uno en particular."
+    feedback_incorrect: "El default `auto` es la opción correcta para la mayoría de casos. `any` se usa cuando, por diseño, la respuesta correcta siempre pasa por un tool (routing, clasificación dura). Forzar siempre oculta bugs de diseño del prompt."
+    points: 3
+
+  - id: q3
+    type: multiple_select
+    question: "¿Cuáles de estas son tools **server-side** de Anthropic (corren en infra de Anthropic, no tenés que implementarlas)? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "`web_search` — búsqueda web gestionada por Anthropic"
+      - id: b
+        text: "`code_execution_20250825` — sandbox Python/bash en el container"
+      - id: c
+        text: "Un tool custom con `input_schema` que vos definís"
+      - id: d
+        text: "`bash` / `text_editor` — acceso al filesystem del container"
+    correct: [a, b, d]
+    feedback_correct: "Correcto. Web search, code execution y bash/editor corren server-side: el modelo las invoca y Anthropic las ejecuta. Tu código solo ve el resultado en los content blocks. Los tools custom son client-side: el schema lo definís vos y tu código ejecuta la función real."
+    feedback_incorrect: "Los tools custom son client-side por definición — el modelo pide la invocación y tu código ejecuta la función. Los tools server-side (web_search, code_execution, bash/editor) corren en la infra de Anthropic; vos solo ves el resultado en content blocks `server_tool_use` y `*_tool_result`."
+    points: 4
+
+  - id: q4
+    type: true_false
+    question: |
+      Si el modelo decide invocar dos tools independientes en la misma
+      respuesta (ej: `get_weather` y `get_time`), recibís **dos**
+      content blocks `tool_use` separados en la misma response y
+      debés devolver **dos** `tool_result` correspondientes en el
+      siguiente turno user.
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: a
+    feedback_correct: "Correcto. Parallel tool use: el modelo puede emitir múltiples `tool_use` blocks en la misma respuesta cuando las llamadas son independientes. Cada uno tiene su `tool_use_id`; tu código ejecuta ambas, y devuelve un array con dos `tool_result` (mismo orden de ids no importa, el id los liga). Ahorra round-trips."
+    feedback_incorrect: "Verdadero. Parallel tool use es un feature de Claude 4: cuando las invocaciones son independientes (no una depende del resultado de la otra), el modelo las solicita en una sola response. Vos ejecutás ambas y devolvés los dos `tool_result` en el siguiente turno."
+    points: 3
+
+concepts:
+  - tool-use-loop
+  - tool-choice-modes
+  - server-side-tools
+  - parallel-tool-use

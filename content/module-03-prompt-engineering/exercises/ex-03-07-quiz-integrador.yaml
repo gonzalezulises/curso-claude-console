@@ -1,0 +1,97 @@
+id: ex-03-07-quiz-integrador
+type: quiz
+title: "Quiz integrador: técnicas de prompt engineering"
+lesson_ref: lesson-03-09
+difficulty: intermediate
+estimated_time_minutes: 8
+points: 14
+
+description: |
+  Valida las decisiones de arquitectura detrás de prompt engineering: cuándo
+  usar XML tags, extended thinking, prefill, y dónde ubicar el contenido
+  cuando el contexto es largo.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: |
+      Tenés un prompt con tres bloques: reglas de la empresa, un documento de
+      1200 palabras sobre compliance, y la pregunta del usuario. ¿Dónde va la
+      pregunta del usuario para maximizar calidad?
+    options:
+      - id: a
+        text: "Al principio del prompt, para que el modelo sepa qué está buscando antes de leer el documento"
+      - id: b
+        text: "Al final, después del documento, porque el modelo atiende más a lo último que lee"
+      - id: c
+        text: "En el system prompt, mezclada con las reglas"
+      - id: d
+        text: "Da igual, Claude lee todo con la misma atención"
+    correct: b
+    feedback_correct: "Correcto. Con contextos largos el modelo atiende mejor a lo que aparece cerca del final del mensaje del usuario. Orden canónico: reglas/sistema → documentos → pregunta."
+    feedback_incorrect: "En long context, la posición importa: la pregunta al final garantiza que el modelo la procese después de haber 'leído' los documentos. Arriba del todo se diluye con el material de referencia."
+    points: 3
+
+  - id: q2
+    type: multiple_select
+    question: "¿Cuándo vale la pena activar extended thinking (`thinking: {type: enabled}`)? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "Clasificación binaria simple (spam / no spam)"
+      - id: b
+        text: "Resolución de un problema de lógica con varios pasos encadenados"
+      - id: c
+        text: "Análisis de un plan de migración donde querés ver el razonamiento antes de decidir"
+      - id: d
+        text: "Extracción de un campo de un JSON"
+    correct: [b, c]
+    feedback_correct: "Correcto. Thinking paga cuando hay razonamiento multi-paso o cuando querés ver cómo el modelo llega a la conclusión para validarla. Para tareas atómicas (clasificación simple, extracción) thinking es costo sin beneficio."
+    feedback_incorrect: "Tareas atómicas (clasificación, extracción) no necesitan thinking — solo aumenta costo y latencia. Thinking brilla cuando el problema requiere encadenar pasos o cuando el 'por qué' es parte del valor."
+    points: 4
+
+  - id: q3
+    type: multiple_choice
+    question: |
+      Necesitás que Claude devuelva SIEMPRE JSON válido sin ningún texto
+      adicional. ¿Cuál es la técnica más confiable?
+    options:
+      - id: a
+        text: "Pedirlo en el user prompt: 'Responde con JSON válido y nada más'"
+      - id: b
+        text: "Usar prefill: empezar el turno assistant con `{` para forzar al modelo a continuar JSON"
+      - id: c
+        text: "Poner temperature en 0"
+      - id: d
+        text: "Usar thinking enabled"
+    correct: b
+    feedback_correct: "Correcto. Prefill es la técnica más robusta: al arrancar el turno assistant con `{` le das al modelo un punto de partida del que no puede salir con texto conversacional. Temperature 0 ayuda pero no garantiza el formato; pedirlo en prompt funciona el 95% de las veces, no el 99.9%."
+    feedback_incorrect: "Prefill gana: comenzar el turno assistant con el token inicial del formato (`{` o `[`) obliga al modelo a continuar en ese shape. El prompt solo es menos confiable que el mecanismo estructural del prefill."
+    points: 4
+
+  - id: q4
+    type: true_false
+    question: |
+      Si tu prompt tiene 3 bloques (instrucciones, ejemplos, input del
+      usuario), envolverlos en tags XML como `<instructions>`, `<examples>`
+      e `<input>` produce mejores resultados consistentes que separarlos
+      solo con saltos de línea.
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: a
+    feedback_correct: "Correcto. XML tags son la recomendación explícita de Anthropic para Claude 4: el modelo fue entrenado para respetar esos límites. Saltos de línea funcionan pero son ambiguos — un documento que internamente tiene listas puede confundirse con las instrucciones."
+    feedback_incorrect: "Verdadero. XML tags son la recomendación oficial para separar secciones en prompts de Claude 4. Los saltos de línea funcionan para prompts simples pero producen ambigüedad en casos con documentos estructurados."
+    points: 3
+
+concepts:
+  - long-context-ordering
+  - extended-thinking
+  - prefill-json
+  - xml-tags

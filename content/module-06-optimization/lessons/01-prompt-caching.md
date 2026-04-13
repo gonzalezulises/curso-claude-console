@@ -223,6 +223,11 @@ call 5: input=15 write=0    read=5409
 - Medí con `usage.cache_creation_input_tokens` y `usage.cache_read_input_tokens`.
 - Cualquier cambio en el prefix byte-a-byte invalida el cache.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-06-07-quiz-optimization" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/build-with-claude/prompt-caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)

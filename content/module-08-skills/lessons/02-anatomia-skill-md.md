@@ -229,6 +229,11 @@ Checklist antes de subir:
 - En runtime, el bundle se monta en `/skills/<folder-name>/` dentro del container.
 - Bundle max 30 MB; `SKILL.md` obligatoriamente en la raíz.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-08-02-skill-md" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/agents-and-tools/agent-skills/overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)

@@ -171,6 +171,11 @@ Este flujo completo (pasos 1 a 5) debería llevarte **menos de 10 minutos**. El 
 - **Temperature**: alta (0.8-1.0) para explorar, baja (0-0.3) para estabilizar.
 - **El Workbench no reemplaza git** — es para exploración. Cuando el prompt es estable, exportá y commiteá.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-02-01-iteracion-prompt" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)

@@ -1,0 +1,96 @@
+id: ex-06-07-quiz-optimization
+type: quiz
+title: "Quiz integrador: optimización y producción"
+lesson_ref: lesson-06-01
+difficulty: intermediate
+estimated_time_minutes: 8
+points: 14
+
+description: |
+  Valida las decisiones de optimización: cuándo prompt caching, cuándo Batch
+  API, cómo funciona el context 1M beta, y cómo responder a rate limits
+  sin romper la experiencia del usuario.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: |
+      Agregaste `cache_control: { type: "ephemeral" }` al final de un bloque
+      de system prompt de 8000 tokens. Corrés el mismo prompt dos veces
+      seguidas. ¿Cuánto pagás de tokens de input en la segunda llamada?
+    options:
+      - id: a
+        text: "Lo mismo que la primera (no hay ahorro real, es marketing)"
+      - id: b
+        text: "Cero — el cache evita cualquier cobro"
+      - id: c
+        text: "Aproximadamente 10% del costo normal de esos tokens (cache read)"
+      - id: d
+        text: "Aproximadamente 25% más caro que la primera (penalty por cache)"
+    correct: c
+    feedback_correct: "Correcto. Prompt caching cobra ~10% de los tokens cacheados en `cache_read_input_tokens` (en lugar de los `input_tokens` normales). Hay un surcharge de ~25% en la primera llamada (cache write), y ahorro de ~90% en las siguientes mientras el cache siga vivo (5 min para ephemeral, 1h con extended TTL)."
+    feedback_incorrect: "El modelo económico del caching: primera llamada paga ~125% (escribir cache); llamadas siguientes pagan ~10% (leer cache). Amortiza a partir de la 2da llamada al mismo prefijo. Ver el campo `cache_read_input_tokens` en el response usage."
+    points: 4
+
+  - id: q2
+    type: multiple_select
+    question: "¿Cuándo conviene usar **Batch API** en vez de la API sincrónica? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "Tenés 10.000 clasificaciones para correr de una vez, no urgentes (se pueden procesar en horas)"
+      - id: b
+        text: "Un chatbot de producción que espera respuesta en segundos"
+      - id: c
+        text: "Reprocesar un dataset histórico de 1M de documentos durante la noche"
+      - id: d
+        text: "Una UI interactiva donde el usuario ve streaming de la respuesta"
+    correct: [a, c]
+    feedback_correct: "Correcto. Batch API ofrece 50% de descuento y escala a millones de requests, pero las respuestas vienen en horas (no segundos). Ideal para jobs masivos no urgentes. Para UI interactiva o chatbots, la API síncrona (con streaming si aplica) es la única opción."
+    feedback_incorrect: "Batch = workloads asincrónicos y masivos (50% off, pero latencia en horas). UI interactiva y chatbots necesitan respuesta en segundos → API síncrona. La regla: Batch si el usuario no está esperando la respuesta en ese momento."
+    points: 4
+
+  - id: q3
+    type: multiple_choice
+    question: |
+      Tu prompt promedia 250k tokens de contexto y Claude Sonnet 4.6 tiene
+      200k por default. ¿Cómo lo corrés?
+    options:
+      - id: a
+        text: "No se puede — el modelo no lo soporta"
+      - id: b
+        text: "Activar el beta `context-1m-2025-08-07` con el header `anthropic-beta`"
+      - id: c
+        text: "Cambiar a Opus, que tiene más contexto"
+      - id: d
+        text: "Particionar manualmente en 2 requests y mergear el output"
+    correct: b
+    feedback_correct: "Correcto. Con el beta `context-1m-2025-08-07` habilitás hasta 1M tokens de context en Sonnet/Opus 4.x. Requiere opt-in explícito con el header. Para 250k tokens estás dentro del límite del beta. Partir en 2 requests es una alternativa válida pero perdés coherencia global."
+    feedback_incorrect: "El beta `context-1m-2025-08-07` es la opción canónica para prompts entre 200k y 1M tokens. Activalo con `anthropic-beta` en el header. Cambiar a Opus no aumenta el context window; partir es fallback de último recurso."
+    points: 3
+
+  - id: q4
+    type: true_false
+    question: |
+      Si recibís un error 429 (`rate_limit_exceeded`), la estrategia correcta
+      es reintentar inmediatamente con exponential backoff respetando el
+      header `retry-after` si viene en la respuesta.
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: a
+    feedback_correct: "Correcto. 429 es transient por definición: la API te dice 'volvé en un rato'. La estrategia de producción: exponential backoff (ej: 1s, 2s, 4s, 8s con jitter) respetando `retry-after` cuando viene. Sin backoff, amplificás el problema. Sin respetar `retry-after`, tardás más en salir del rate limit."
+    feedback_incorrect: "Verdadero. Los 429 son la señal estándar de 'reintentá más tarde'. Exponential backoff + jitter + respeto a `retry-after` es la solución canónica. Retry inmediato sin backoff empeora el rate limit (más load = más 429s)."
+    points: 3
+
+concepts:
+  - prompt-caching-economics
+  - batch-api-vs-sync
+  - context-1m-beta
+  - rate-limit-backoff

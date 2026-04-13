@@ -171,6 +171,10 @@ El ejercicio `ex-03-06-lab-refactor.yaml` te da el starter code, la rubric exact
 - **Target del lab**: output tokens ≥50% menos que el original, formato parseable 3/3 veces, clasificación "alta" correcta.
 - **Documentar decisiones** es parte del entregable — la rubric evalúa justificación, no solo el prompt final.
 
+## Ejercicio interactivo
+
+<Quiz id="ex-03-07-quiz-integrador" />
+
 ---
 
 **Ejercicio:** <!-- exercise:ex-03-06-lab-refactor -->

@@ -159,6 +159,11 @@ Cuando sí conviene subir: si el prompt fuera *"dame un análisis comparativo de
 - **Alias en producción, snapshot con fecha solo en evals reproducibles.** La respuesta puede devolverte cualquiera de los dos en el campo `model`; no te confíes.
 - **El costo real no es solo la tarifa**, es tarifa × tokens. Modelos más grandes tienden a generar output más largo, amplificando el ratio. Medí con `usage`, no con intuición.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-01-01-elegir-modelo" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/about-claude/pricing](https://platform.claude.com/docs/en/about-claude/pricing) · [platform.claude.com/docs/en/api/messages](https://platform.claude.com/docs/en/api/messages)

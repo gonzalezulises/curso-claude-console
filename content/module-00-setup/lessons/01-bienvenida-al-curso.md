@@ -91,6 +91,11 @@ Mientras tanto, un pequeño compromiso contigo mismo: **no saltes lecciones**. E
 - **Método**: protocolo primero (curl), SDK después, siempre con ejecución real y anti-patterns explícitos.
 - **Compromiso**: no saltes lecciones, ejecuta cada ejercicio, presupuesta unos USD 5-15 en tokens durante todo el curso.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-00-03-identificar-secciones" />
+
 ---
 
 **Fuente oficial:** [platform.claude.com/docs/en/docs/welcome](https://platform.claude.com/docs/en/docs/welcome)

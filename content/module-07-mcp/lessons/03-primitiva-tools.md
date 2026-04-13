@@ -206,6 +206,11 @@ Dos tools, `get_current_time` y `convert_time`, que cualquier host MCP puede con
 - Hay dos niveles de error: protocolo (JSON-RPC `error`) y ejecución (`result.isError: true`). Los de ejecución llegan al modelo como `tool_result` con `is_error: true`.
 - El `content` de un tool result es un array de bloques tipados (`text`, `image`, etc.) — igual que en la Messages API.
 
+
+## Ejercicio interactivo
+
+<Quiz id="ex-07-01-conceptos-mcp" />
+
 ---
 
 **Fuente oficial:** [modelcontextprotocol.io/specification/server/tools](https://modelcontextprotocol.io/specification/2025-06-18/server/tools)
