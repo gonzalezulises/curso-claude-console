@@ -1,0 +1,122 @@
+id: ex-07-03-mcp-connector
+type: code-typescript
+title: "Usar MCP Connector contra un server MCP remoto"
+lesson_ref: lesson-07-07
+difficulty: intermediate
+estimated_time_minutes: 15
+points: 20
+
+starter_code: |
+  // ex-07-03: Invocar /v1/messages con mcp_servers apuntando al server
+  //   público de DeepWiki. El modelo debe usar la tool `ask_question`
+  //   para responder.
+  //
+  // Pre-requisitos:
+  //   - ANTHROPIC_API_KEY en env
+  //   - Header beta: anthropic-beta: mcp-client-2025-04-04
+  //
+  // Install:
+  //   npm install @anthropic-ai/sdk
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  // TODO 1: Llamar a client.beta.messages.create con:
+  //   - model: "claude-haiku-4-5"
+  //   - max_tokens: 300
+  //   - betas: ["mcp-client-2025-04-04"]
+  //   - messages con una pregunta que requiera consultar el wiki de un repo
+  //   - mcp_servers con:
+  //       type: "url"
+  //       name: "deepwiki"
+  //       url: "https://mcp.deepwiki.com/mcp"
+  //       tool_configuration: { allowed_tools: ["ask_question"] }
+
+  // TODO 2: Iterar resp.content y loggear por cada block:
+  //   - si block.type === "mcp_tool_use": server_name, name, input
+  //   - si block.type === "mcp_tool_result": is_error
+  //   - si block.type === "text": el texto final
+
+  // TODO 3: Imprimir input_tokens y output_tokens del usage.
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  const resp = await client.beta.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 300,
+    betas: ["mcp-client-2025-04-04"],
+    messages: [
+      {
+        role: "user",
+        content:
+          "Using the DeepWiki MCP server, tell me in one sentence what the repo anthropics/anthropic-cookbook is for.",
+      },
+    ],
+    mcp_servers: [
+      {
+        type: "url",
+        name: "deepwiki",
+        url: "https://mcp.deepwiki.com/mcp",
+        tool_configuration: { allowed_tools: ["ask_question"] },
+      },
+    ],
+  });
+
+  for (const block of resp.content) {
+    if (block.type === "mcp_tool_use") {
+      console.log(`[CALL] ${block.server_name}.${block.name}`, JSON.stringify(block.input));
+    } else if (block.type === "mcp_tool_result") {
+      console.log(`[RESULT] is_error=${block.is_error}`);
+    } else if (block.type === "text") {
+      console.log(`[TEXT] ${block.text}`);
+    }
+  }
+
+  console.log(
+    `usage: input=${resp.usage.input_tokens} output=${resp.usage.output_tokens}`
+  );
+
+test_cases:
+  - id: test-beta-header
+    description: "El request incluye el beta mcp-client-2025-04-04"
+    test_code: |
+      assert true, "Sin el beta header, mcp_servers causa HTTP 400"
+    points: 5
+  - id: test-mcp-tool-use-block
+    description: "El response incluye al menos un mcp_tool_use con server_name='deepwiki'"
+    test_code: |
+      const mcpCall = resp.content.find(b => b.type === "mcp_tool_use");
+      assert mcpCall, "Debería haber al menos un mcp_tool_use";
+      assert mcpCall.server_name === "deepwiki", "server_name debe matchear el alias del server"
+    points: 5
+  - id: test-mcp-tool-result-block
+    description: "El response incluye mcp_tool_result con is_error=false"
+    test_code: |
+      const mcpResult = resp.content.find(b => b.type === "mcp_tool_result");
+      assert mcpResult, "Debería haber mcp_tool_result";
+      assert mcpResult.is_error === false, "Deep wiki debería responder sin error"
+    points: 5
+  - id: test-text-synthesis
+    description: "El response incluye un text block final con la síntesis del modelo"
+    test_code: |
+      const textBlock = resp.content.find(b => b.type === "text");
+      assert textBlock, "Debería haber un text block final con la respuesta sintetizada";
+      assert textBlock.text.length > 20, "El texto no debería estar vacío"
+    points: 5
+
+hints:
+  - "En el SDK de Anthropic, las betas van como `betas: [...]` cuando llamás a client.beta.messages.create (no client.messages)."
+  - "Si ves HTTP 400 'Extra inputs are not permitted', te olvidaste el beta header."
+  - "tool_configuration.allowed_tools filtra qué tools del server se exponen al modelo — útil para reducir tokens de input."
+  - "El response NO pide que respondas con tool_result — el ciclo completo viene resuelto por Anthropic."
+
+concepts:
+  - mcp-connector
+  - beta-header
+  - mcp-tool-use-block
+  - mcp-tool-result-block
+  - tool-configuration-filter

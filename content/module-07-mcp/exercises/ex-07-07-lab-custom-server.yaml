@@ -1,0 +1,233 @@
+id: ex-07-07-lab-custom-server
+type: code-typescript
+title: "Lab: server MCP custom de 3 tools + integración con Claude Code"
+lesson_ref: lesson-07-10
+difficulty: advanced
+estimated_time_minutes: 90
+points: 40
+
+starter_code: |
+  // ex-07-07: Lab completo del Módulo 7.
+  //
+  // Entregables obligatorios:
+  //   (1) tasks-server.ts con 3 tools sobre el dominio de tasks:
+  //         - create_task(title, description, tag?)
+  //         - list_tasks(tag?, only_pending?)
+  //         - complete_task(id)
+  //   (2) Persistencia: tasks.json en disco. El estado sobrevive reinicios.
+  //   (3) .claude.json con mcpServers.tasks apuntando a tu server.
+  //   (4) client.ts: un cliente Node (SDK) que lista tools y crea 1 task.
+  //
+  // Criterios de aceptación:
+  //   - Desde Claude Code podés crear tasks con lenguaje natural.
+  //   - Al cerrar Claude Code y reabrirlo, list_tasks muestra lo que habías creado.
+  //   - client.ts corre aislado e imprime tools + resultado de la llamada.
+  //
+  // Podés cambiar el dominio (notes, bookmarks, contacts, etc.) si preferís —
+  // lo importante es que sean 3 tools con un mínimo de lógica y persistencia.
+  //
+  // Install:
+  //   npm install @modelcontextprotocol/sdk@^1.29 zod tsx
+
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+  import { z } from "zod";
+  import { readFile, writeFile } from "node:fs/promises";
+  import path from "node:path";
+  import { randomUUID } from "node:crypto";
+
+  // TODO 1: Definir type Task y funciones loadDb() / saveDb() que leen y
+  //   escriben ./tasks.json (usar process.cwd() para el path).
+
+  // TODO 2: Crear McpServer y registrar las 3 tools con registerTool.
+  //   Validá argumentos con Zod, persistí en disco después de cada mutación.
+
+  // TODO 3: Conectar StdioServerTransport y loggear a stderr.
+
+  // TODO 4: En otro archivo client.ts, usar StdioClientTransport + Client
+  //   del SDK para listar tools e invocar create_task.
+
+  // TODO 5: Configurar .claude.json con el server. Verificar que Claude Code
+  //   crea tasks y que sobreviven al reinicio.
+
+solution_code: |
+  // ===== tasks-server.ts =====
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+  import { z } from "zod";
+  import { readFile, writeFile } from "node:fs/promises";
+  import path from "node:path";
+  import { randomUUID } from "node:crypto";
+
+  const DB_PATH = path.join(process.cwd(), "tasks.json");
+
+  type Task = {
+    id: string;
+    title: string;
+    description: string;
+    tag: string | null;
+    completed: boolean;
+    createdAt: string;
+  };
+
+  async function loadDb(): Promise<Task[]> {
+    try {
+      return JSON.parse(await readFile(DB_PATH, "utf-8"));
+    } catch {
+      return [];
+    }
+  }
+
+  async function saveDb(tasks: Task[]): Promise<void> {
+    await writeFile(DB_PATH, JSON.stringify(tasks, null, 2), "utf-8");
+  }
+
+  const server = new McpServer({ name: "tasks-server", version: "0.1.0" });
+
+  server.registerTool(
+    "create_task",
+    {
+      description: "Create a new task. Returns the created task id.",
+      inputSchema: {
+        title:       z.string().min(1),
+        description: z.string().default(""),
+        tag:         z.string().nullable().default(null),
+      },
+    },
+    async ({ title, description, tag }) => {
+      const tasks = await loadDb();
+      const task: Task = {
+        id: randomUUID().slice(0, 8),
+        title, description, tag,
+        completed: false,
+        createdAt: new Date().toISOString(),
+      };
+      tasks.push(task);
+      await saveDb(tasks);
+      return { content: [{ type: "text", text: `Created ${task.id}: "${title}"` }] };
+    }
+  );
+
+  server.registerTool(
+    "list_tasks",
+    {
+      description: "List tasks. Optional filters: tag, only_pending.",
+      inputSchema: {
+        tag:          z.string().nullable().default(null),
+        only_pending: z.boolean().default(false),
+      },
+    },
+    async ({ tag, only_pending }) => {
+      const tasks = await loadDb();
+      const filtered = tasks.filter(t =>
+        (tag === null || t.tag === tag) && (!only_pending || !t.completed)
+      );
+      if (!filtered.length) {
+        return { content: [{ type: "text", text: "(no tasks)" }] };
+      }
+      const lines = filtered.map(t =>
+        `${t.completed ? "[x]" : "[ ]"} ${t.id} | ${t.title}${t.tag ? ` #${t.tag}` : ""}`
+      );
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    }
+  );
+
+  server.registerTool(
+    "complete_task",
+    {
+      description: "Mark a task as completed by id.",
+      inputSchema: { id: z.string() },
+      annotations: { idempotentHint: true },
+    },
+    async ({ id }) => {
+      const tasks = await loadDb();
+      const task = tasks.find(t => t.id === id);
+      if (!task) {
+        return {
+          content: [{ type: "text", text: `No task with id ${id}` }],
+          isError: true,
+        };
+      }
+      task.completed = true;
+      await saveDb(tasks);
+      return { content: [{ type: "text", text: `Completed ${id}: "${task.title}"` }] };
+    }
+  );
+
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error(`tasks-server on stdio (db=${DB_PATH})`);
+
+  // ===== client.ts =====
+  // import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+  // import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+  //
+  // const transport = new StdioClientTransport({
+  //   command: "npx",
+  //   args: ["tsx", "tasks-server.ts"],
+  // });
+  // const client = new Client({ name: "demo-client", version: "0.1.0" });
+  // await client.connect(transport);
+  //
+  // const { tools } = await client.listTools();
+  // console.log("Tools:", tools.map(t => t.name).join(", "));
+  //
+  // const result = await client.callTool({
+  //   name: "create_task",
+  //   arguments: { title: "From client.ts", description: "hi", tag: "demo" },
+  // });
+  // console.log(JSON.stringify(result, null, 2));
+  // await client.close();
+
+  // ===== .claude.json (snippet) =====
+  // {
+  //   "mcpServers": {
+  //     "tasks": {
+  //       "command": "npx",
+  //       "args": ["tsx", "/abs/path/to/tasks-server.ts"]
+  //     }
+  //   }
+  // }
+
+test_cases:
+  - id: test-three-tools
+    description: "El server expone exactamente create_task, list_tasks, complete_task"
+    test_code: |
+      const names = tools.map(t => t.name).sort();
+      assert JSON.stringify(names) === JSON.stringify(["complete_task", "create_task", "list_tasks"]), "Tres tools específicas"
+    points: 8
+  - id: test-create-persists
+    description: "create_task escribe a tasks.json"
+    test_code: |
+      assert fs.existsSync("./tasks.json"), "tasks.json debe existir después del primer create_task"
+    points: 8
+  - id: test-list-roundtrip
+    description: "list_tasks devuelve lo que create_task insertó"
+    test_code: |
+      assert listOutput.includes(createdTitle), "Debería aparecer el título que creaste"
+    points: 8
+  - id: test-complete-sets-flag
+    description: "complete_task marca completed=true"
+    test_code: |
+      assert task.completed === true, "Después de complete_task, el flag debe estar en true"
+    points: 8
+  - id: test-survives-restart
+    description: "Relanzar el server preserva el estado de tasks.json"
+    test_code: |
+      assert true, "Verificación manual: cerrar proceso, relanzar, listar — debe mantener las tasks"
+    points: 8
+
+hints:
+  - "Usá process.cwd() para la ruta de tasks.json — el cwd depende de dónde Claude Code lance el server. Para estabilidad, considerá path absoluto via env var."
+  - "randomUUID().slice(0, 8) te da ids cortos y únicos sin agregar dependencias."
+  - "Si ves que las tasks no persisten desde Claude Code, chequeá desde qué directorio se está ejecutando el server (el cwd puede ser el del IDE, no el tuyo)."
+  - "Los errores de Zod se retornan como JSON-RPC error antes de que tu handler corra — no necesitás try/catch para validación."
+  - "Para hacer el client.ts más completo, agregá una segunda llamada que liste tasks y printée el resultado."
+
+concepts:
+  - server-custom
+  - persistence
+  - sdk-client
+  - claude-code-integration
+  - three-tools-crud
+  - end-to-end

@@ -1,0 +1,154 @@
+id: ex-07-05-resources
+type: code-typescript
+title: "Agregar resources al server: estado expuesto como URI"
+lesson_ref: lesson-07-09
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 20
+
+starter_code: |
+  // ex-07-05: Extender un server MCP con resources.
+  //
+  // Partís del reverse-server del ejercicio anterior. Ahora además expones:
+  //   - Un resource estático "reverse://config" con la config del server.
+  //   - Un resource template "reverse://history/{id}" donde id es el índice
+  //     de la última inversión guardada en memoria.
+  //
+  // Requiere el SDK del ejercicio 07-04.
+
+  import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+  import { z } from "zod";
+
+  const history: { input: string; reversed: string }[] = [];
+
+  const server = new McpServer({
+    name: "reverse-server-v2",
+    version: "0.2.0",
+  });
+
+  // TODO 1: Registrar tool reverse_string igual que antes, PERO que además
+  //   haga history.push({ input, reversed }) antes de retornar.
+
+  // TODO 2: registerResource("config", "reverse://config",
+  //   { title: "Server config", mimeType: "application/json" },
+  //   async (uri) => ({
+  //     contents: [{ uri: uri.href, text: JSON.stringify({maxHistory: 100}) }]
+  //   })
+  // );
+
+  // TODO 3: registerResource("history-entry",
+  //   new ResourceTemplate("reverse://history/{id}", { list: undefined }),
+  //   { title: "History entry", mimeType: "application/json" },
+  //   async (uri, { id }) => {
+  //     const entry = history[Number(id)];
+  //     if (!entry) throw new Error(`No entry ${id}`);
+  //     return { contents: [{ uri: uri.href, text: JSON.stringify(entry) }] };
+  //   }
+  // );
+
+  // TODO 4: Conectar StdioServerTransport.
+
+solution_code: |
+  import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+  import { z } from "zod";
+
+  const history: { input: string; reversed: string }[] = [];
+
+  const server = new McpServer({
+    name: "reverse-server-v2",
+    version: "0.2.0",
+  });
+
+  server.registerTool(
+    "reverse_string",
+    {
+      description: "Reverse a string and record it in history",
+      inputSchema: { input: z.string() },
+      annotations: { readOnlyHint: false, idempotentHint: false },
+    },
+    async ({ input }) => {
+      const reversed = [...input].reverse().join("");
+      history.push({ input, reversed });
+      return {
+        content: [{ type: "text", text: `${reversed} (entry #${history.length - 1})` }],
+      };
+    }
+  );
+
+  server.registerResource(
+    "config",
+    "reverse://config",
+    { title: "Server config", mimeType: "application/json" },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify({ maxHistory: 100, serverVersion: "0.2.0" }),
+        },
+      ],
+    })
+  );
+
+  server.registerResource(
+    "history-entry",
+    new ResourceTemplate("reverse://history/{id}", { list: undefined }),
+    { title: "History entry", mimeType: "application/json" },
+    async (uri, { id }) => {
+      const entry = history[Number(id)];
+      if (!entry) {
+        throw new Error(`No history entry with id ${id}`);
+      }
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(entry),
+          },
+        ],
+      };
+    }
+  );
+
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("reverse-server-v2 running on stdio");
+
+test_cases:
+  - id: test-resources-list
+    description: "resources/list devuelve al menos 1 resource (el estático)"
+    test_code: |
+      assert resources.length >= 1, "Debe aparecer reverse://config en la lista"
+    points: 5
+  - id: test-templates-list
+    description: "resources/templates/list devuelve la plantilla reverse://history/{id}"
+    test_code: |
+      assert templates.some(t => t.uriTemplate.includes("reverse://history")), "Template debe estar registrada"
+    points: 5
+  - id: test-read-config
+    description: "resources/read sobre reverse://config devuelve JSON válido"
+    test_code: |
+      const parsed = JSON.parse(content.text);
+      assert parsed.maxHistory === 100, "El config expuesto debe tener maxHistory: 100"
+    points: 5
+  - id: test-history-roundtrip
+    description: "Después de 1 reverse_string, reverse://history/0 devuelve la entrada"
+    test_code: |
+      assert entry.input && entry.reversed, "La entrada debe tener input y reversed poblados"
+    points: 5
+
+hints:
+  - "Importar ResourceTemplate del mismo path que McpServer."
+  - "URIs con scheme custom (`reverse://`) son totalmente válidas — no tienen que ser resolvibles fuera del server."
+  - "Si el handler del resource lanza un Error, el client recibe un JSON-RPC error bien formado."
+  - "Para testear resources sin Claude, usá el Client del SDK: client.listResources(), client.readResource({ uri })."
+
+concepts:
+  - registerResource
+  - ResourceTemplate
+  - custom-uri-scheme
+  - mimetype
+  - resource-vs-tool

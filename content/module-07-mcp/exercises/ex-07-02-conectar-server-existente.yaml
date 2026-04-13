@@ -1,0 +1,98 @@
+id: ex-07-02-conectar-server-existente
+type: code-typescript
+title: "Conectarse al server `filesystem` via SDK como client MCP"
+lesson_ref: lesson-07-08
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 20
+
+starter_code: |
+  // ex-07-02: Cliente MCP que consume el server oficial `filesystem`.
+  //
+  // Objetivo: levantar @modelcontextprotocol/server-filesystem como proceso
+  // hijo via stdio, hacer el handshake, listar tools, y llamar a
+  // `list_directory` sobre el directorio permitido.
+  //
+  // Setup:
+  //   mkdir -p /private/tmp/mcp-fs-demo
+  //   echo "hola" > /private/tmp/mcp-fs-demo/greeting.txt
+  //
+  // Install:
+  //   npm install @modelcontextprotocol/sdk@^1.29
+
+  import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+  import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+
+  // TODO 1: Crear el transport apuntando a `npx` con args que lancen
+  //   @modelcontextprotocol/server-filesystem sobre /private/tmp/mcp-fs-demo.
+
+  // TODO 2: Crear el Client con name "fs-probe" y version "0.1.0" y
+  //   conectarlo al transport.
+
+  // TODO 3: Llamar a client.listTools() e imprimir los nombres de tools.
+
+  // TODO 4: Llamar a client.callTool() con name "list_directory"
+  //   y arguments { path: "/private/tmp/mcp-fs-demo" }.
+  //   Imprimir el resultado.
+
+  // TODO 5: Cerrar el client al terminar.
+
+solution_code: |
+  import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+  import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+
+  const ALLOWED_DIR = "/private/tmp/mcp-fs-demo";
+
+  const transport = new StdioClientTransport({
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-filesystem", ALLOWED_DIR],
+  });
+
+  const client = new Client({ name: "fs-probe", version: "0.1.0" });
+  await client.connect(transport);
+
+  const { tools } = await client.listTools();
+  console.log("Tools:", tools.map((t) => t.name).join(", "));
+
+  const result = await client.callTool({
+    name: "list_directory",
+    arguments: { path: ALLOWED_DIR },
+  });
+  console.log("list_directory result:", JSON.stringify(result, null, 2));
+
+  await client.close();
+
+test_cases:
+  - id: test-connects
+    description: "El client conecta al server sin lanzar errores"
+    test_code: |
+      assert true, "client.connect() no debe tirar"
+    points: 5
+  - id: test-tools-listed
+    description: "listTools devuelve al menos una tool"
+    test_code: |
+      assert tools.length > 0, "El server filesystem expone múltiples tools (read_text_file, list_directory, ...)"
+    points: 5
+  - id: test-list-directory-works
+    description: "callTool(list_directory) devuelve sin is_error"
+    test_code: |
+      assert result.isError !== true, "list_directory debería funcionar sobre el dir permitido"
+    points: 5
+  - id: test-path-scoped
+    description: "Si se pide un path fuera del allowed dir, falla con isError=true"
+    test_code: |
+      assert true, "Probá en local: callTool con path '/etc' devuelve Access denied"
+    points: 5
+
+hints:
+  - "macOS symlinkea /tmp a /private/tmp — usá siempre /private/tmp/... para evitar Access denied."
+  - "El transport stdio lanza el server como child process. No hace falta correrlo a mano antes."
+  - "client.listTools() ya hace el handshake `initialize` + `notifications/initialized` por vos; no los llames manualmente."
+  - "Si `list_directory` no aparece, chequeá la versión del server — en versiones viejas el tool se llamaba diferente (`list_files`)."
+
+concepts:
+  - mcp-client-sdk
+  - stdio-transport
+  - list-tools
+  - call-tool
+  - allowed-directory-scope

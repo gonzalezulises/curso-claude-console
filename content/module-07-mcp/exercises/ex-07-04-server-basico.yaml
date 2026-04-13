@@ -1,0 +1,108 @@
+id: ex-07-04-server-basico
+type: code-typescript
+title: "Server MCP básico con tool `reverse_string`"
+lesson_ref: lesson-07-09
+difficulty: beginner
+estimated_time_minutes: 15
+points: 15
+
+starter_code: |
+  // ex-07-04: Construir un server MCP mínimo con una sola tool.
+  //
+  // Setup:
+  //   mkdir mcp-reverse && cd mcp-reverse
+  //   npm init -y
+  //   npm install @modelcontextprotocol/sdk@^1.29 zod tsx
+  //   node -e 'let p=require("./package.json"); p.type="module";
+  //     require("fs").writeFileSync("package.json", JSON.stringify(p,null,2));'
+  //
+  // Luego creá este archivo como `server.ts` y corrélo:
+  //   npx tsx server.ts
+
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+  import { z } from "zod";
+
+  // TODO 1: Crear el server con name "reverse-server" y version "0.1.0".
+
+  // TODO 2: Registrar una tool "reverse_string" con registerTool que:
+  //   - description: "Reverse a string"
+  //   - inputSchema: { input: z.string() }
+  //   - handler: devuelve content con el texto al revés.
+
+  // TODO 3: Conectar StdioServerTransport y loggear a stderr.
+
+  // Verificación: mandar por stdin al proceso:
+  //   {"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"demo","version":"0.1"}}}
+  //   {"jsonrpc":"2.0","method":"notifications/initialized"}
+  //   {"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"reverse_string","arguments":{"input":"claude"}}}
+
+solution_code: |
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+  import { z } from "zod";
+
+  const server = new McpServer({
+    name: "reverse-server",
+    version: "0.1.0",
+  });
+
+  server.registerTool(
+    "reverse_string",
+    {
+      description: "Reverse a string",
+      inputSchema: {
+        input: z.string().describe("String to reverse"),
+      },
+      annotations: {
+        readOnlyHint: true,
+        idempotentHint: true,
+      },
+    },
+    async ({ input }) => {
+      const reversed = [...input].reverse().join("");
+      return {
+        content: [{ type: "text", text: reversed }],
+      };
+    }
+  );
+
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("reverse-server running on stdio");
+
+test_cases:
+  - id: test-server-starts
+    description: "El server arranca y responde al handshake"
+    test_code: |
+      assert true, "Initialize responde con protocolVersion y capabilities.tools"
+    points: 4
+  - id: test-tool-registered
+    description: "tools/list incluye reverse_string"
+    test_code: |
+      assert tools.some(t => t.name === "reverse_string"), "La tool debe estar registrada"
+    points: 4
+  - id: test-tool-executes
+    description: "tools/call con input='claude' devuelve 'edualc'"
+    test_code: |
+      assert result.content[0].text === "edualc", "El handler debe invertir el string"
+    points: 4
+  - id: test-annotations
+    description: "La tool declara readOnlyHint: true"
+    test_code: |
+      assert true, "Es buena práctica — el host puede auto-aprobar"
+    points: 3
+
+hints:
+  - "Imports con `.js` aunque sea archivo `.ts` — es ESM, la extensión va resuelta."
+  - "package.json necesita `\"type\": \"module\"` para top-level await."
+  - "`inputSchema` recibe el SHAPE (objeto con validators Zod), no un z.object(...)."
+  - "Logs a stderr con console.error, nunca a stdout — stdout es el canal JSON-RPC."
+  - "Para probar sin escribir un client: pipe de echos al proceso como en la lección 9."
+
+concepts:
+  - mcp-sdk
+  - registerTool
+  - zod-schema
+  - StdioServerTransport
+  - annotations-hints

@@ -1,0 +1,140 @@
+id: ex-07-06-transport-http
+type: code-typescript
+title: "Migrar el server a streamable-http para deploy remoto"
+lesson_ref: lesson-07-09
+difficulty: advanced
+estimated_time_minutes: 30
+points: 25
+
+starter_code: |
+  // ex-07-06: Mismo server reverse, pero via HTTP en lugar de stdio.
+  //
+  // Objetivo: exponer el server en http://localhost:3000/mcp usando
+  // StreamableHTTPServerTransport. Esto es lo que necesitás para que un
+  // request /v1/messages con mcp_servers + beta MCP Connector pueda
+  // llamarlo (una vez deployado a una URL pública).
+  //
+  // Install extra:
+  //   npm install express
+
+  import express from "express";
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+  import { z } from "zod";
+  import { randomUUID } from "node:crypto";
+
+  // TODO 1: Instanciar McpServer igual que antes (reverse_string tool).
+
+  // TODO 2: Armar express app que:
+  //   - POST /mcp: crear un StreamableHTTPServerTransport con
+  //       sessionIdGenerator: () => randomUUID()
+  //     Conectar server al transport. Llamar transport.handleRequest(req, res, req.body).
+  //   - GET /mcp y DELETE /mcp: devolver 405 Method Not Allowed (el protocolo
+  //     no los usa en el modelo stateless simple).
+
+  // TODO 3: app.listen(3000, () => console.log("MCP HTTP server on :3000"));
+
+  // Verificación manual:
+  //   En otra terminal: curl -sN -X POST http://localhost:3000/mcp \
+  //     -H "Content-Type: application/json" \
+  //     -H "Accept: application/json, text/event-stream" \
+  //     -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+  //          "protocolVersion":"2025-06-18","capabilities":{},
+  //          "clientInfo":{"name":"demo","version":"0.1"}}}'
+
+solution_code: |
+  import express from "express";
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+  import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+  import { z } from "zod";
+  import { randomUUID } from "node:crypto";
+
+  const server = new McpServer({
+    name: "reverse-server-http",
+    version: "0.1.0",
+  });
+
+  server.registerTool(
+    "reverse_string",
+    {
+      description: "Reverse a string",
+      inputSchema: { input: z.string() },
+      annotations: { readOnlyHint: true, idempotentHint: true },
+    },
+    async ({ input }) => ({
+      content: [{ type: "text", text: [...input].reverse().join("") }],
+    })
+  );
+
+  const app = express();
+  app.use(express.json());
+
+  app.post("/mcp", async (req, res) => {
+    try {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+      });
+      res.on("close", () => {
+        transport.close();
+      });
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+    } catch (err) {
+      console.error("MCP handler error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
+          id: null,
+        });
+      }
+    }
+  });
+
+  app.get("/mcp", (_req, res) =>
+    res.status(405).json({ error: { message: "Method not allowed" } })
+  );
+  app.delete("/mcp", (_req, res) =>
+    res.status(405).json({ error: { message: "Method not allowed" } })
+  );
+
+  app.listen(3000, () => {
+    console.log("MCP HTTP server listening on http://localhost:3000/mcp");
+  });
+
+test_cases:
+  - id: test-listens-3000
+    description: "El server levanta en puerto 3000"
+    test_code: |
+      assert true, "curl http://localhost:3000/mcp debería responder"
+    points: 5
+  - id: test-post-initialize
+    description: "POST /mcp con initialize devuelve un response JSON-RPC válido"
+    test_code: |
+      assert resp.result.protocolVersion, "Debe responder con protocolVersion"
+      assert resp.result.capabilities, "Debe incluir capabilities"
+    points: 10
+  - id: test-tools-call-via-http
+    description: "Un tools/call por HTTP devuelve el string invertido"
+    test_code: |
+      assert result.content[0].text === "odnum", "reverse('mundo') = 'odnum'"
+    points: 5
+  - id: test-method-not-allowed
+    description: "GET y DELETE sobre /mcp retornan 405"
+    test_code: |
+      assert getResp.status === 405, "GET no está soportado en este setup simple"
+    points: 5
+
+hints:
+  - "El header `Accept: application/json, text/event-stream` es requerido por el cliente — le dice al server si acepta respuestas SSE."
+  - "Para un deploy real, agregá auth — Bearer token validado antes de llamar transport.handleRequest."
+  - "sessionIdGenerator puede devolver null para modo stateless simple, pero perdés features de notifications por SSE."
+  - "Para que Anthropic lo alcance via MCP Connector, tenés que deployarlo a una URL pública (fly.io, Render, etc.) y pasar esa URL en mcp_servers."
+  - "Si te da errores de CORS cuando testees desde browser, agregá cors() al middleware."
+
+concepts:
+  - StreamableHTTPServerTransport
+  - express
+  - session-id
+  - remote-mcp
+  - deployment

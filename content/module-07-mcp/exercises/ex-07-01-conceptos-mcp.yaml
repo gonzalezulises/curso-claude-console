@@ -1,0 +1,88 @@
+id: ex-07-01-conceptos-mcp
+type: quiz
+title: "Conceptos MCP: roles, primitivas, cuándo usar qué"
+lesson_ref: lesson-07-03
+difficulty: beginner
+estimated_time_minutes: 8
+points: 12
+
+description: |
+  Quiz integrador de los primeros 6 lessons: qué rol ejecuta qué, distinción
+  tool vs resource vs prompt, y cuándo preferir MCP sobre tool use artesanal.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: "Un agente Claude en la Messages API necesita llamar al server MCP `deepwiki` para responder una pregunta. ¿Quién ejecuta realmente el JSON-RPC `tools/call` contra el server?"
+    options:
+      - id: a
+        text: "El modelo Claude, que habla MCP directamente"
+      - id: b
+        text: "Tu código cliente que invoca /v1/messages"
+      - id: c
+        text: "La infraestructura de Anthropic (cuando usás el beta MCP Connector)"
+      - id: d
+        text: "El server MCP se invoca a sí mismo cuando detecta la request"
+    correct: c
+    feedback_correct: "Correcto. Con el beta `mcp-client-2025-04-04`, Anthropic actúa como host MCP: hace el handshake, lista tools, y ejecuta los `tools/call` en su infra. El modelo nunca habla MCP; tu código tampoco. Solo pasás `mcp_servers: [...]` en el request."
+    feedback_incorrect: "El modelo nunca habla MCP — solo ve tools como las del M05. Tu código cliente, cuando usás MCP Connector, tampoco ejecuta nada: le pasa la URL del server a Anthropic y Anthropic se encarga de todo el ciclo. El loop JSON-RPC corre en la infra de Anthropic."
+    points: 3
+
+  - id: q2
+    type: multiple_choice
+    question: "Estás construyendo un server MCP para un sistema de tickets. ¿Cuál de estas capacidades tiene MÁS sentido como **resource** y no como tool?"
+    options:
+      - id: a
+        text: "`create_ticket(title, body)` que crea un ticket en Jira"
+      - id: b
+        text: "`sla_policy.md` — el documento de políticas SLA del equipo, identificable por URI estable"
+      - id: c
+        text: "`search_tickets(query)` que busca por keyword"
+      - id: d
+        text: "`close_ticket(id)` que cierra un ticket y notifica al reporter"
+    correct: b
+    feedback_correct: "Correcto. La regla: resources = data identificable por URI (sustantivos); tools = acciones con side effects o argumentos dinámicos (verbos). `sla_policy.md` es data estática read-only — resource ideal. Las otras tres son acciones/búsquedas — tools."
+    feedback_incorrect: "La distinción clave: resources son **data identificable por URI**, típicamente estática o poco cambiante; tools son **acciones** que el modelo invoca con argumentos. Crear, buscar y cerrar tickets son acciones → tools. Un documento de políticas es data → resource."
+    points: 3
+
+  - id: q3
+    type: multiple_select
+    question: "¿Cuáles de estas son razones LEGÍTIMAS para usar MCP en lugar de tool use artesanal (M05)? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "Querés reutilizar las mismas capacidades desde Claude Code, desde tu backend y desde Managed Agents"
+      - id: b
+        text: "Necesitás consumir un server MCP público que ya existe (ej: DeepWiki, GitHub)"
+      - id: c
+        text: "Tu agente es un script simple con 2 tools que no van a reutilizarse en otros hosts"
+      - id: d
+        text: "Querés que otras personas/equipos puedan conectarse a tu sistema sin que tengas que escribir integraciones específicas por cliente"
+    correct: [a, b, d]
+    feedback_correct: "Correcto. MCP gana cuando (A) hay múltiples hosts consumiendo las mismas tools, (B) hay servers existentes que podés aprovechar, o (D) vas a publicar tu sistema para que otros lo consuman. La opción C es el caso exacto donde MCP es overkill — tool use artesanal alcanza y es más simple."
+    feedback_incorrect: "La opción C es el caso donde MCP NO vale la pena. Para un script simple con 2 tools que viven en el mismo proceso, tool use artesanal es más directo y sin overhead de protocolo. MCP brilla cuando hay reutilización entre hosts, servers públicos que podés consumir, o publicación de tu sistema a terceros."
+    points: 3
+
+  - id: q4
+    type: true_false
+    question: "Un server MCP que corre localmente con transporte stdio se puede pasar directamente como `mcp_servers: [{type: 'url', url: 'stdio://local'}]` al endpoint `/v1/messages`."
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: b
+    feedback_correct: "Correcto. Falso. El MCP Connector de la Messages API solo acepta servers con URL HTTP accesibles desde la infra de Anthropic. Un server stdio local no es alcanzable desde internet. Para consumir servers stdio locales, necesitás un host local (Claude Code) o un client MCP propio (SDK)."
+    feedback_incorrect: "Falso. El parámetro `mcp_servers` solo acepta `type: \"url\"` con URLs HTTP reales, accesibles desde los datacenters de Anthropic. Un server corriendo como proceso hijo en tu laptop no tiene URL pública — no se puede invocar via MCP Connector. Para servers locales usás Claude Code o un cliente MCP propio."
+    points: 3
+
+concepts:
+  - host-client-server
+  - tools-vs-resources-vs-prompts
+  - when-to-use-mcp
+  - stdio-vs-http-transport
+  - mcp-connector-limits
