@@ -1,0 +1,392 @@
+id: ex-08-04-lab-reportes
+type: code-typescript
+title: "Lab: skill `markdown-report` con validador inline"
+lesson_ref: lesson-08-06
+difficulty: advanced
+estimated_time_minutes: 35
+points: 25
+
+description: |
+  Construir, subir y probar una skill `markdown-report` que enforca un
+  formato estándar de reporte markdown (frontmatter + 5 secciones + metric
+  blocks) usando un validador Python como gate de calidad.
+
+  El objetivo: demostrar el patrón "skill como proceso completo con
+  enforcement" — no solo instrucciones, sino código que rechaza outputs
+  malformados y fuerza al modelo a corregir.
+
+starter_code: |
+  // ex-08-04: Lab de skill custom con validador.
+  //
+  // Setup:
+  //   mkdir markdown-report-lab && cd markdown-report-lab
+  //   npm init -y && npm install tsx
+  //   export ANTHROPIC_API_KEY=sk-ant-...
+  //
+  // Correr:
+  //   npx tsx lab.ts
+
+  import { mkdirSync, writeFileSync } from "node:fs";
+  import { join } from "node:path";
+
+  const API = "https://api.anthropic.com/v1";
+  const KEY = process.env.ANTHROPIC_API_KEY!;
+  const BASE_HEADERS = {
+    "x-api-key": KEY,
+    "anthropic-version": "2023-06-01",
+  };
+
+  const LAB_DIR = "/tmp/markdown-report-lab/markdown-report";
+
+  // TODO 1: Escribir SKILL.md en $LAB_DIR/SKILL.md
+  // Reglas del frontmatter:
+  //   name: markdown-report
+  //   description: explícito sobre cuándo activar (weekly, post-mortem, etc.) y
+  //     cuándo NO (free-form prose).
+  // El body debe:
+  //   - listar las secciones obligatorias en orden (TL;DR / Context / Findings / Metrics / Next steps)
+  //   - describir el formato del frontmatter del reporte (author, date, type, owner_team)
+  //   - describir el formato de metric blocks (<metric name=... value=... unit=... period=...>)
+  //   - instruir al modelo a correr scripts/validate.py antes de devolver
+
+  const SKILL_MD = `---
+  ...
+  ---
+
+  # Markdown Report Skill
+  ...
+  `;
+
+  // TODO 2: Escribir TEMPLATE.md con un reporte canónico corto.
+
+  const TEMPLATE_MD = `---
+  author: jane.doe
+  ...
+  `;
+
+  // TODO 3: Escribir scripts/validate.py que:
+  //   - valide frontmatter (keys author/date/type/owner_team; type in enum; date YYYY-MM-DD)
+  //   - valide que las 5 secciones aparecen en orden
+  //   - valide que cada <metric> tiene name/value/unit/period
+  //   - exit code 0 si OK; 1 si falla, imprimiendo errores
+
+  const VALIDATE_PY = `#!/usr/bin/env python3
+  import re, sys
+  ...
+  `;
+
+  function writeBundle() {
+    mkdirSync(join(LAB_DIR, "scripts"), { recursive: true });
+    writeFileSync(join(LAB_DIR, "SKILL.md"), SKILL_MD);
+    writeFileSync(join(LAB_DIR, "TEMPLATE.md"), TEMPLATE_MD);
+    writeFileSync(join(LAB_DIR, "scripts", "validate.py"), VALIDATE_PY);
+  }
+
+  // TODO 4: uploadSkill() → sube los 3 archivos con filename=markdown-report/<path>
+  async function uploadSkill(): Promise<{ id: string; latest_version: string }> {
+    throw new Error("not implemented");
+  }
+
+  // TODO 5: generateReport(skillId, prompt) → invoca el skill con el prompt real
+  //   y devuelve el último text block.
+  async function generateReport(skillId: string, prompt: string): Promise<string> {
+    throw new Error("not implemented");
+  }
+
+  async function main() {
+    writeBundle();
+    const { id } = await uploadSkill();
+    const prompt = `Generame un weekly report. Soy jose.lopez del team data.
+    Semana 15 de 2026. Findings: pipeline degradó 2x por 3 días por memory leak
+    en transforms worker; resolvimos con rollback. Metrics: pipeline_duration_p95=12min,
+    memory_leak_rate=400MB/hora.`;
+    const report = await generateReport(id, prompt);
+    console.log(report);
+  }
+
+  main();
+
+solution_code: |
+  import { mkdirSync, writeFileSync } from "node:fs";
+  import { join } from "node:path";
+
+  const API = "https://api.anthropic.com/v1";
+  const KEY = process.env.ANTHROPIC_API_KEY!;
+
+  const LAB_DIR = "/tmp/markdown-report-lab/markdown-report";
+
+  const SKILL_MD = `---
+  name: markdown-report
+  description: Use this skill when the user asks for a company-standard markdown report (weekly status, post-mortem, incident analysis, investigation summary). Produces a report with required frontmatter, canonical sections in order (TL;DR, Context, Findings, Metrics, Next steps), and inline metric blocks. Runs scripts/validate.py before returning. Do NOT trigger for free-form prose, blog posts, or unstructured documents.
+  ---
+
+  # Markdown Report Skill
+
+  ## When to trigger
+  - "weekly report", "status report", "post-mortem", "incident report", "investigation summary".
+
+  ## When NOT to trigger
+  - Free-form prose, blog posts, marketing copy, READMEs.
+
+  ## Output structure (mandatory)
+
+  ### Frontmatter
+  Between --- fences:
+  \`\`\`yaml
+  ---
+  author: [string]
+  date: [YYYY-MM-DD]
+  type: weekly | post-mortem | incident | investigation
+  owner_team: [string]
+  ---
+  \`\`\`
+
+  ### Sections (exact order)
+  1. ## TL;DR (max 3 sentences)
+  2. ## Context (~150 words)
+  3. ## Findings (bullets, max 2 sentences each)
+  4. ## Metrics (each wrapped in <metric> blocks)
+  5. ## Next steps (numbered list: action + owner + ETA)
+
+  ### Metric block
+  \`\`\`
+  <metric name="..." value="..." unit="..." period="...">
+  Human-readable description.
+  </metric>
+  \`\`\`
+
+  ## Process
+  1. Read TEMPLATE.md for a canonical example.
+  2. Draft the report.
+  3. Write draft to /tmp/report.md and run: python scripts/validate.py /tmp/report.md
+  4. If validation fails, fix the reported errors and re-validate.
+  5. Return only when validation passes.
+  `;
+
+  const TEMPLATE_MD = `---
+  author: jane.doe
+  date: 2026-04-12
+  type: weekly
+  owner_team: platform
+  ---
+
+  ## TL;DR
+  Auth service had two brief degradations this week; root cause shared with infra. Traffic recovered.
+
+  ## Context
+  Platform investigated two auth-service degradations coinciding with deploys. Impact: ~3 minutes of elevated 5xx on /v1/login.
+
+  ## Findings
+  - DB migrations hold the readiness probe timing out for ~45s.
+  - Readiness config treats that window as failure and reroutes.
+  - No customer-visible data loss.
+
+  ## Metrics
+  <metric name="error_rate_peak" value="2.1" unit="percent" period="2026-04-06">
+  Peak error rate during Monday degradation.
+  </metric>
+
+  ## Next steps
+  1. Extend readiness timeout 30s→120s (owner: platform, ETA: 2026-04-18).
+  2. Add deploy-blocker for pending migrations (owner: infra, ETA: 2026-04-25).
+  `;
+
+  const VALIDATE_PY = `#!/usr/bin/env python3
+  """Validate a markdown report against the company standard."""
+  import re, sys
+
+  REQUIRED_KEYS = {"author", "date", "type", "owner_team"}
+  REQUIRED_SECTIONS = ["## TL;DR", "## Context", "## Findings", "## Metrics", "## Next steps"]
+  VALID_TYPES = {"weekly", "post-mortem", "incident", "investigation"}
+
+  def main(path):
+      with open(path, encoding="utf-8") as f:
+          text = f.read()
+      errors = []
+
+      fm = re.match(r"^---\\n(.*?)\\n---\\n", text, re.DOTALL)
+      if not fm:
+          errors.append("Missing YAML frontmatter.")
+      else:
+          body = fm.group(1)
+          keys = {l.split(":",1)[0].strip() for l in body.splitlines() if ":" in l}
+          missing = REQUIRED_KEYS - keys
+          if missing: errors.append(f"Missing frontmatter keys: {sorted(missing)}")
+          t = re.search(r"^type:\\s*(\\S+)", body, re.M)
+          if t and t.group(1) not in VALID_TYPES:
+              errors.append(f"Invalid type: {t.group(1)}")
+          d = re.search(r"^date:\\s*(\\S+)", body, re.M)
+          if d and not re.match(r"\\d{4}-\\d{2}-\\d{2}", d.group(1)):
+              errors.append(f"Invalid date format: {d.group(1)}")
+
+      last = 0
+      for s in REQUIRED_SECTIONS:
+          p = text.find(s, last)
+          if p == -1:
+              errors.append(f"Missing or out-of-order section: {s}")
+              break
+          last = p
+
+      for attrs in re.findall(r"<metric\\s+([^>]+)>", text):
+          got = dict(re.findall(r'(\\w+)="([^"]*)"', attrs))
+          for r in ("name","value","unit","period"):
+              if r not in got:
+                  errors.append(f"Metric missing '{r}': {attrs}")
+
+      if errors:
+          print("VALIDATION FAILED:")
+          for e in errors: print(f"  - {e}")
+          return 1
+      print("OK: report passes all validation rules.")
+      return 0
+
+  if __name__ == "__main__":
+      sys.exit(main(sys.argv[1]))
+  `;
+
+  function writeBundle() {
+    mkdirSync(join(LAB_DIR, "scripts"), { recursive: true });
+    writeFileSync(join(LAB_DIR, "SKILL.md"), SKILL_MD);
+    writeFileSync(join(LAB_DIR, "TEMPLATE.md"), TEMPLATE_MD);
+    writeFileSync(join(LAB_DIR, "scripts", "validate.py"), VALIDATE_PY);
+  }
+
+  async function uploadSkill() {
+    const fd = new FormData();
+    fd.append("display_title", "markdown-report");
+    fd.append(
+      "files[]",
+      new Blob([SKILL_MD], { type: "text/markdown" }),
+      "markdown-report/SKILL.md"
+    );
+    fd.append(
+      "files[]",
+      new Blob([TEMPLATE_MD], { type: "text/markdown" }),
+      "markdown-report/TEMPLATE.md"
+    );
+    fd.append(
+      "files[]",
+      new Blob([VALIDATE_PY], { type: "text/x-python" }),
+      "markdown-report/scripts/validate.py"
+    );
+    const res = await fetch(`${API}/skills`, {
+      method: "POST",
+      headers: {
+        "x-api-key": KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "skills-2025-10-02",
+      },
+      body: fd,
+    });
+    if (!res.ok) throw new Error(`upload failed: ${res.status} ${await res.text()}`);
+    return await res.json();
+  }
+
+  async function generateReport(skillId: string, prompt: string) {
+    const res = await fetch(`${API}/messages`, {
+      method: "POST",
+      headers: {
+        "x-api-key": KEY,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta":
+          "code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 4096,
+        container: {
+          skills: [{ type: "custom", skill_id: skillId, version: "latest" }],
+        },
+        tools: [{ type: "code_execution_20250825", name: "code_execution" }],
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    const data = await res.json();
+    const last = [...data.content].reverse().find((b: any) => b.type === "text");
+    return last?.text ?? "";
+  }
+
+  async function main() {
+    writeBundle();
+    const { id } = await uploadSkill();
+    console.log(`skill uploaded: ${id}`);
+    const prompt = `Generame un weekly report. Soy jose.lopez del team data.
+  Semana 15 de 2026. Findings: pipeline degradó 2x por 3 días por memory leak
+  en transforms worker; resolvimos con rollback. Metrics: pipeline_duration_p95=12min
+  (normal 6min), memory_leak_rate=400MB/hora.`;
+    const report = await generateReport(id, prompt);
+    console.log("\n=== REPORT ===\n");
+    console.log(report);
+  }
+
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+
+test_cases:
+  - id: test-bundle-structure
+    description: "El bundle contiene SKILL.md en raíz + TEMPLATE.md + scripts/validate.py"
+    test_code: |
+      assert existsSync(join(LAB_DIR, "SKILL.md"))
+      assert existsSync(join(LAB_DIR, "TEMPLATE.md"))
+      assert existsSync(join(LAB_DIR, "scripts", "validate.py"))
+    points: 4
+
+  - id: test-skill-md-frontmatter
+    description: "SKILL.md tiene name + description válidos con criterios when-trigger y when-NOT-trigger"
+    test_code: |
+      const fm = parseFrontmatter(SKILL_MD)
+      assert fm.name === "markdown-report"
+      assert fm.description.length > 100
+      assert /do not trigger/i.test(fm.description)
+    points: 4
+
+  - id: test-upload-multipart-paths
+    description: "Upload usa paths relativos con prefix markdown-report/ en los tres files"
+    test_code: |
+      const body = uploadRequest.body
+      assert body.includes('filename="markdown-report/SKILL.md"')
+      assert body.includes('filename="markdown-report/TEMPLATE.md"')
+      assert body.includes('filename="markdown-report/scripts/validate.py"')
+    points: 5
+
+  - id: test-validator-catches-missing-section
+    description: "Ejecutado localmente, validate.py falla con exit 1 si le falta una sección"
+    test_code: |
+      const broken = SKILL_MD_DRAFT.replace("## Metrics", "## METS")
+      writeFileSync("/tmp/broken.md", broken)
+      const { exitCode } = runPython("scripts/validate.py", "/tmp/broken.md")
+      assert exitCode === 1
+    points: 5
+
+  - id: test-generated-report-valid
+    description: "El reporte generado por la skill pasa el validador localmente"
+    test_code: |
+      writeFileSync("/tmp/generated.md", report)
+      const { exitCode, stdout } = runPython("scripts/validate.py", "/tmp/generated.md")
+      assert exitCode === 0, `validator failed: ${stdout}`
+    points: 4
+
+  - id: test-report-has-metric-blocks
+    description: "El reporte incluye al menos 2 metric blocks bien formados"
+    test_code: |
+      const metrics = [...report.matchAll(/<metric\s+[^>]*name="[^"]+"/g)]
+      assert metrics.length >= 2
+    points: 3
+
+hints:
+  - "El `description` del frontmatter es tu contrato con el dispatcher — enumerá disparadores concretos (weekly, post-mortem) Y anti-disparadores (free-form prose)."
+  - "`TEMPLATE.md` sirve para que el modelo no invente el shape; mantenelo corto y canónico, no una enciclopedia."
+  - "En `validate.py`, imprime errores específicos (`Missing section: ## Metrics`) — si solo decís `FAIL` el modelo no sabe qué corregir."
+  - "Todos los files del upload comparten el prefix `markdown-report/` en el filename; el script va en `markdown-report/scripts/validate.py`."
+  - "Para el test local del validador, podés correrlo con `python3` directo — no necesitás que corra dentro del container de Anthropic; es el mismo código."
+  - "Si el modelo no está corriendo `validate.py`, reforzá en `SKILL.md`: 'You MUST run scripts/validate.py and return only when it exits 0'."
+
+concepts:
+  - skill-design-end-to-end
+  - bundle-multifile-upload
+  - validator-as-gate
+  - structured-output-enforcement
+  - progressive-disclosure-in-practice

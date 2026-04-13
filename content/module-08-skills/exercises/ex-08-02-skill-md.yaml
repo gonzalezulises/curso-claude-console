@@ -1,0 +1,123 @@
+id: ex-08-02-skill-md
+type: quiz
+title: "Escribir y auditar un `SKILL.md` válido"
+lesson_ref: lesson-08-02
+difficulty: beginner
+estimated_time_minutes: 10
+points: 15
+
+description: |
+  Quiz sobre reglas de formato de SKILL.md: validez del frontmatter,
+  decisiones de diseño del description, anatomía del bundle, y
+  diagnóstico de errores comunes del upload.
+
+config:
+  passing_score: 70
+  randomize_questions: false
+  show_feedback: true
+
+questions:
+  - id: q1
+    type: multiple_choice
+    question: |
+      ¿Cuál de estos frontmatters es VÁLIDO para un `SKILL.md`?
+
+      Opción A:
+      ```yaml
+      ---
+      name: Financial Report
+      description: Generates reports.
+      ---
+      ```
+
+      Opción B:
+      ```yaml
+      ---
+      name: claude-helper
+      description: Use this skill when drafting Claude prompts.
+      ---
+      ```
+
+      Opción C:
+      ```yaml
+      ---
+      name: financial-report
+      description: Use this skill when generating financial Excel reports. Applies company color coding and number formatting. Do NOT trigger for generic data analysis.
+      ---
+      ```
+
+      Opción D:
+      ```yaml
+      ---
+      name: report-v2
+      ---
+      ```
+    options:
+      - id: a
+        text: "Opción A"
+      - id: b
+        text: "Opción B"
+      - id: c
+        text: "Opción C"
+      - id: d
+        text: "Opción D"
+    correct: c
+    feedback_correct: "Correcto. Opción C cumple las tres reglas: (1) `name` en lowercase con guiones, (2) `description` concreta que explica cuándo SÍ y cuándo NO activar, (3) sin palabras reservadas. A falla por `name` con mayúsculas y espacios. B falla por contener la palabra reservada `claude`. D falla por faltarle `description` (obligatorio)."
+    feedback_incorrect: "Revisá las reglas del frontmatter: name debe ser lowercase + guiones sin palabras reservadas (`anthropic`, `claude`); description es obligatorio y debe explicar cuándo activar. La opción que cumple todo es la C."
+    points: 4
+
+  - id: q2
+    type: multiple_select
+    question: "¿Cuáles de estas afirmaciones sobre **progressive disclosure** de skills son correctas? (seleccioná todas las que apliquen)"
+    options:
+      - id: a
+        text: "El body completo de `SKILL.md` se carga siempre en el system prompt, junto con la metadata."
+      - id: b
+        text: "Solo el frontmatter (name + description) se carga siempre; el body entra al contexto cuando la skill se dispara."
+      - id: c
+        text: "Los archivos extra del bundle (REFERENCE.md, scripts) se leen solo si el modelo los referencia explícitamente."
+      - id: d
+        text: "El código de los scripts entra al contexto cuando se ejecutan; solo el output se oculta."
+    correct: [b, c]
+    feedback_correct: "Correcto. Progressive disclosure tiene tres niveles: metadata (siempre), body de SKILL.md (on-trigger), archivos extra (on-reference). La afirmación D es al revés: el código del script NUNCA entra al contexto — solo su output. Eso es lo que hace viable tener scripts pesados sin costo de tokens."
+    feedback_incorrect: "La opción A confunde niveles: la metadata se carga siempre pero el body NO. La opción D tiene invertido el comportamiento: el código del script no entra al contexto — precisamente por eso los scripts son baratos en tokens; solo se paga el output."
+    points: 4
+
+  - id: q3
+    type: multiple_choice
+    question: "Subiste un skill con `-F \"files[]=@SKILL.md;filename=SKILL.md\"` y el API respondió con: `\"SKILL.md file must be exactly in the top-level folder.\"` ¿Qué hay que cambiar?"
+    options:
+      - id: a
+        text: "Mover SKILL.md a un subdirectorio `top-level/` y re-subir con filename=`top-level/SKILL.md`"
+      - id: b
+        text: "Cambiar el filename del upload a `<folder>/SKILL.md` (ej: `my-skill/SKILL.md`) porque todos los files comparten un folder top-level en el path del upload"
+      - id: c
+        text: "El error significa que el archivo `SKILL.md` está en un subdirectorio de tu filesystem local — hay que moverlo a la raíz de tu proyecto"
+      - id: d
+        text: "Hay que convertir la skill a un zip y subirla así"
+    correct: b
+    feedback_correct: "Correcto. El mensaje es engañoso: el problema no es tu filesystem local, sino que el `filename` del upload tiene que incluir el folder prefix. Cada `files[]` se sube con `filename=<folder>/<path>` y todos los files del bundle comparten ese `<folder>`."
+    feedback_incorrect: "Mirá bien el formato del flag `filename`. El API espera que cada file del multipart tenga un filename que empiece con el nombre del folder del bundle (ej: `my-skill/SKILL.md`). El error de 'top-level folder' se refiere a ese path del upload, no a tu filesystem local."
+    points: 3
+
+  - id: q4
+    type: true_false
+    question: |
+      El path dentro del container donde se monta una skill llamada `financial-report`
+      con `skill_id: "skill_01ABC..."` es `/skills/skill_01ABC.../SKILL.md`.
+    options:
+      - id: a
+        text: "Verdadero"
+      - id: b
+        text: "Falso"
+    correct: b
+    feedback_correct: "Correcto. Falso. El path del mount usa el **folder name** del bundle (el prefix usado en `filename=<folder>/...` al subir), NO el `skill_id`. Si el upload usó `filename=financial-report/SKILL.md`, el path en el container es `/skills/financial-report/SKILL.md`. Por eso no tenés que hardcodear paths dependiendo del skill_id."
+    feedback_incorrect: "Falso. El `skill_id` (ej: `skill_01ABC...`) es el identificador del skill para la API, pero el path dentro del container usa el **folder name** con el que lo subiste. Si subiste con `filename=financial-report/SKILL.md`, el path es `/skills/financial-report/SKILL.md`."
+    points: 4
+
+concepts:
+  - skill-md-frontmatter
+  - name-description-rules
+  - progressive-disclosure
+  - upload-multipart-filenames
+  - container-filesystem-paths

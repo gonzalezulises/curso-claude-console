@@ -1,0 +1,253 @@
+id: ex-08-03-upload-skill
+type: code-typescript
+title: "Subir una skill custom, verificar con list, invocarla y limpiar"
+lesson_ref: lesson-08-05
+difficulty: intermediate
+estimated_time_minutes: 20
+points: 20
+
+description: |
+  Implementar el lifecycle completo de una skill custom contra el API:
+  1. Escribir SKILL.md localmente.
+  2. POST /v1/skills con multipart upload.
+  3. GET /v1/skills?source=custom para verificar que aparece.
+  4. Invocar /v1/messages con la skill activa.
+  5. DELETE versiones + skill (cleanup).
+
+  Ejercicio pensado para ejecutarse end-to-end contra la API real.
+
+starter_code: |
+  // ex-08-03: Lifecycle completo de una skill custom.
+  //
+  // Setup:
+  //   mkdir skill-lifecycle && cd skill-lifecycle
+  //   npm init -y
+  //   npm install tsx
+  //   export ANTHROPIC_API_KEY=sk-ant-...
+  //
+  // Correr:
+  //   npx tsx lifecycle.ts
+  //
+  // No usamos el SDK oficial porque el endpoint /v1/skills usa multipart
+  // y querés aprender el shape real.
+
+  import { mkdirSync, writeFileSync, createReadStream } from "node:fs";
+  import { join } from "node:path";
+
+  const API = "https://api.anthropic.com/v1";
+  const KEY = process.env.ANTHROPIC_API_KEY!;
+  const HEADERS = {
+    "x-api-key": KEY,
+    "anthropic-version": "2023-06-01",
+    "anthropic-beta": "skills-2025-10-02",
+  };
+
+  // TODO 1: Crear /tmp/skill-lifecycle-lab/demo-skill/SKILL.md con frontmatter
+  // válido (name: "demo-skill", description explícita sobre cuándo activar).
+  // Cuerpo: instruir a Claude a responder con el texto "DEMO_OK_<random>".
+
+  // TODO 2: Función `uploadSkill()` → POST /v1/skills con FormData.
+  //   - display_title: "demo-skill"
+  //   - files[]: el SKILL.md con filename=demo-skill/SKILL.md
+  // Devolver { id, latest_version }.
+
+  async function uploadSkill(): Promise<{ id: string; latest_version: string }> {
+    // TODO: implementar
+    throw new Error("not implemented");
+  }
+
+  // TODO 3: Función `listCustomSkills()` → GET /v1/skills?source=custom.
+  // Devolver el array `data`.
+
+  async function listCustomSkills(): Promise<any[]> {
+    throw new Error("not implemented");
+  }
+
+  // TODO 4: Función `invokeSkill(skillId)` → POST /v1/messages con
+  // beta headers completos (code-execution, skills, files-api),
+  // container.skills con type custom, tool code_execution_20250825.
+  // Pedile a Claude que responda "Dame el codigo demo".
+
+  async function invokeSkill(skillId: string): Promise<any> {
+    throw new Error("not implemented");
+  }
+
+  // TODO 5: Función `cleanup(skillId, versionId)` → DELETE versión + DELETE skill.
+
+  async function cleanup(skillId: string, versionId: string): Promise<void> {
+    throw new Error("not implemented");
+  }
+
+  async function main() {
+    const { id, latest_version } = await uploadSkill();
+    console.log(`uploaded: ${id} @ ${latest_version}`);
+
+    const list = await listCustomSkills();
+    const found = list.find(s => s.id === id);
+    console.log(`list verification: found=${!!found}`);
+
+    const response = await invokeSkill(id);
+    const lastText = [...response.content].reverse().find((b: any) => b.type === "text");
+    console.log(`invoke last text: ${lastText?.text?.slice(0, 200)}`);
+
+    await cleanup(id, latest_version);
+    console.log("cleaned up");
+  }
+
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+
+solution_code: |
+  import { mkdirSync, writeFileSync } from "node:fs";
+  import { join } from "node:path";
+
+  const API = "https://api.anthropic.com/v1";
+  const KEY = process.env.ANTHROPIC_API_KEY!;
+  const HEADERS = {
+    "x-api-key": KEY,
+    "anthropic-version": "2023-06-01",
+    "anthropic-beta": "skills-2025-10-02",
+  };
+
+  const LAB_DIR = "/tmp/skill-lifecycle-lab";
+  const RAND = Math.random().toString(36).slice(2, 8);
+  const SKILL_MD = `---
+  name: demo-skill
+  description: Use this skill when the user says "dame el codigo demo" or asks for the demo code. Responds with a single token of the form DEMO_OK_<random>. Do NOT trigger for any other request.
+  ---
+
+  # Demo Skill
+
+  When triggered, respond with EXACTLY:
+
+  DEMO_OK_${RAND}
+
+  Nothing else.
+  `;
+
+  function writeBundle() {
+    mkdirSync(join(LAB_DIR, "demo-skill"), { recursive: true });
+    writeFileSync(join(LAB_DIR, "demo-skill", "SKILL.md"), SKILL_MD);
+  }
+
+  async function uploadSkill(): Promise<{ id: string; latest_version: string }> {
+    const fd = new FormData();
+    fd.append("display_title", "demo-skill");
+    const content = new Blob([SKILL_MD], { type: "text/markdown" });
+    fd.append("files[]", content, "demo-skill/SKILL.md");
+    const res = await fetch(`${API}/skills`, { method: "POST", headers: HEADERS, body: fd });
+    if (!res.ok) throw new Error(`upload failed: ${res.status} ${await res.text()}`);
+    return await res.json();
+  }
+
+  async function listCustomSkills(): Promise<any[]> {
+    const res = await fetch(`${API}/skills?source=custom`, { headers: HEADERS });
+    const data = await res.json();
+    return data.data;
+  }
+
+  async function invokeSkill(skillId: string): Promise<any> {
+    const res = await fetch(`${API}/messages`, {
+      method: "POST",
+      headers: {
+        ...HEADERS,
+        "anthropic-beta":
+          "code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5",
+        max_tokens: 512,
+        container: {
+          skills: [{ type: "custom", skill_id: skillId, version: "latest" }],
+        },
+        tools: [{ type: "code_execution_20250825", name: "code_execution" }],
+        messages: [{ role: "user", content: "Dame el codigo demo" }],
+      }),
+    });
+    if (!res.ok) throw new Error(`invoke failed: ${res.status} ${await res.text()}`);
+    return await res.json();
+  }
+
+  async function cleanup(skillId: string, versionId: string): Promise<void> {
+    await fetch(`${API}/skills/${skillId}/versions/${versionId}`, {
+      method: "DELETE",
+      headers: HEADERS,
+    });
+    await fetch(`${API}/skills/${skillId}`, { method: "DELETE", headers: HEADERS });
+  }
+
+  async function main() {
+    writeBundle();
+    const { id, latest_version } = await uploadSkill();
+    console.log(`uploaded: ${id} @ ${latest_version}`);
+
+    const list = await listCustomSkills();
+    const found = list.find(s => s.id === id);
+    console.log(`list verification: found=${!!found}`);
+
+    const response = await invokeSkill(id);
+    const lastText = [...response.content].reverse().find((b: any) => b.type === "text");
+    console.log(`invoke last text: ${lastText?.text?.slice(0, 200)}`);
+
+    await cleanup(id, latest_version);
+    console.log("cleaned up");
+  }
+
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+
+test_cases:
+  - id: test-upload-multipart
+    description: "El upload usa multipart FormData con filename=demo-skill/SKILL.md"
+    test_code: |
+      assert uploadRequest.contentType.includes("multipart/form-data")
+      assert uploadRequest.body.includes("filename=\"demo-skill/SKILL.md\"")
+    points: 5
+
+  - id: test-upload-response
+    description: "uploadSkill devuelve id empezando con skill_01 y un latest_version"
+    test_code: |
+      assert /^skill_01/.test(result.id)
+      assert typeof result.latest_version === "string" && result.latest_version.length > 0
+    points: 4
+
+  - id: test-list-finds-skill
+    description: "listCustomSkills encuentra el skill recién subido"
+    test_code: |
+      assert list.find(s => s.id === uploadedId) !== undefined
+    points: 3
+
+  - id: test-invoke-has-skill-path
+    description: "La invocación produce content blocks accediendo a /skills/demo-skill"
+    test_code: |
+      assert response.content.some(b =>
+        b.type === "server_tool_use" &&
+        JSON.stringify(b.input).includes("/skills/demo-skill")
+      )
+    points: 4
+
+  - id: test-cleanup-succeeds
+    description: "cleanup borra versión y luego skill sin error"
+    test_code: |
+      assert cleanupResult.version_deleted === true
+      assert cleanupResult.skill_deleted === true
+    points: 4
+
+hints:
+  - "El `filename` del `files[]` debe incluir el prefix del folder: `demo-skill/SKILL.md`, no solo `SKILL.md`."
+  - "El upload usa solo el beta `skills-2025-10-02`. La invocación necesita los TRES betas (code-execution + skills + files-api)."
+  - "`FormData` + `Blob` es suficiente en Node 20+; no necesitás `form-data` como dep."
+  - "Para borrar la skill primero tenés que borrar sus versiones; el orden inverso falla."
+  - "Si el test del list falla, chequeá que el filtro `?source=custom` esté en la URL, no en headers."
+
+concepts:
+  - skill-upload-multipart
+  - skill-list-filters
+  - skill-invocation-custom
+  - skill-delete-lifecycle
+  - beta-headers-combined

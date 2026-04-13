@@ -5,28 +5,29 @@
 # Actualízalo SIEMPRE al terminar una sesión de producción significativa.
 
 version: 1
-last_updated: "2026-04-12"
+last_updated: "2026-04-13"
 last_session_summary: >
-  Módulo 7 — MCP (Model Context Protocol) completo. Se escribieron las 10
-  lecciones (qué es MCP, arquitectura host/client/server, primitiva tools,
-  primitiva resources, primitiva prompts, sampling & roots, MCP Connector
-  desde /v1/messages, conectar servers existentes via npx, server custom con
-  SDK TypeScript, lab de server custom con 3 tools) y los 7 ejercicios
-  (quiz de conceptos, cliente SDK contra filesystem server, MCP Connector con
-  DeepWiki, server básico reverse_string, resources estáticos + templates,
-  migración a streamable-http con Express, lab tasks-server con 3 CRUD tools
-  + client.ts + .claude.json). Curls reales: MCP Connector contra
-  https://mcp.deepwiki.com/mcp con beta mcp-client-2025-04-04 mostrando
-  content blocks mcp_tool_use, mcp_tool_result y text (usage input=2283
-  output=130); handshake real con @modelcontextprotocol/server-filesystem@0.2.0
-  via stdio; server propio con @modelcontextprotocol/sdk@1.29.0 verificado
-  end-to-end con initialize → tools/list → tools/call. Corrección aplicada
-  en OUTLINE.md: beta header activo es mcp-client-2025-04-04 (no 2025-11-20).
+  Módulo 8 — Skills completo. Se escribieron las 6 lecciones (qué es una
+  skill y cuándo usarla, anatomía SKILL.md + scripts + assets, skills de
+  Anthropic pdf/docx/pptx/xlsx, crear skill custom end-to-end, gestionar
+  skills desde la API, lab de skill markdown-report con validador) y los
+  4 ejercicios (invocar xlsx oficial, quiz de SKILL.md, lifecycle completo
+  upload/list/invoke/delete, lab markdown-report con scripts/validate.py).
+  Verificaciones reales contra la API: listado de 4 skills oficiales
+  (pdf/docx/pptx/xlsx); invocación de xlsx con los tres beta headers
+  (code-execution-2025-08-25, skills-2025-10-02, files-api-2025-04-14);
+  upload multipart con filename=<folder>/SKILL.md (confirmé que el error
+  "SKILL.md must be in top-level folder" se refiere al path del upload, no al
+  filesystem local); invocación end-to-end de skill custom con type custom
+  devolviendo content blocks text_editor_code_execution accediendo a
+  /skills/<folder>/SKILL.md; cleanup con DELETE version + DELETE skill.
+  VitePress build pasa. Subcarpeta de scripts en el bundle respetada
+  (scripts/validate.py).
 
 current_focus:
-  module: module-08-skills
+  module: module-09-managed-agents
   status: outline
-  next_action: "Producir Módulo 8 — Skills"
+  next_action: "Producir Módulo 9 — Managed Agents (requiere curls de verificación contra /v1/agents, /v1/sessions, /v1/environments, /v1/vaults con beta managed-agents-2026-04-01)"
 
 modules_state:
   module-00-setup:
@@ -95,9 +96,12 @@ modules_state:
     last_verified: "2026-04-12"
 
   module-08-skills:
-    status: outline
-    lessons_written: 0
+    status: completed
+    lessons_written: 6
     lessons_total: 6
+    exercises_written: 4
+    exercises_total: 4
+    last_verified: "2026-04-13"
 
   module-09-managed-agents:
     status: outline

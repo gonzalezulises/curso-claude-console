@@ -1,0 +1,152 @@
+id: ex-08-01-skills-anthropic
+type: code-typescript
+title: "Invocar la skill oficial `xlsx` y verificar el loop de ejecución"
+lesson_ref: lesson-08-03
+difficulty: beginner
+estimated_time_minutes: 12
+points: 15
+
+description: |
+  Invocar una skill pre-built de Anthropic (xlsx) con los tres beta headers
+  obligatorios, el tool `code_execution_20250825`, y verificar en la respuesta
+  que el modelo efectivamente leyó `/skills/xlsx/SKILL.md` antes de generar
+  el archivo.
+
+starter_code: |
+  // ex-08-01: Invocar skill xlsx oficial.
+  //
+  // Setup:
+  //   mkdir skill-xlsx-demo && cd skill-xlsx-demo
+  //   npm init -y
+  //   npm install @anthropic-ai/sdk tsx
+  //   export ANTHROPIC_API_KEY=sk-ant-...
+  //
+  // Correr:
+  //   npx tsx invoke.ts
+
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  async function main() {
+    // TODO 1: Crear el request a /v1/messages con:
+    //   - model: "claude-haiku-4-5"
+    //   - max_tokens: 1024
+    //   - los TRES beta headers (code-execution-2025-08-25, skills-2025-10-02, files-api-2025-04-14)
+    //   - container.skills con la skill oficial xlsx (type: "anthropic")
+    //   - tools con code_execution_20250825
+    //   - un mensaje pidiendo un Excel simple con 3 filas
+    //
+    // Pista: en el SDK, los betas se pasan como segundo argumento:
+    //   client.beta.messages.create({...}, { headers: { "anthropic-beta": "..." } })
+    // O podés usar client.messages.create y pasar los headers custom en la config del cliente.
+
+    const response = await client.messages.create({
+      // TODO: completar
+    } as any);
+
+    // TODO 2: Recorrer response.content y loggear:
+    //   - cada content block con su `type`
+    //   - si hay un bash_code_execution con input que contenga "/skills/xlsx", loguear un hit
+    //
+    // El test busca evidencia de que Claude leyó el bundle de la skill.
+
+    console.log(JSON.stringify(response, null, 2));
+  }
+
+  main();
+
+solution_code: |
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const client = new Anthropic();
+
+  async function main() {
+    const response = await client.messages.create(
+      {
+        model: "claude-haiku-4-5",
+        max_tokens: 1024,
+        container: {
+          skills: [
+            { type: "anthropic", skill_id: "xlsx", version: "latest" },
+          ],
+        },
+        tools: [
+          { type: "code_execution_20250825", name: "code_execution" },
+        ],
+        messages: [
+          {
+            role: "user",
+            content:
+              "Crea un Excel con 3 filas: producto=A,B,C y precio=10,20,30. Guardalo como /tmp/demo.xlsx y decime su tamaño en bytes.",
+          },
+        ],
+      } as any,
+      {
+        headers: {
+          "anthropic-beta":
+            "code-execution-2025-08-25,skills-2025-10-02,files-api-2025-04-14",
+        },
+      }
+    );
+
+    let readSkillFile = false;
+    for (const block of (response as any).content) {
+      console.log(`- block: ${block.type}`);
+      if (
+        block.type === "server_tool_use" &&
+        JSON.stringify(block.input ?? {}).includes("/skills/xlsx")
+      ) {
+        readSkillFile = true;
+        console.log(`  ↳ accessed skill filesystem: ${JSON.stringify(block.input)}`);
+      }
+    }
+    console.log(`\nskill bundle accessed: ${readSkillFile}`);
+    console.log(`stop_reason: ${(response as any).stop_reason}`);
+  }
+
+  main();
+
+test_cases:
+  - id: test-headers
+    description: "Request incluye los tres beta headers"
+    test_code: |
+      assert headers.includes("code-execution-2025-08-25"), "Falta code-execution beta"
+      assert headers.includes("skills-2025-10-02"), "Falta skills beta"
+      assert headers.includes("files-api-2025-04-14"), "Falta files-api beta"
+    points: 4
+
+  - id: test-skill-declared
+    description: "container.skills incluye la skill xlsx con type anthropic"
+    test_code: |
+      assert skill.type === "anthropic" && skill.skill_id === "xlsx"
+    points: 4
+
+  - id: test-tool-declared
+    description: "tools incluye code_execution_20250825"
+    test_code: |
+      assert tool.type === "code_execution_20250825"
+    points: 3
+
+  - id: test-skill-accessed
+    description: "La respuesta contiene un server_tool_use que accede a /skills/xlsx"
+    test_code: |
+      assert response.content.some(b =>
+        b.type === "server_tool_use" &&
+        JSON.stringify(b.input).includes("/skills/xlsx")
+      )
+    points: 4
+
+hints:
+  - "Los tres beta headers van concatenados por comas en un solo string."
+  - "`container.skills` acepta hasta 8 skills; para este ejercicio con 1 alcanza."
+  - "El tool `code_execution_20250825` es obligatorio — sin él la skill no se monta."
+  - "El SDK `@anthropic-ai/sdk` acepta headers custom en el segundo argumento del `create`."
+  - "Si el primer turn muestra `bash: cat /skills/xlsx/SKILL.md`, la skill se cargó correctamente."
+
+concepts:
+  - anthropic-skills-prebuilt
+  - beta-headers-skills
+  - container-skills
+  - code-execution-tool
+  - skill-filesystem-loading
