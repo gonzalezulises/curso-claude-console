@@ -150,7 +150,7 @@ Verificados contra el endpoint oficial `GET /v1/models` y la lista de `platform.
 
 ## Licencia
 
-Por definir. Actualmente repo privado para desarrollo.
+[MIT](LICENSE)
 
 ---
 
